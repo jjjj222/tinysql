@@ -33,6 +33,7 @@ CXXFLAGS = $(FLAGS) --std=c++11
 CFLAGS = $(FLAGS) -std=c99
 LFLAGS = $(FLAGS) -ll
 LEXFLAG = -t
+YACCFLAG = -d
 
 CC = gcc
 CXX = g++
@@ -42,26 +43,36 @@ YACC = yacc
 
 all: $(EXEC)
 
-$(EXEC): $(OBJS) $(OBJ_FOLDER)/$(LEX_OBJ)
+$(EXEC): $(OBJS) obj/parser.o $(OBJ_FOLDER)/$(LEX_OBJ) obj/y.tab.o
 	$(LINK) $(LFLAGS) -o $@ $^
+
 #$(EXEC): $(OBJS) $(OBJ_FOLDER)/readpcap.o
 #	g++ $(CXXFLAGS) -o $@ $^
 
 -include $(DEPS)
 
-#$(OBJ_FOLDER)/%.o: %.cpp
 $(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 	$(CXX) $(CXXFLAGS) -MT $(OBJ_FOLDER)/$*.o -MM $^ > $(DEP_FOLDER)/$*.d
+
+obj/parser.o: src/parser.c src/parser.h src/y.tab.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
 #$(OBJ_FOLDER)/$(LEX_OBJ): $()
 #	gcc $(CFLAGS) -c $< -o $@
 
 obj/$(LEX_OBJ): src/$(LEX_C)
-	$(CC) $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
-src/$(LEX_C): src/$(LEX_SRC)
+src/$(LEX_C): src/$(LEX_SRC) src/y.tab.h
 	$(LEX) $(LEXFLAG) src/$(LEX_SRC) > src/$(LEX_C)
+
+
+obj/y.tab.o: src/y.tab.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+src/y.tab.c src/y.tab.h: src/sql.y
+	cd src; $(YACC) $(YACCFLAG) sql.y
 #$(SRC_FOLDER)/$(LEX_C): $(SRC_FOLDER)/$(LEX_SRC)
 #	$(LEX)
 
@@ -71,14 +82,16 @@ ctags:
 
 .PHONY: run
 run:
-	./$(EXEC)
+	./$(EXEC) < testcases/example.in
 
 .PHONY: clean
 clean:
 	rm -f $(OBJ_FOLDER)/*
 	rm -f $(BIN_FOLDER)/*
-	rm -f tags
 	rm -f $(DEP_FOLDER)/*
+	rm -f tags
 	rm -f $(SRC_FOLDER)/$(LEX_C)
+	rm -f $(SRC_FOLDER)/y.tab.c
+	rm -f $(SRC_FOLDER)/y.tab.h
 
 

@@ -2,3 +2,6 @@ bin/
 obj/
 dep/
 tags
+src/lex.yy.c
+src/y.tab.c
+src/y.tab.h

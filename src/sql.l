@@ -1,27 +1,35 @@
 number      [0-9]
 letter      [A-Za-z]
+    /* calculator #1 */
 %{
+    #include "y.tab.h"
+    //#include <stdlib.h>
+    void yyerror(char *);
 
+    //#define
 %}
 
+%option nounput noinput
 
 %%
 
-[\t ]+          /*ignorewhitespace*/;
+letter+     {
+                return STRING;
+            }
 
-{number}+         { printf("%s is number\n", yytext); }
+[0-9]+      {
+                yylval = atoi(yytext);
+                return INTEGER;
+            }
 
-[a-zA-Z]+       { printf("%s: is not a verb\n", yytext); }
+[-+\n]      { return *yytext; }
 
-.|\n            {ECHO;}
+[ \t]       ;       /* skip whitespace */
+
+.           yyerror("Unknown character");
 
 %%
 
-//main()
-//{
-//    printf("QQ\n");
-//    yylex();
-//    return 0;
-////[\t ]+          /*ignorewhitespace*/;
-////letter+         { printf("%s: is not a verb\n", yytext); }
-//}
+int yywrap(void) {
+    return 1;
+}
