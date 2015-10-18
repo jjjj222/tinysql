@@ -46,32 +46,27 @@ all: $(EXEC)
 $(EXEC): $(OBJS) obj/parser.o $(OBJ_FOLDER)/$(LEX_OBJ) obj/y.tab.o
 	$(LINK) $(LFLAGS) -o $@ $^
 
-#$(EXEC): $(OBJS) $(OBJ_FOLDER)/readpcap.o
-#	g++ $(CXXFLAGS) -o $@ $^
-
 -include $(DEPS)
 
 $(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 	$(CXX) $(CXXFLAGS) -MT $(OBJ_FOLDER)/$*.o -MM $^ > $(DEP_FOLDER)/$*.d
 
+
 obj/parser.o: src/parser.c src/parser.h src/y.tab.h
 	$(CC) $(CFLAGS) -c $< -o $@
-
-#$(OBJ_FOLDER)/$(LEX_OBJ): $()
-#	gcc $(CFLAGS) -c $< -o $@
 
 obj/$(LEX_OBJ): src/$(LEX_C)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-src/$(LEX_C): src/$(LEX_SRC) src/y.tab.h
-	$(LEX) $(LEXFLAG) src/$(LEX_SRC) > src/$(LEX_C)
-
-
 obj/y.tab.o: src/y.tab.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-src/y.tab.c src/y.tab.h: src/sql.y
+
+src/$(LEX_C): src/$(LEX_SRC) src/y.tab.h src/parser.h
+	$(LEX) $(LEXFLAG) src/$(LEX_SRC) > src/$(LEX_C)
+
+src/y.tab.c src/y.tab.h: src/sql.y src/parser.h
 	cd src; $(YACC) $(YACCFLAG) sql.y
 #$(SRC_FOLDER)/$(LEX_C): $(SRC_FOLDER)/$(LEX_SRC)
 #	$(LEX)

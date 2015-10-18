@@ -1,1 +1,3 @@
-4 + 3
+CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)
+INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
+SELECT * FROM course
