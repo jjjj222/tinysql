@@ -77,7 +77,7 @@ ctags:
 
 .PHONY: run
 run:
-	./$(EXEC) < testcases/example.in
+	@./$(EXEC) < testcases/example.in
 
 .PHONY: clean
 clean:

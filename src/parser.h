@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+extern int lineno;
+
 void sql_parser();
 
 

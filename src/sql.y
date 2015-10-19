@@ -12,6 +12,9 @@
 %token INSERT INTO VALUES
 %token LITERAL INTEGER NULL_VALUE
 %token SELECT DISTINCT FROM WHERE ORDER BY
+%token DELETE DROP
+%token OR AND NOT COMP_OP
+%token ORDER BY
 
 %%
 
@@ -22,12 +25,14 @@ statement_line:
     ;
 
 one_statement:
-        statement { printf("------------------- one statement ----------\n"); }
+        statement { printf("------------------- line %d ------------------\n", lineno); }
     ;
 
 statement:
         create_table_statement
+    |   drop_table_statement
     |   select_statement
+    |   delete_statement
     |   insert_statement
     ;
 
@@ -35,13 +40,31 @@ create_table_statement:
         CREATE TABLE NAME '(' attribute_type_list ')'
     ;
 
-select_statement:
-        select_type select_list FROM name_list
+drop_table_statement:
+        DROP TABLE NAME
     ;
 
-select_type:
-        SELECT
-    |   SELECT DISTINCT
+select_statement:
+        SELECT select_option select_list FROM name_list where_option order_option
+    ;
+
+select_option:
+    |   DISTINCT
+    |
+    ;
+
+where_option:
+        WHERE search_condition
+    |
+    ;
+
+order_option:
+        ORDER BY column_name
+    |
+    ;
+
+delete_statement:
+        DELETE FROM NAME where_option
     ;
 
 insert_statement:
@@ -50,6 +73,7 @@ insert_statement:
 
 insert_tuples:
         VALUES '(' value_list ')'
+    | select_statement
     ;
 
 attribute_type_list:
@@ -92,6 +116,49 @@ value:
     |   INTEGER
     |   NULL_VALUE
     ;
+
+search_condition:
+        boolean_term OR search_condition
+    |   boolean_term
+    ;
+
+boolean_term:
+        boolean_factor AND boolean_term
+    |   boolean_factor
+    ;
+
+boolean_factor:
+        boolean_primary
+    |   NOT boolean_primary
+    ;
+
+boolean_primary:
+        '[' search_condition ']'
+    |   comparison_predicate
+    ;
+
+comparison_predicate:
+        expression COMP_OP expression
+    ;
+
+expression:
+        term '+' expression
+    |   term '-' expression
+    |   term
+    ;
+
+term:
+        factor '*' term
+    |   factor '/' term
+    |   factor
+    ;
+
+factor:
+        '(' expression ')'
+    |   column_name
+    |   LITERAL
+    |   INTEGER
+    ;
 %%
 
 //program:
@@ -107,9 +174,9 @@ value:
 //
 //%%
 
-void yyerror(char *s) {
-    fprintf(stderr, "%s\n", s);
-}
+//void yyerror(char *s) {
+//    fprintf(stderr, "%s\n", s);
+//}
 
 //int main(void) {
 //    yyparse();

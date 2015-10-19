@@ -25,7 +25,16 @@ INTO        KEYWORD(INTO)
 VALUES      KEYWORD(VALUES)
 NULL        KEYWORD(NULL_VALUE)
 SELECT      KEYWORD(SELECT)
+DISTINCT    KEYWORD(DISTINCT)
 FROM        KEYWORD(FROM)
+WHERE       KEYWORD(WHERE)
+ORDER       KEYWORD(ORDER)
+BY          KEYWORD(BY)
+DELETE      KEYWORD(DELETE)
+DROP        KEYWORD(DROP)
+OR          KEYWORD(OR)
+AND         KEYWORD(AND)
+NOT         KEYWORD(NOT)
 
 {name}      {
                 debug_lex(NAME, yytext);
@@ -48,25 +57,37 @@ FROM        KEYWORD(FROM)
                 return LITERAL;
             }
 
-[(),*]      {
+[(),*\[\]]  {
                 debug_lex(*yytext, yytext);
                 return *yytext;
             }
 
+[<>=]       {
+                debug_lex(COMP_OP, yytext);
+                return COMP_OP;
+            }
 
-[-+]        {
+
+[-+*/]      {
                 debug_lex(*yytext, yytext);
                 return *yytext;
             }
 
-[ \t]       { /* skip whitespace */ }
+[ \t]       { 
+                /* skip whitespace */ 
+            }
 
-#.*         { debug_lex(COMMENT, yytext); }
+#.*         {
+                //debug_lex(COMMENT, yytext); 
+            }
 
-[\n]        { return *yytext; }
+[\n]        { 
+                lineno++;
+                return *yytext; 
+            }
 
 
-.           { yyerror("Unknown character"); }
+.           { yyerror("unknown character"); }
 
 %%
 //letter[digit|letter]]*  {
@@ -76,6 +97,11 @@ FROM        KEYWORD(FROM)
 //[<>=]       {
 //                return COMP_OP;
 //            }
+void yyerror(char* s)
+{
+    fprintf(stderr, "Error: line %d: %s at '%s'\n", lineno, s, yytext);
+}
+
 int yywrap(void) {
     return 1;
 }

@@ -9,10 +9,20 @@
 
 #define DEBUG
 
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+int lineno = 0;
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
 extern int yyparse();
 
 void sql_parser()
 {
+    lineno = 1;
     yyparse();
 }
 
@@ -36,6 +46,7 @@ const char* get_lex_macro_str(int type)
         TOKEN(CREATE);
         TOKEN(TABLE);
         TOKEN(NAME);
+        TOKEN(COLUMN_NAME);
         TOKEN(INT);
         TOKEN(STR20);
         TOKEN(INSERT);
@@ -44,11 +55,26 @@ const char* get_lex_macro_str(int type)
         TOKEN(INTEGER);
         TOKEN(LITERAL);
         TOKEN(SELECT);
+        TOKEN(DISTINCT);
         TOKEN(FROM);
+        TOKEN(WHERE);
+        TOKEN(ORDER);
+        TOKEN(BY);
+        TOKEN(DELETE);
+        TOKEN(DROP);
+        TOKEN(OR);
+        TOKEN(AND);
+        TOKEN(NOT);
+        TOKEN(COMP_OP);
         CHAR('(');
         CHAR(')');
         CHAR(',');
         CHAR('*');
+        CHAR('[');
+        CHAR(']');
+        CHAR('+');
+        CHAR('-');
+        CHAR('/');
     }
 
     return "?";
