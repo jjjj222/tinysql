@@ -87,16 +87,11 @@ NOT         KEYWORD(NOT)
             }
 
 
-.           { yyerror("unknown character"); }
+.           {
+                yyerror("unknown character"); 
+            }
 
 %%
-//letter[digit|letter]]*  {
-//                            return NAME; 
-//                        }
-
-//[<>=]       {
-//                return COMP_OP;
-//            }
 void yyerror(char* s)
 {
     fprintf(stderr, "Error: line %d: %s at '%s'\n", lineno, s, yytext);

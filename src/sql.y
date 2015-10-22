@@ -14,7 +14,6 @@
 %token SELECT DISTINCT FROM WHERE ORDER BY
 %token DELETE DROP
 %token OR AND NOT COMP_OP
-%token ORDER BY
 
 %%
 
@@ -49,7 +48,7 @@ select_statement:
     ;
 
 select_option:
-    |   DISTINCT
+        DISTINCT
     |
     ;
 

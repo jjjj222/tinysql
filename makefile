@@ -3,6 +3,8 @@ SRCS = main.cpp
 LEX_SRC = sql.l
 YACC_SRC = sql.y
 
+DB_MGR_OBJ = db_mgr/StorageManager.o
+
 BIN_FOLDER = bin
 SRC_FOLDER = src
 OBJ_FOLDER = obj
@@ -26,11 +28,11 @@ EXEC = $(BIN_FOLDER)/$(EXEC_NAME)
 OBJS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(basename $(SRCS))))
 DEPS = $(addprefix $(DEP_FOLDER)/, $(addsuffix .d, $(basename $(SRCS))))
 
-FLAGS = -gdwarf-2 -g3 -Wall
-#FLAGS = -gdwarf-2 -g3 -Wall -lpcap
-#FLAGS = -g -Wall -lpcap
+FLAGS = -gdwarf-2 -g3 -Wall -Iinclude
 CXXFLAGS = $(FLAGS) --std=c++11
-CFLAGS = $(FLAGS) -std=c99
+#CXXFLAGS = $(FLAGS)
+#CFLAGS = $(FLAGS) -std=c99
+CFLAGS = $(FLAGS) -std=gnu99
 LFLAGS = $(FLAGS) -ll
 LEXFLAG = -t
 YACCFLAG = -d
@@ -43,8 +45,9 @@ YACC = yacc
 
 all: $(EXEC)
 
-$(EXEC): $(OBJS) obj/parser.o $(OBJ_FOLDER)/$(LEX_OBJ) obj/y.tab.o
-	$(LINK) $(LFLAGS) -o $@ $^
+$(EXEC): $(OBJS) obj/parser.o $(OBJ_FOLDER)/$(LEX_OBJ) obj/y.tab.o $(DB_MGR_OBJ)
+	$(LINK) -o $@ $^ $(LFLAGS)
+	@#$(LINK) $(LFLAGS) -o $@ $^
 
 -include $(DEPS)
 
@@ -71,6 +74,9 @@ src/y.tab.c src/y.tab.h: src/sql.y src/parser.h
 #$(SRC_FOLDER)/$(LEX_C): $(SRC_FOLDER)/$(LEX_SRC)
 #	$(LEX)
 
+$(DB_MGR_OBJ):
+	cd db_mgr; make
+
 .PHONY:
 ctags:
 	ctags $(SRC_FOLDER)/*
@@ -88,5 +94,7 @@ clean:
 	rm -f $(SRC_FOLDER)/$(LEX_C)
 	rm -f $(SRC_FOLDER)/y.tab.c
 	rm -f $(SRC_FOLDER)/y.tab.h
+	cd db_mgr; make clean
+	@#rm -f $(DB_MGR_OBJ)
 
 
