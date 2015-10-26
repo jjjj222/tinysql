@@ -1,5 +1,6 @@
 EXEC_NAME = tinysql
-SRCS = main.cpp
+CXX_SRCS = main.cpp cmd.cpp test.cpp
+C_SRCS = parser.c
 LEX_SRC = sql.l
 YACC_SRC = sql.y
 
@@ -25,16 +26,17 @@ YACC_OBJ = y.tab.o
 
 EXEC = $(BIN_FOLDER)/$(EXEC_NAME)
 #DIRSRCS = $(addprefix $(SRC_FOLDER)/, $(SRCS))
-OBJS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(basename $(SRCS))))
-DEPS = $(addprefix $(DEP_FOLDER)/, $(addsuffix .d, $(basename $(SRCS))))
+OBJS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(basename $(CXX_SRCS))))
+DEPS = $(addprefix $(DEP_FOLDER)/, $(addsuffix .d, $(basename $(CXX_SRCS))))
 
+LIBS = -ly -ll -lreadline
 FLAGS = -gdwarf-2 -g3 -Wall -Iinclude
 CXXFLAGS = $(FLAGS) --std=c++11
 #CXXFLAGS = $(FLAGS)
 #CFLAGS = $(FLAGS) -std=c99
 CFLAGS = $(FLAGS) -std=gnu99
-LFLAGS = $(FLAGS) -ll
-LEXFLAG = -t
+LFLAGS = $(FLAGS) $(LIBS)
+LEXFLAG = -i -t
 YACCFLAG = -d
 
 CC = gcc
@@ -45,9 +47,10 @@ YACC = yacc
 
 all: $(EXEC)
 
-$(EXEC): $(OBJS) obj/parser.o $(OBJ_FOLDER)/$(LEX_OBJ) obj/y.tab.o $(DB_MGR_OBJ)
+#$(EXEC): $(OBJS) obj/parser.o $(OBJ_FOLDER)/$(LEX_OBJ) obj/y.tab.o $(DB_MGR_OBJ)
+#$(EXEC): $(OBJS) $(OBJ_FOLDER)/$(LEX_OBJ) obj/y.tab.o obj/parser.o $(DB_MGR_OBJ)
+$(EXEC): $(OBJS) obj/y.tab.o $(OBJ_FOLDER)/$(LEX_OBJ) obj/parser.o $(DB_MGR_OBJ)
 	$(LINK) -o $@ $^ $(LFLAGS)
-	@#$(LINK) $(LFLAGS) -o $@ $^
 
 -include $(DEPS)
 
@@ -55,27 +58,33 @@ $(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 	$(CXX) $(CXXFLAGS) -MT $(OBJ_FOLDER)/$*.o -MM $^ > $(DEP_FOLDER)/$*.d
 
-
-obj/parser.o: src/parser.c src/parser.h src/y.tab.h
+$(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MT $(OBJ_FOLDER)/$*.o -MM $^ > $(DEP_FOLDER)/$*.d
 
-obj/$(LEX_OBJ): src/$(LEX_C)
-	$(CC) $(CFLAGS) -c $< -o $@
+#obj/parser.o: src/parser.c src/parser.h src/y.tab.h src/lex.yy.h
+#	$(CC) $(CFLAGS) -c $< -o $@
+#
+#obj/$(LEX_OBJ): src/$(LEX_C)
+#	$(CC) $(CFLAGS) -c $< -o $@
+#
+#obj/y.tab.o: src/y.tab.c
+#	$(CC) $(CFLAGS) -c $< -o $@
 
-obj/y.tab.o: src/y.tab.c
-	$(CC) $(CFLAGS) -c $< -o $@
 
+#src/$(LEX_C) src/lex.yy.h: src/$(LEX_SRC) src/y.tab.h src/parser.h
+#src/$(LEX_C) src/lex.yy.h: src/$(LEX_SRC) src/y.tab.h
+src/$(LEX_C) src/lex.yy.h: src/$(LEX_SRC)
+	$(LEX) --header-file=src/lex.yy.h $(LEXFLAG) src/$(LEX_SRC) > src/$(LEX_C)
 
-src/$(LEX_C): src/$(LEX_SRC) src/y.tab.h src/parser.h
-	$(LEX) $(LEXFLAG) src/$(LEX_SRC) > src/$(LEX_C)
-
-src/y.tab.c src/y.tab.h: src/sql.y src/parser.h
+#src/y.tab.c src/y.tab.h: src/sql.y src/parser.h
+src/y.tab.c src/y.tab.h: src/sql.y
 	cd src; $(YACC) $(YACCFLAG) sql.y
-#$(SRC_FOLDER)/$(LEX_C): $(SRC_FOLDER)/$(LEX_SRC)
-#	$(LEX)
+
 
 $(DB_MGR_OBJ):
 	cd db_mgr; make
+
 
 .PHONY:
 ctags:
@@ -83,7 +92,8 @@ ctags:
 
 .PHONY: run
 run:
-	@./$(EXEC) < testcases/example.in
+	@./$(EXEC) testcases/example.in
+	@#./$(EXEC) < testcases/example.in
 
 .PHONY: clean
 clean:
@@ -92,9 +102,8 @@ clean:
 	rm -f $(DEP_FOLDER)/*
 	rm -f tags
 	rm -f $(SRC_FOLDER)/$(LEX_C)
+	rm -f $(SRC_FOLDER)/lex.yy.h
 	rm -f $(SRC_FOLDER)/y.tab.c
 	rm -f $(SRC_FOLDER)/y.tab.h
 	cd db_mgr; make clean
-	@#rm -f $(DB_MGR_OBJ)
-
 

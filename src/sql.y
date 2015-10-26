@@ -3,6 +3,19 @@
     #include "parser.h"
     int yylex(void);
     void yyerror(char *);
+
+    //#define KEYWORD(word) {  }
+%}
+
+%{
+/*
+%union {
+    //const char* value;
+    struct tree_node* node_ptr;
+};
+
+%token <node_ptr> NAME
+*/
 %}
 
 %token COMMENT
@@ -15,6 +28,19 @@
 %token DELETE DROP
 %token OR AND NOT COMP_OP
 
+%{
+/*
+%type <node_ptr> statement
+%type <node_ptr> create_table_statement
+*/
+%}
+
+%token STATEMENT
+%token CREATE_TABLE_STATEMENT DROP_TABLE_STATEMENT
+%token SELECT_STATEMENT DELETE_STATEMENT INSERT_STATEMENT
+%token ATTRIBUTE_TYPE_LIST
+%token INSERT_TUPLES
+%token NAME_TYPE NAME_LIST VALUE_LIST
 %%
 
 statement_line:
@@ -24,7 +50,12 @@ statement_line:
     ;
 
 one_statement:
-        statement { printf("------------------- line %d ------------------\n", lineno); }
+        statement { 
+            //printf("%p: %s\n", (void*)($1), $1->value); 
+            add_to_query_list($1);
+            //dump_tree_node($1);
+            //printf("------------------- line %d ------------------\n", lineno);
+        }
     ;
 
 statement:
@@ -36,11 +67,15 @@ statement:
     ;
 
 create_table_statement:
-        CREATE TABLE NAME '(' attribute_type_list ')'
+        CREATE TABLE NAME '(' attribute_type_list ')' {
+            $$ = new_tree_node_2(CREATE_TABLE_STATEMENT, $3, $5);
+        }
     ;
 
 drop_table_statement:
-        DROP TABLE NAME
+        DROP TABLE NAME {
+            $$ = new_tree_node_1(DROP_TABLE_STATEMENT, $3);
+        }
     ;
 
 select_statement:
@@ -67,17 +102,33 @@ delete_statement:
     ;
 
 insert_statement:
-        INSERT INTO NAME '(' name_list ')' insert_tuples
+        INSERT INTO NAME '(' name_list ')' insert_tuples {
+            $$ = new_tree_node_3(INSERT_STATEMENT, $3, $5, $7);
+        }
     ;
 
 insert_tuples:
-        VALUES '(' value_list ')'
-    | select_statement
+        VALUES '(' value_list ')' {
+            $$ = new_tree_node_1(INSERT_TUPLES, $3);
+        }
+    |   select_statement {
+            $$ = new_tree_node_1(INSERT_TUPLES, $1);
+        }
     ;
 
 attribute_type_list:
-        NAME data_type ',' attribute_type_list
-    |   NAME data_type
+        name_type ',' attribute_type_list {
+            $$ = tree_add_child_front($3, $1);
+        }
+    |   name_type {
+            $$ = new_tree_node_1(ATTRIBUTE_TYPE_LIST, $1);
+        }
+    ;
+
+name_type:
+        NAME data_type {
+            $$ = new_tree_node_2(NAME_TYPE, $1, $2);
+        }
     ;
 
 select_list:
@@ -91,18 +142,26 @@ select_sub_list:
     ;
 
 name_list:
-        NAME ',' name_list
-    |   NAME
+        NAME ',' name_list {
+            $$ = tree_add_child_front($3, $1);
+        }
+    |   NAME {
+            $$ = new_tree_node_1(NAME_LIST, $1);
+        }
     ;
 
 value_list:
-        value ',' value_list
-    | value
+        value ',' value_list {
+            $$ = tree_add_child_front($3, $1);
+        }
+    |   value {
+            $$ = new_tree_node_1(VALUE_LIST, $1);
+        }
     ;
 
 data_type:
-        INT
-    |   STR20
+        INT { $$ = new_tree_node_0(INT); }
+    |   STR20 {$$ = new_tree_node_0(STR20); }
     ;
 
 column_name:

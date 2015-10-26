@@ -1,11 +1,13 @@
 %{
-    #include "y.tab.h"
     #include "parser.h"
+    #include "y.tab.h"
     //#include <stdlib.h>
     void yyerror(char *);
 
+    //extern tree_node_t* yylval;
+
     //#define
-    #define KEYWORD(word) { debug_lex(word, yytext); return word; }
+    #define KEYWORD(word) { debug_lex(word, yytext); yylval = NULL; return word; }
 %}
 
 letter     [A-Za-z]
@@ -38,22 +40,25 @@ NOT         KEYWORD(NOT)
 
 {name}      {
                 debug_lex(NAME, yytext);
+                yylval = new_tree_node(NAME, lookup_symbol(yytext));
                 return NAME;
             }
 
 {name}\.{name} {
                 debug_lex(COLUMN_NAME, yytext);
+                yylval = new_tree_node(COLUMN_NAME, lookup_symbol(yytext));
                 return COLUMN_NAME;
             }
 
 {digit}+    {
                 debug_lex(INTEGER, yytext);
-                //yylval = atoi(yytext);
+                yylval = new_tree_node(INTEGER, lookup_symbol(yytext));
                 return INTEGER;
             }
 
 \"[^\"]*\"  {
                 debug_lex(LITERAL, yytext);
+                yylval = new_tree_node(LITERAL, lookup_symbol(yytext));
                 return LITERAL;
             }
 

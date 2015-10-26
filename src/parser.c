@@ -2,28 +2,359 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "parser.h"
 
 #include "y.tab.h"
+#include "lex.yy.h"
 
-#define DEBUG
+//#define DEBUG
+
+//typedef struct yy_buffer_state* YY_BUFFER_STATE;
+//extern YY_BUFFER_STATE yy_create_buffer(FILE* file, int size);
+//extern void yy_switch_to_buffer(YY_BUFFER_STATE new_buffer);
+//extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
+//
+//extern YY_BUFFER_STATE yy_scan_buffer(char*, size_t);
+//extern YY_BUFFER_STATE yy_scan_string(const char*);
+//extern void yypop_buffer_state();
+extern int yyparse();
+//extern int YY_BUF_SIZE;
+//extern FILE* yyin;
+//extern YY_BUFFER_STATE YY_CURRENT_BUFFER;
 
 
 //------------------------------------------------------------------------------
-//   
+//   global variable
 //------------------------------------------------------------------------------
 int lineno = 0;
+str_list_t* name_list = NULL;
+tree_node_list_t* node_list = NULL;
+tree_node_t* query_list = NULL;
+tree_node_t* query_list_last = NULL;
+
+//------------------------------------------------------------------------------
+//   parse tree
+//------------------------------------------------------------------------------
+//void tree_add_child_front(tree_node_t* node, tree_node_t* child)
+tree_node_t* tree_add_child_front(tree_node_t* node, tree_node_t* child)
+{
+    assert(node != NULL);
+    assert(child != NULL);
+
+    child->next = node->child;
+    node->child = child;
+
+    return node;
+}
+
+tree_node_t* new_tree_node(int type, const char* value)
+{
+    tree_node_t* node = malloc(sizeof(tree_node_t));
+    node->type = type;
+    node->value = value;
+    node->next = NULL;
+    node->child = NULL;
+
+    tree_node_list_t* tmp = new_tree_node_list(node);
+    if (node_list == NULL) {
+        node_list = tmp;
+    } else {
+        tmp->next = node_list;
+        node_list = tmp;
+    }
+    return node;
+}
+
+tree_node_t* new_tree_node_0(int type)
+{
+    return new_tree_node(type, NULL);
+}
+
+tree_node_t* new_tree_node_1(int type, tree_node_t* child)
+{
+    assert(child != NULL);
+
+    tree_node_t* tmp = new_tree_node_0(type);
+    tree_add_child_front(tmp, child);
+
+    return tmp;
+}
+
+tree_node_t* new_tree_node_2(int type, tree_node_t* child1, tree_node_t* child2)
+{
+    assert(child1 != NULL);
+    assert(child2 != NULL);
+
+    tree_node_t* tmp = new_tree_node_1(type, child2);
+    tree_add_child_front(tmp, child1);
+
+    return tmp;
+}
+
+tree_node_t* new_tree_node_3(int type, tree_node_t* child1, tree_node_t* child2, tree_node_t* child3)
+{
+    assert(child1 != NULL);
+    assert(child2 != NULL);
+    assert(child3 != NULL);
+
+    tree_node_t* tmp = new_tree_node_2(type, child2, child3);
+    tree_add_child_front(tmp, child1);
+
+    return tmp;
+}
+
+void free_parse_tree(tree_node_t* node)
+{
+    if (node == NULL)
+        return;
+    
+    free_parse_tree(node->child);
+    free_parse_tree(node->next);
+    free(node);
+}
+
+void dump_tree_node_rec(const tree_node_t* node, const char* indent, bool is_last)
+{
+    const char* current_indent = is_last ? " `- " : " |- ";
+    //printf("%s\n", indent);
+    printf("%s%s%s%s%s\n",
+        indent,
+        current_indent,
+        get_lex_macro_str(node->type),
+        node->value ? ": ": "",
+        node->value ? node->value : ""
+    ); 
+
+    const char* indent_one = is_last ? "    " : " |  ";
+    size_t indent_one_len = strlen(indent_one);
+
+    size_t indent_len = strlen(indent);
+    char* next_indent = malloc(sizeof(char) * (indent_len + indent_one_len + 1));
+    memcpy(next_indent, indent, indent_len);
+    memcpy(next_indent + indent_len, indent_one, indent_one_len);
+
+    const tree_node_t* child = node->child;
+    while (child != NULL) {
+        dump_tree_node_rec(child, next_indent, child->next == NULL);
+        child = child->next;
+    }
+    free(next_indent);
+}
+
+void dump_tree_node(const tree_node_t* node)
+{
+    dump_tree_node_rec(node, "", true);
+}
+
+void add_to_query_list(tree_node_t* node)
+{
+    if (query_list_last == NULL) {
+        query_list = query_list_last = node;
+    } else {
+        query_list_last->next = node;
+        query_list_last = node;
+    }
+}
+
+void dump_query_list()
+{
+    tree_node_t* tmp = query_list;
+
+    while (tmp != NULL) {
+        dump_tree_node(tmp);
+        tmp = tmp->next;
+    }
+}
+
+void dump_node_list()
+{
+    dump_tree_node_list(node_list);
+}
+
+tree_node_list_t* new_tree_node_list(tree_node_t* node)
+{
+    tree_node_list_t* list_node = malloc(sizeof(tree_node_list_t));
+    list_node->next = NULL;
+    list_node->node = node;
+
+    return list_node;
+}
+
+void free_tree_node_list(tree_node_list_t* list)
+{
+    if (list == NULL)
+        return;
+
+    free_tree_node_list(list->next);
+    free(list->node);
+    free(list);
+}
+
+void dump_tree_node_list(tree_node_list_t* list)
+{
+    if (list == NULL)
+        return;
+
+    tree_node_list_t* tmp = list;
+    while (tmp != NULL) {
+        dump_tree_node(tmp->node);
+        tmp = tmp->next;
+    }
+}
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+// TODO: uniquify
+const char* lookup_symbol(const char* name)
+{
+    assert(name != NULL);
+
+    str_list_t* list_node = new_str_list(name);
+
+    if (name_list == NULL) {
+        name_list = list_node;
+    } else {
+        list_node->next = name_list;
+        name_list = list_node;
+    }
+
+    return list_node->str;
+}
+
+void dump_name_list()
+{
+    dump_str_list(name_list);
+}
 
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-extern int yyparse();
-
 void sql_parser()
 {
     lineno = 1;
     yyparse();
+
+    //char tstr[] = "CREATE TABLE Tad\n\0";
+    //char tstr[] = "CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)\n\0";
+    //// note yy_scan_buffer is is looking for a double null string
+    //yy_scan_buffer(tstr, sizeof(tstr));
+    //yyparse();
+
+
+    //printf("%s\n", tstr);
+}
+
+tree_node_t* parse_sql_file(const char* file_name)
+{
+    assert(file_name != NULL);
+
+    FILE* file = fopen(file_name, "r");
+
+    if (file) {
+        yyin = file;
+        YY_BUFFER_STATE state = yy_create_buffer(yyin, YY_BUF_SIZE);
+        yy_switch_to_buffer(state);
+        //cout << "I can't open file!" << endl;
+        yyparse();
+        fclose (file);
+        yy_delete_buffer(state);
+        //yy_delete_buffer(YY_CURRENT_BUFFER);
+        yyin = stdin;
+    } else {
+        printf("error: can't open file: %s\n", file_name);
+    }
+    // set lex to read from it instead of defaulting to STDIN:
+    return NULL;
+}
+
+tree_node_t* parse_sql_string(const char* sql_string)
+{
+    assert(sql_string != NULL);
+
+    size_t len = strlen(sql_string);
+    char* tmp = malloc(sizeof(char) * (len + 3));
+    memcpy(tmp, sql_string, len);
+    tmp[len + 0] = '\n';
+    tmp[len + 1] = '\0';
+    tmp[len + 2] = '\0';
+    //printf("%s\n", sql_string);
+
+    //char* tstr = new_str(sql_string);
+    //printf("%s\n", tstr);
+
+    //YY_BUFFER_STATE state = yy_scan_string(tmp);
+    //yy_switch_to_buffer
+    //YY_BUFFER_STATE old_state = YY_CURRENT_BUFFER;
+    YY_BUFFER_STATE state = yy_scan_buffer(tmp, sizeof(char) * (len + 3));
+    //YY_BUFFER_STATE state = yy_scan_buffer(tmp, sizeof(char) * (len + 3));
+    yyparse();
+
+    yy_delete_buffer(state);
+    //yy_delete_buffer(state);
+    //yypop_buffer_state();
+    //yy_switch_to_buffer()
+
+    free((void*)tmp);
+    return NULL;
+}
+
+void parser_reset()
+{
+    free_str_list(name_list);
+    name_list = NULL;
+
+    free_tree_node_list(node_list);
+    node_list = NULL;
+
+    //free_parse_tree(query_list);
+    query_list = NULL;
+    query_list_last = NULL;
+}
+
+//------------------------------------------------------------------------------
+//   util
+//------------------------------------------------------------------------------
+char* new_str(const char* str)
+{
+    size_t len = strlen(str);
+    char* tmp = malloc(sizeof(char) * (len + 1));
+    memcpy(tmp, str, len + 1);
+    return tmp;
+}
+
+str_list_t* new_str_list(const char* str)
+{
+    //size_t len = strlen(str);
+    //char* tmp = malloc(sizeof(char) * (len + 1));
+    //memcpy(tmp, str, len + 1);
+    char* tmp = new_str(str);
+
+    str_list_t* list_node = malloc(sizeof(str_list_t));
+    list_node->next = NULL;
+    list_node->str = tmp;
+
+    return list_node;
+}
+
+void free_str_list(str_list_t* str_list)
+{
+    if (str_list == NULL)
+        return;
+
+    free((void*)str_list->str);
+    free_str_list(str_list->next);
+    free(str_list);
+}
+
+void dump_str_list(str_list_t* list)
+{
+    str_list_t* tmp = list;
+    while (tmp != NULL) {
+        printf("%p: %s\n", (void*)(tmp->str), tmp->str);
+        tmp = tmp->next;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -75,6 +406,16 @@ const char* get_lex_macro_str(int type)
         CHAR('+');
         CHAR('-');
         CHAR('/');
+        TOKEN(CREATE_TABLE_STATEMENT);
+        TOKEN(DROP_TABLE_STATEMENT);
+        TOKEN(SELECT_STATEMENT);
+        TOKEN(DELETE_STATEMENT);
+        TOKEN(INSERT_STATEMENT);
+        TOKEN(ATTRIBUTE_TYPE_LIST);
+        TOKEN(NAME_TYPE);
+        TOKEN(NAME_LIST);
+        TOKEN(VALUE_LIST);
+        TOKEN(INSERT_TUPLES);
     }
 
     return "?";
