@@ -3,19 +3,6 @@
     #include "parser.h"
     int yylex(void);
     void yyerror(char *);
-
-    //#define KEYWORD(word) {  }
-%}
-
-%{
-/*
-%union {
-    //const char* value;
-    struct tree_node* node_ptr;
-};
-
-%token <node_ptr> NAME
-*/
 %}
 
 %token COMMENT
@@ -27,13 +14,6 @@
 %token SELECT DISTINCT FROM WHERE ORDER BY
 %token DELETE DROP
 %token OR AND NOT COMP_OP
-
-%{
-/*
-%type <node_ptr> statement
-%type <node_ptr> create_table_statement
-*/
-%}
 
 %token STATEMENT
 %token CREATE_TABLE_STATEMENT DROP_TABLE_STATEMENT
@@ -55,10 +35,11 @@ statement_line:
 
 one_statement:
         statement { 
-            //printf("%p: %s\n", (void*)($1), $1->value); 
             add_to_query_list($1);
+#ifdef DEBUG_YACC
             dump_tree_node($1);
             printf("------------------- line %d ------------------\n", lineno++);
+#endif
         }
     ;
 
@@ -100,7 +81,6 @@ select_option:
 where_option:
         WHERE search_condition {
             $$ = new_tree_node_1(WHERE_OPTION, $2);
-            //$$ = $2;
         }
     |   {
             $$ = NULL;
@@ -216,10 +196,7 @@ search_condition:
                 $$ = new_tree_node_2(OR, $1, $3);
             }
         }
-    |   boolean_term {
-            //$$ = new_tree_node_1(SEARCH_CONDITION, $1);
-            $$ = $1;
-        }
+    |   boolean_term
     ;
 
 boolean_term:
@@ -230,16 +207,14 @@ boolean_term:
                 $$ = new_tree_node_2(AND, $1, $3);
             }
         }
-    |   boolean_factor {
-            $$ = $1;
-        }
+    |   boolean_factor
     ;
 
 boolean_factor:
-        boolean_primary
-    |   NOT boolean_primary {
+        NOT boolean_primary {
         $$ = new_tree_node_1(NOT, $2);
     }
+    |   boolean_primary
     ;
 
 boolean_primary:
@@ -253,8 +228,6 @@ comparison_predicate:
         expression COMP_OP expression {
             $$ = tree_add_child_front($2, $3);
             $$ = tree_add_child_front($2, $1);
-            //$$ = new_tree_node_3(COMPARISON_PREDICATE, $1, $2, $3); 
-            //$$ = new_tree_node_2(COMP_OP, $1, $3); 
         }
     ;
 
@@ -265,8 +238,6 @@ expression:
             } else {
                 $$ = new_tree_node_2('+', $1, $3);
             }
-            //$$ = tree_add_child_front($2, $3);
-            //$$ = tree_add_child_front($2, $1);
         }
     |   term '-' expression {
             //NOTE: not commutative
@@ -299,24 +270,3 @@ factor:
     ;
 %%
 
-//program:
-//        program expr '\n'         { printf("%d\n", $2); }
-//        |
-//        ;
-//
-//expr:
-//        INTEGER
-//        | INTEGER '+' expr           { printf("%d + %d\n", $1, $3); $$ = $1 + $3; }
-//        | INTEGER '-' expr           { printf("-\n"); $$ = $1 - $3; }
-//        ;
-//
-//%%
-
-//void yyerror(char *s) {
-//    fprintf(stderr, "%s\n", s);
-//}
-
-//int main(void) {
-//    yyparse();
-//    return 0;
-//}

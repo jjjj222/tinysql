@@ -72,13 +72,10 @@ $(OBJ_FOLDER)/%.o: $(SRC_FOLDER)/%.c
 #	$(CC) $(CFLAGS) -c $< -o $@
 
 
-#src/$(LEX_C) src/lex.yy.h: src/$(LEX_SRC) src/y.tab.h src/parser.h
-#src/$(LEX_C) src/lex.yy.h: src/$(LEX_SRC) src/y.tab.h
-src/$(LEX_C) src/lex.yy.h: src/$(LEX_SRC)
+src/$(LEX_C) src/lex.yy.h: src/$(LEX_SRC) src/y.tab.h src/parser.h
 	$(LEX) --header-file=src/lex.yy.h $(LEXFLAG) src/$(LEX_SRC) > src/$(LEX_C)
 
-#src/y.tab.c src/y.tab.h: src/sql.y src/parser.h
-src/y.tab.c src/y.tab.h: src/sql.y
+src/y.tab.c src/y.tab.h: src/sql.y src/parser.h
 	cd src; $(YACC) $(YACCFLAG) sql.y
 
 

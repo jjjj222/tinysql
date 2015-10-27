@@ -1,12 +1,8 @@
 %{
     #include "parser.h"
     #include "y.tab.h"
-    //#include <stdlib.h>
     void yyerror(char *);
 
-    //extern tree_node_t* yylval;
-
-    //#define
     #define KEYWORD(word) { debug_lex(word, yytext); yylval = NULL; return word; }
     #define NEW_NODE(type) {\
         debug_lex(type, yytext);\
@@ -49,7 +45,7 @@ NOT         KEYWORD(NOT)
 \"[^\"]*\"      NEW_NODE(LITERAL);
 [<>=]           NEW_NODE(COMP_OP);
 
-[(),*\[\]]  {
+[(),\[\]]   {
                 debug_lex(*yytext, yytext);
                 return *yytext;
             }
@@ -64,11 +60,10 @@ NOT         KEYWORD(NOT)
             }
 
 #.*         {
-                //debug_lex(COMMENT, yytext); 
+                /* skip comment */
             }
 
 [\n]        { 
-                //lineno++;
                 return *yytext; 
             }
 
@@ -86,30 +81,3 @@ void yyerror(char* s)
 int yywrap(void) {
     return 1;
 }
-
-//{name}      {
-//                debug_lex(NAME, yytext);
-//                yylval = new_tree_node(NAME, lookup_symbol(yytext));
-//                return NAME;
-//            }
-//{name}\.{name} {
-//                debug_lex(COLUMN_NAME, yytext);
-//                yylval = new_tree_node(COLUMN_NAME, lookup_symbol(yytext));
-//                return COLUMN_NAME;
-//            }
-//{digit}+    {
-//                debug_lex(INTEGER, yytext);
-//                yylval = new_tree_node(INTEGER, lookup_symbol(yytext));
-//                return INTEGER;
-//            }
-//\"[^\"]*\"  {
-//                debug_lex(LITERAL, yytext);
-//                yylval = new_tree_node(LITERAL, lookup_symbol(yytext));
-//                return LITERAL;
-//            }
-//[<>=]       {
-//                debug_lex(COMP_OP, yytext);
-//                return COMP_OP;
-//            }
-
-
