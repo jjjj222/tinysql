@@ -45,8 +45,8 @@ int cmd_readline()
         } else if (tokens[0] == "test_str") {
             const char tstr [] = "CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)";
             parse_sql_string(tstr);
-        } else if (tokens[0] == "stdin") {
-            sql_parser();
+        //} else if (tokens[0] == "stdin") {
+        //    sql_parser();
         } else {
             parse_sql_string(buf);
         }

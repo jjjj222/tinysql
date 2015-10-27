@@ -11,6 +11,13 @@ extern FILE * yyin;
 
 int main(int argc, char* argv [])
 {
+    if (argc >= 2) {
+        parse_sql_file(argv[1]);
+        //dump_name_list();
+        //dump_query_list();
+        parser_reset();
+        return 0;
+    }
     //cout << "Hello World!!" << endl;
     //test_storage_mgr();
 

@@ -8,6 +8,11 @@
 
     //#define
     #define KEYWORD(word) { debug_lex(word, yytext); yylval = NULL; return word; }
+    #define NEW_NODE(type) {\
+        debug_lex(type, yytext);\
+        yylval = new_tree_node(type, lookup_symbol(yytext));\
+        return type;\
+    }
 %}
 
 letter     [A-Za-z]
@@ -38,40 +43,16 @@ OR          KEYWORD(OR)
 AND         KEYWORD(AND)
 NOT         KEYWORD(NOT)
 
-{name}      {
-                debug_lex(NAME, yytext);
-                yylval = new_tree_node(NAME, lookup_symbol(yytext));
-                return NAME;
-            }
-
-{name}\.{name} {
-                debug_lex(COLUMN_NAME, yytext);
-                yylval = new_tree_node(COLUMN_NAME, lookup_symbol(yytext));
-                return COLUMN_NAME;
-            }
-
-{digit}+    {
-                debug_lex(INTEGER, yytext);
-                yylval = new_tree_node(INTEGER, lookup_symbol(yytext));
-                return INTEGER;
-            }
-
-\"[^\"]*\"  {
-                debug_lex(LITERAL, yytext);
-                yylval = new_tree_node(LITERAL, lookup_symbol(yytext));
-                return LITERAL;
-            }
+{name}          NEW_NODE(NAME);
+{name}\.{name}  NEW_NODE(COLUMN_NAME);
+{digit}+        NEW_NODE(INTEGER);
+\"[^\"]*\"      NEW_NODE(LITERAL);
+[<>=]           NEW_NODE(COMP_OP);
 
 [(),*\[\]]  {
                 debug_lex(*yytext, yytext);
                 return *yytext;
             }
-
-[<>=]       {
-                debug_lex(COMP_OP, yytext);
-                return COMP_OP;
-            }
-
 
 [-+*/]      {
                 debug_lex(*yytext, yytext);
@@ -87,7 +68,7 @@ NOT         KEYWORD(NOT)
             }
 
 [\n]        { 
-                lineno++;
+                //lineno++;
                 return *yytext; 
             }
 
@@ -105,3 +86,30 @@ void yyerror(char* s)
 int yywrap(void) {
     return 1;
 }
+
+//{name}      {
+//                debug_lex(NAME, yytext);
+//                yylval = new_tree_node(NAME, lookup_symbol(yytext));
+//                return NAME;
+//            }
+//{name}\.{name} {
+//                debug_lex(COLUMN_NAME, yytext);
+//                yylval = new_tree_node(COLUMN_NAME, lookup_symbol(yytext));
+//                return COLUMN_NAME;
+//            }
+//{digit}+    {
+//                debug_lex(INTEGER, yytext);
+//                yylval = new_tree_node(INTEGER, lookup_symbol(yytext));
+//                return INTEGER;
+//            }
+//\"[^\"]*\"  {
+//                debug_lex(LITERAL, yytext);
+//                yylval = new_tree_node(LITERAL, lookup_symbol(yytext));
+//                return LITERAL;
+//            }
+//[<>=]       {
+//                debug_lex(COMP_OP, yytext);
+//                return COMP_OP;
+//            }
+
+

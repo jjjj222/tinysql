@@ -38,7 +38,7 @@ extern "C" {
 //------------------------------------------------------------------------------
 //   parser
 //------------------------------------------------------------------------------
-void sql_parser();
+//void sql_parser();
 
 tree_node_t* parse_sql_file(const char*);
 tree_node_t* parse_sql_string(const char*);
@@ -54,6 +54,7 @@ tree_node_t* new_tree_node_0(int type);
 tree_node_t* new_tree_node_1(int type, tree_node_t*);
 tree_node_t* new_tree_node_2(int type, tree_node_t*, tree_node_t*);
 tree_node_t* new_tree_node_3(int type, tree_node_t*, tree_node_t*, tree_node_t*);
+tree_node_t* new_tree_node_n(int type, size_t nops, ...);
 void free_parse_tree(tree_node_t*);
 void dump_tree_node(const tree_node_t*);
 

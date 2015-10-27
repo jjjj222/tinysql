@@ -41,6 +41,10 @@
 %token ATTRIBUTE_TYPE_LIST
 %token INSERT_TUPLES
 %token NAME_TYPE NAME_LIST VALUE_LIST
+%token SELECT_SUB_LIST
+%token ORDER_OPTION WHERE_OPTION
+%token COMPARISON_PREDICATE
+%token SEARCH_CONDITION
 %%
 
 statement_line:
@@ -53,8 +57,8 @@ one_statement:
         statement { 
             //printf("%p: %s\n", (void*)($1), $1->value); 
             add_to_query_list($1);
-            //dump_tree_node($1);
-            //printf("------------------- line %d ------------------\n", lineno);
+            dump_tree_node($1);
+            printf("------------------- line %d ------------------\n", lineno++);
         }
     ;
 
@@ -79,26 +83,43 @@ drop_table_statement:
     ;
 
 select_statement:
-        SELECT select_option select_list FROM name_list where_option order_option
+        SELECT select_option select_list FROM name_list where_option order_option {
+            $$ = new_tree_node_n(SELECT_STATEMENT, 5, $2, $3, $5, $6, $7);
+        }
     ;
 
 select_option:
-        DISTINCT
-    |
+        DISTINCT {
+            $$ = new_tree_node_0(DISTINCT);
+        }
+    |   {
+            $$ = NULL;
+        }
     ;
 
 where_option:
-        WHERE search_condition
-    |
+        WHERE search_condition {
+            $$ = new_tree_node_1(WHERE_OPTION, $2);
+            //$$ = $2;
+        }
+    |   {
+            $$ = NULL;
+        }
     ;
 
 order_option:
-        ORDER BY column_name
-    |
+        ORDER BY column_name {
+            $$ = new_tree_node_1(ORDER_OPTION, $3);
+        }
+    |   {
+            $$ = NULL;
+        }
     ;
 
 delete_statement:
-        DELETE FROM NAME where_option
+        DELETE FROM NAME where_option {
+            $$ = new_tree_node_n(DELETE_STATEMENT, 2, $3, $4);
+        }
     ;
 
 insert_statement:
@@ -132,13 +153,19 @@ name_type:
     ;
 
 select_list:
-        '*'
+        '*' {
+            $$ = new_tree_node_0('*'); 
+        }
     |   select_sub_list
     ;
 
 select_sub_list:
-        column_name ',' select_sub_list
-    |   column_name
+        column_name ',' select_sub_list {
+            $$ = tree_add_child_front($3, $1);
+        }
+    |   column_name {
+            $$ = new_tree_node_1(SELECT_SUB_LIST, $1);
+        }
     ;
 
 name_list:
@@ -160,8 +187,12 @@ value_list:
     ;
 
 data_type:
-        INT { $$ = new_tree_node_0(INT); }
-    |   STR20 {$$ = new_tree_node_0(STR20); }
+        INT { 
+            $$ = new_tree_node_0(INT); 
+        }
+    |   STR20 {
+            $$ = new_tree_node_0(STR20);
+        }
     ;
 
 column_name:
@@ -172,47 +203,96 @@ column_name:
 value:
         LITERAL
     |   INTEGER
-    |   NULL_VALUE
+    |   NULL_VALUE {
+            $$ = new_tree_node_0(NULL_VALUE);
+        }
     ;
 
 search_condition:
-        boolean_term OR search_condition
-    |   boolean_term
+        boolean_term OR search_condition {
+            if ($3->type == OR) {
+                $$ = tree_add_child_front($3, $1);
+            } else {
+                $$ = new_tree_node_2(OR, $1, $3);
+            }
+        }
+    |   boolean_term {
+            //$$ = new_tree_node_1(SEARCH_CONDITION, $1);
+            $$ = $1;
+        }
     ;
 
 boolean_term:
-        boolean_factor AND boolean_term
-    |   boolean_factor
+        boolean_factor AND boolean_term {
+            if ($3->type == AND) {
+                $$ = tree_add_child_front($3, $1);
+            } else {
+                $$ = new_tree_node_2(AND, $1, $3);
+            }
+        }
+    |   boolean_factor {
+            $$ = $1;
+        }
     ;
 
 boolean_factor:
         boolean_primary
-    |   NOT boolean_primary
+    |   NOT boolean_primary {
+        $$ = new_tree_node_1(NOT, $2);
+    }
     ;
 
 boolean_primary:
-        '[' search_condition ']'
+        '[' search_condition ']' {
+            $$ = $2;
+        }
     |   comparison_predicate
     ;
 
 comparison_predicate:
-        expression COMP_OP expression
+        expression COMP_OP expression {
+            $$ = tree_add_child_front($2, $3);
+            $$ = tree_add_child_front($2, $1);
+            //$$ = new_tree_node_3(COMPARISON_PREDICATE, $1, $2, $3); 
+            //$$ = new_tree_node_2(COMP_OP, $1, $3); 
+        }
     ;
 
 expression:
-        term '+' expression
-    |   term '-' expression
+        term '+' expression {
+            if ($3->type == '+') {
+                $$ = tree_add_child_front($3, $1);
+            } else {
+                $$ = new_tree_node_2('+', $1, $3);
+            }
+            //$$ = tree_add_child_front($2, $3);
+            //$$ = tree_add_child_front($2, $1);
+        }
+    |   term '-' expression {
+            //NOTE: not commutative
+            $$ = new_tree_node_2('-', $1, $3);
+        }
     |   term
     ;
 
 term:
-        factor '*' term
-    |   factor '/' term
+        factor '*' term {
+            if ($3->type == '*') {
+                $$ = tree_add_child_front($3, $1);
+            } else {
+                $$ = new_tree_node_2('*', $1, $3);
+            }
+        }
+    |   factor '/' term {
+            $$ = new_tree_node_2('/', $1, $3);
+        }
     |   factor
     ;
 
 factor:
-        '(' expression ')'
+        '(' expression ')' {
+            $$ = $2;
+        }
     |   column_name
     |   LITERAL
     |   INTEGER

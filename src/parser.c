@@ -3,26 +3,16 @@
 #include <string.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "parser.h"
 
 #include "y.tab.h"
 #include "lex.yy.h"
 
-//#define DEBUG
+//#define DEBUG_LEX
 
-//typedef struct yy_buffer_state* YY_BUFFER_STATE;
-//extern YY_BUFFER_STATE yy_create_buffer(FILE* file, int size);
-//extern void yy_switch_to_buffer(YY_BUFFER_STATE new_buffer);
-//extern void yy_delete_buffer(YY_BUFFER_STATE buffer);
-//
-//extern YY_BUFFER_STATE yy_scan_buffer(char*, size_t);
-//extern YY_BUFFER_STATE yy_scan_string(const char*);
-//extern void yypop_buffer_state();
 extern int yyparse();
-//extern int YY_BUF_SIZE;
-//extern FILE* yyin;
-//extern YY_BUFFER_STATE YY_CURRENT_BUFFER;
 
 
 //------------------------------------------------------------------------------
@@ -103,6 +93,32 @@ tree_node_t* new_tree_node_3(int type, tree_node_t* child1, tree_node_t* child2,
     tree_add_child_front(tmp, child1);
 
     return tmp;
+}
+
+tree_node_t* new_tree_node_n(int type, size_t nops, ...)
+{
+    va_list ap;
+
+    tree_node_t* top = new_tree_node_0(type);
+    tree_node_t* last = NULL;
+
+    va_start(ap, nops);
+    for (size_t i = 0;  i < nops; ++i) {
+        tree_node_t* tmp = va_arg(ap, tree_node_t*);
+        if (tmp == NULL)
+            continue;
+
+        if (last == NULL) {
+            tree_add_child_front(top, tmp);
+            last = tmp;
+        } else {
+            last->next = tmp;
+            last = tmp;
+        }
+    }
+    va_end(ap);
+
+    return top;
 }
 
 void free_parse_tree(tree_node_t* node)
@@ -231,20 +247,20 @@ void dump_name_list()
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-void sql_parser()
-{
-    lineno = 1;
-    yyparse();
-
-    //char tstr[] = "CREATE TABLE Tad\n\0";
-    //char tstr[] = "CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)\n\0";
-    //// note yy_scan_buffer is is looking for a double null string
-    //yy_scan_buffer(tstr, sizeof(tstr));
-    //yyparse();
-
-
-    //printf("%s\n", tstr);
-}
+//void sql_parser()
+//{
+//    lineno = 1;
+//    yyparse();
+//
+//    //char tstr[] = "CREATE TABLE Tad\n\0";
+//    //char tstr[] = "CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)\n\0";
+//    //// note yy_scan_buffer is is looking for a double null string
+//    //yy_scan_buffer(tstr, sizeof(tstr));
+//    //yyparse();
+//
+//
+//    //printf("%s\n", tstr);
+//}
 
 tree_node_t* parse_sql_file(const char* file_name)
 {
@@ -253,6 +269,8 @@ tree_node_t* parse_sql_file(const char* file_name)
     FILE* file = fopen(file_name, "r");
 
     if (file) {
+        lineno = 1;
+
         yyin = file;
         YY_BUFFER_STATE state = yy_create_buffer(yyin, YY_BUF_SIZE);
         yy_switch_to_buffer(state);
@@ -362,7 +380,7 @@ void dump_str_list(str_list_t* list)
 //------------------------------------------------------------------------------
 void debug_lex(int type, const char* yytext)
 {
-#ifdef DEBUG
+#ifdef DEBUG_LEX
     const char* type_str = get_lex_macro_str(type);
     printf("%s: %s\n", type_str, yytext);
 #endif
@@ -370,6 +388,7 @@ void debug_lex(int type, const char* yytext)
 
 #define TOKEN(name) case name: return #name
 #define CHAR(name) case name: return "CHAR"
+#define CHAR_STR(name, str) case name: return str
 const char* get_lex_macro_str(int type)
 {
     switch (type) {
@@ -397,15 +416,16 @@ const char* get_lex_macro_str(int type)
         TOKEN(AND);
         TOKEN(NOT);
         TOKEN(COMP_OP);
+        TOKEN(NULL_VALUE);
         CHAR('(');
         CHAR(')');
         CHAR(',');
-        CHAR('*');
+        CHAR_STR('*', "*");
         CHAR('[');
         CHAR(']');
-        CHAR('+');
-        CHAR('-');
-        CHAR('/');
+        CHAR_STR('+', "+");
+        CHAR_STR('-', "-");
+        CHAR_STR('/', "/");
         TOKEN(CREATE_TABLE_STATEMENT);
         TOKEN(DROP_TABLE_STATEMENT);
         TOKEN(SELECT_STATEMENT);
@@ -416,6 +436,11 @@ const char* get_lex_macro_str(int type)
         TOKEN(NAME_LIST);
         TOKEN(VALUE_LIST);
         TOKEN(INSERT_TUPLES);
+        TOKEN(SELECT_SUB_LIST);
+        TOKEN(ORDER_OPTION);
+        TOKEN(WHERE_OPTION);
+        TOKEN(COMPARISON_PREDICATE); 
+        TOKEN(SEARCH_CONDITION);
     }
 
     return "?";
