@@ -13,7 +13,9 @@
 //------------------------------------------------------------------------------
 //   global variable
 //------------------------------------------------------------------------------
-int lineno = 0;
+int parser_error = 0;
+int parser_file_lineno = 0;
+const char* parser_file_name = NULL;
 str_list_t* name_list = NULL;
 tree_node_list_t* node_list = NULL;
 tree_node_t* query_list = NULL;
@@ -90,7 +92,7 @@ tree_node_t* new_tree_node_3(int type, tree_node_t* child1, tree_node_t* child2,
     return tmp;
 }
 
-tree_node_t* new_tree_node_n(int type, size_t nops, ...)
+tree_node_t* new_tree_node_n(int type, int nops, ...)
 {
     va_list ap;
 
@@ -264,7 +266,7 @@ tree_node_t* parse_sql_file(const char* file_name)
     FILE* file = fopen(file_name, "r");
 
     if (file) {
-        lineno = 1;
+        parser_file_lineno = 1;
 
         yyin = file;
         YY_BUFFER_STATE state = yy_create_buffer(yyin, YY_BUF_SIZE);
@@ -279,7 +281,7 @@ tree_node_t* parse_sql_file(const char* file_name)
         printf("error: can't open file: %s\n", file_name);
     }
     // set lex to read from it instead of defaulting to STDIN:
-    return NULL;
+    return query_list;
 }
 
 tree_node_t* parse_sql_string(const char* sql_string)
@@ -310,11 +312,28 @@ tree_node_t* parse_sql_string(const char* sql_string)
     //yy_switch_to_buffer()
 
     free((void*)tmp);
-    return NULL;
+    //return NULL;
+    return query_list;
+}
+
+//void parser_set_file_name(const char* file_name)
+//{
+//    parser_file_name = file_name;
+//}
+int parser_get_error()
+{
+    return parser_error;
+}
+
+void parser_set_error()
+{
+    parser_error = 1;
 }
 
 void parser_reset()
 {
+    parser_error = 0;
+
     free_str_list(name_list);
     name_list = NULL;
 
@@ -369,6 +388,11 @@ void dump_str_list(str_list_t* list)
         tmp = tmp->next;
     }
 }
+
+//------------------------------------------------------------------------------
+//   error
+//------------------------------------------------------------------------------
+
 
 //------------------------------------------------------------------------------
 //   debug

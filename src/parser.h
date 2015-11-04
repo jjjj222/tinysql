@@ -4,7 +4,7 @@
 //------------------------------------------------------------------------------
 //   debug flag
 //------------------------------------------------------------------------------
-#define DEBUG_YACC
+//#define DEBUG_YACC
 //#define DEBUG_LEX
 
 
@@ -43,7 +43,8 @@ typedef struct tree_node_list tree_node_list_t;
 //   global variable
 //------------------------------------------------------------------------------
 
-extern int lineno;
+extern int parser_file_lineno;
+extern const char* parser_file_name;
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,6 +57,9 @@ extern "C" {
 
 tree_node_t* parse_sql_file(const char*);
 tree_node_t* parse_sql_string(const char*);
+
+int parser_get_error();
+void parser_set_error();
 void parser_reset();
 
 
@@ -68,7 +72,7 @@ tree_node_t* new_tree_node_0(int type);
 tree_node_t* new_tree_node_1(int type, tree_node_t*);
 tree_node_t* new_tree_node_2(int type, tree_node_t*, tree_node_t*);
 tree_node_t* new_tree_node_3(int type, tree_node_t*, tree_node_t*, tree_node_t*);
-tree_node_t* new_tree_node_n(int type, size_t nops, ...);
+tree_node_t* new_tree_node_n(int type, int nops, ...);
 void free_parse_tree(tree_node_t*);
 void dump_tree_node(const tree_node_t*);
 
@@ -93,6 +97,11 @@ char* new_str(const char*);
 str_list_t* new_str_list(const char*);
 void free_str_list(str_list_t*);
 void dump_str_list(str_list_t*);
+
+//------------------------------------------------------------------------------
+//   error
+//------------------------------------------------------------------------------
+//void error_sql_parse(
 
 //------------------------------------------------------------------------------
 //   debug

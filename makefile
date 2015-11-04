@@ -1,5 +1,5 @@
 EXEC_NAME = tinysql
-CXX_SRCS = main.cpp cmd.cpp test.cpp
+CXX_SRCS = main.cpp cmd.cpp dbMgr.cpp test.cpp
 C_SRCS = parser.c
 LEX_SRC = sql.l
 YACC_SRC = sql.y
@@ -89,7 +89,8 @@ ctags:
 
 .PHONY: run
 run:
-	@./$(EXEC) testcases/example.in
+	@./$(EXEC) testcases/example.do
+	@#./$(EXEC) testcases/example.in
 	@#./$(EXEC) < testcases/example.in
 
 .PHONY: clean

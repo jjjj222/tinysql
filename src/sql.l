@@ -59,6 +59,10 @@ NOT         KEYWORD(NOT)
                 /* skip whitespace */ 
             }
 
+--.*        {
+                /* skip comment */
+            }
+
 #.*         {
                 /* skip comment */
             }
@@ -75,7 +79,14 @@ NOT         KEYWORD(NOT)
 %%
 void yyerror(char* s)
 {
-    fprintf(stderr, "Error: line %d: %s at '%s'\n", lineno, s, yytext);
+    if (parser_file_name != NULL) {
+        fprintf(stderr, "Error: file %s line %d: %s at '%s'\n",
+             parser_file_name,
+             parser_file_lineno, s, yytext);
+    } else {
+        fprintf(stderr, "Error: line %d: %s at '%s'\n", parser_file_lineno, s, yytext);
+    }
+    parser_set_error();
 }
 
 int yywrap(void) {

@@ -38,7 +38,7 @@ one_statement:
             add_to_query_list($1);
 #ifdef DEBUG_YACC
             dump_tree_node($1);
-            printf("------------------- line %d ------------------\n", lineno++);
+            printf("------------------- line %d ------------------\n", parser_file_lineno++);
 #endif
         }
     ;
