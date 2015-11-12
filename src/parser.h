@@ -62,6 +62,19 @@ int parser_get_error();
 void parser_set_error();
 void parser_reset();
 
+//------------------------------------------------------------------------------
+//   node type
+//------------------------------------------------------------------------------
+int node_is_create_table(tree_node_t*);
+int node_is_insert(tree_node_t*);
+int node_is_select(tree_node_t*);
+int node_is_attribute_type_list(tree_node_t*);
+int node_is_name_type(tree_node_t*);
+int node_is_name_list(tree_node_t*);
+int node_is_value_list(tree_node_t*);
+int node_is_int(tree_node_t*);
+int node_is_str20(tree_node_t*);
+
 
 //------------------------------------------------------------------------------
 //   parse tree

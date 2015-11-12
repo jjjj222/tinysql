@@ -216,6 +216,64 @@ void dump_tree_node_list(tree_node_list_t* list)
         tmp = tmp->next;
     }
 }
+
+
+//------------------------------------------------------------------------------
+//   node type
+//------------------------------------------------------------------------------
+int node_is_create_table(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == CREATE_TABLE_STATEMENT;
+}
+
+int node_is_insert(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == INSERT_STATEMENT;
+}
+
+int node_is_select(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == SELECT_STATEMENT;
+}
+
+int node_is_attribute_type_list(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == ATTRIBUTE_TYPE_LIST;
+}
+
+int node_is_name_type(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == NAME_TYPE;
+}
+
+int node_is_name_list(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == NAME_LIST;
+}
+
+int node_is_value_list(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == VALUE_LIST;
+}
+
+int node_is_int(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == INT;
+}
+
+int node_is_str20(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == STR20;
+}
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
