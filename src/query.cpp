@@ -106,7 +106,49 @@ bool QueryMgr::select_from(tree_node_t* node)
     assert(node != NULL);
     assert(node_is_select(node));
 
-    return true;
+    tree_node_t* child = node->child;
+    assert(child != NULL);
+
+    bool is_distinct = false;
+    if (node_is_distinct(child)) {
+        is_distinct = true;
+        child = child->next;
+        assert(child != NULL);
+    }
+
+    vector<string> attr_list;
+    if (child->type == '*') {
+
+    } else {
+        assert(node_is_select_list(child));
+        cout << "TODO: SELECT_LIST" << endl;
+    }
+
+    tree_node_t* name_list_node = child->next;
+    assert(name_list_node != NULL);
+    vector<string> name_list = get_string_list(name_list_node);
+
+    child = name_list_node->next;
+    tree_node_t* where_tree = NULL;
+    if (child != NULL && node_is_where(child)) {
+        where_tree = child;
+        child = child->next;
+    }
+
+    string order_by = "";
+    if (child != NULL) {
+        assert(node_is_order_by(child));
+        assert(child->child != NULL);
+        order_by = child->child->value;
+        //dump_normal(order_by);
+    }
+    //dump_normal(name_list);
+    //while (child != NULL) {
+    //    //attr_list.push_back(get_name_type(child));
+    //    child = child->next;
+    //}    
+    bool res = HwMgr::ins()->select_from(name_list, attr_list, where_tree, is_distinct);
+    return res;
 }
 
 vector<pair<string, DataType>> QueryMgr::get_attribute_type_list(tree_node_t* node)
@@ -154,7 +196,11 @@ vector<string> QueryMgr::get_string_list(tree_node_t* node)
 
     vector<string> string_list;
     while (child != NULL) {
-        string_list.push_back(child->value);
+        if (node_is_null(child)) {
+            string_list.push_back("NULL");
+        } else {
+            string_list.push_back(child->value);
+        }
         child = child->next;
     }
 

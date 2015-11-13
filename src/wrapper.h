@@ -30,6 +30,7 @@ class TinySchema
         TinySchema& operator=(const TinySchema& rhs) { assign(rhs); return *this; }
         operator const Schema& () const { return *_schema; }
 
+        vector<string> get_attr_list() const;
         vector<pair<string, FIELD_TYPE>> get_name_type_list() const;
         DataType get_data_type(const string&) const;
         
@@ -59,13 +60,17 @@ class TinyTuple
         ~TinyTuple();
 
         operator const Tuple& () const { return *_tuple; }
+        //operator const vector<>& () const { return *_tuple; }
 
         void init(); // TODO; private
         bool set_value(const string&, const string&);
         bool set_str_value(const string&, const string&);
         bool set_int_value(const string&, int);
 
+        string get_value_str(const string&) const;
         TinySchema get_tiny_schema() const;
+        vector<string> get_attr_list() const;
+        vector<string> str_list() const;
         //const string& get_str_value(const string&) const;
         //int get_int_value(const string&) const;
 
@@ -88,12 +93,16 @@ class TinyRelation
 
         void push_back(const TinyTuple&);
 
+        bool load_block_to_mem(size_t, size_t) const;
+
         // get
         TinyTuple create_tuple() const;
 
         string get_name() const;
         TinySchema get_tiny_schema() const;
+        vector<string> get_attr_list() const;
         size_t size() const;
+        size_t get_num_of_attribute() const;
         size_t get_num_of_block() const;
         size_t tuple_per_block() const;
 

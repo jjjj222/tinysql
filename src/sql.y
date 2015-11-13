@@ -21,7 +21,7 @@
 %token ATTRIBUTE_TYPE_LIST
 %token INSERT_TUPLES
 %token NAME_TYPE NAME_LIST VALUE_LIST
-%token SELECT_SUB_LIST
+%token SELECT_LIST
 %token ORDER_OPTION WHERE_OPTION
 %token COMPARISON_PREDICATE
 %token SEARCH_CONDITION
@@ -144,7 +144,7 @@ select_sub_list:
             $$ = tree_add_child_front($3, $1);
         }
     |   column_name {
-            $$ = new_tree_node_1(SELECT_SUB_LIST, $1);
+            $$ = new_tree_node_1(SELECT_LIST, $1);
         }
     ;
 

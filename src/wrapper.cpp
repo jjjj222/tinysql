@@ -119,6 +119,11 @@ DataType TinySchema::get_data_type(const string& field_name) const
     return TINY_UNKNOWN;
 }
 
+vector<string> TinySchema::get_attr_list() const
+{
+    return _schema->getFieldNames();
+}
+
 vector<pair<string, FIELD_TYPE>> TinySchema::get_name_type_list() const
 {
     vector<string> names = _schema->getFieldNames();
@@ -276,6 +281,45 @@ TinySchema TinyTuple::get_tiny_schema() const
     return TinySchema(_tuple->getSchema());
 }
 
+string TinyTuple::get_value_str(const string& name) const
+{
+    //DataType data_type = get_tiny_schema().get_data_type(name);
+    //Field value = _tuple->getField(name);
+
+    //if (type == TINY_INT) {
+    //    return jjjj222::dump_str(value.integer);
+    //} else {
+    //    assert(type == TINY_STR20);
+    //    return *(value.str);
+    //}
+
+    return "<ERROR>";
+}
+
+vector<string> TinyTuple::get_attr_list() const
+{
+    return get_tiny_schema().get_attr_list();
+}
+
+vector<string> TinyTuple::str_list() const
+{
+    vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
+    vector<string> str_list;
+    for (size_t i = 0; i < name_type_list.size(); ++i) {
+        const auto& name = name_type_list[i].first;
+        const auto& type = name_type_list[i].second;
+        Field value = _tuple->getField(name);
+        if (type == INT) {
+            str_list.push_back(jjjj222::dump_str(value.integer));
+        } else {
+            assert(type == STR20);
+            str_list.push_back( *(value.str) );
+        }
+    }
+
+    return str_list;
+}
+
 string TinyTuple::dump_str() const
 {
     vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
@@ -387,6 +431,11 @@ void TinyRelation::push_back(const TinyTuple& tuple)
 
 }
 
+bool TinyRelation::load_block_to_mem(size_t block_index, size_t mem_index) const
+{
+    return _relation->getBlock(block_index, mem_index);
+}
+
 TinyTuple TinyRelation::create_tuple() const
 {
     TinyTuple t = _relation->createTuple();
@@ -407,6 +456,16 @@ TinySchema TinyRelation::get_tiny_schema() const
 size_t TinyRelation::size() const
 {
     return (size_t)_relation->getNumOfTuples();
+}
+
+size_t TinyRelation::get_num_of_attribute() const
+{
+    return get_tiny_schema().size();
+}
+
+vector<string> TinyRelation::get_attr_list() const
+{
+    return get_tiny_schema().get_attr_list();
 }
 
 size_t TinyRelation::get_num_of_block() const

@@ -68,6 +68,20 @@ class HwMgr
         //
         bool create_table(const string&, const vector<pair<string, DataType>>&);
         bool insert_into(const string&, const vector<pair<string, string>>&);
+        //bool select_from(const string&);
+        bool select_from(
+            const vector<string>&,
+            const vector<string>&,
+            tree_node_t*,
+            bool is_distinct
+        );
+
+        bool select_from_single_table(
+            const string&, 
+            const vector<string>&,
+            tree_node_t*,
+            bool is_distinct
+        );
 
         // debug
         void dump();

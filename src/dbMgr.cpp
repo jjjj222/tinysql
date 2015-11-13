@@ -231,6 +231,74 @@ bool HwMgr::insert_into(const string& name, const vector<pair<string, string>>& 
 
     return true;
 }
+
+bool HwMgr::select_from(
+    const vector<string>& table_list, 
+    const vector<string>& attr_list,
+    tree_node_t* where_tree,
+    bool is_distinct
+)
+{
+    assert(!table_list.empty());
+
+    if (table_list.size() == 1) {
+        return select_from_single_table(table_list[0], attr_list, where_tree, is_distinct);
+    }
+    cout << "TODO: table_list.size() > 1" << endl;
+    //TinyRelation* relation = get_tiny_relation(name);
+    //if (relation == NULL) {
+    //    error_msg_table_not_exist(name);
+    //    return false;
+    //}
+
+    //dump_pretty(table_list);
+    //dump_pretty(attr_list);
+
+    return true;
+}
+
+bool HwMgr::select_from_single_table(
+    const string& table_name, 
+    const vector<string>& attr_list,
+    tree_node_t* where_tree,
+    bool is_distinct
+)
+{
+    TinyRelation* relation = get_tiny_relation(table_name);
+    if (relation == NULL) {
+        error_msg_table_not_exist(table_name);
+        return false;
+    }
+
+    if (where_tree != NULL) {
+        cout << "TODO: where != NULL" << endl;
+    }
+
+    if (!attr_list.empty()) {
+        cout << "TODO: !attr_list.empty()" << endl;
+    }
+
+    DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
+
+    size_t mem_index = 0;
+    size_t num_of_block = relation->get_num_of_block();
+    for (size_t i = 0; i < num_of_block; ++i) {
+        relation->load_block_to_mem(i, mem_index);
+        //_relation->getBlock(i, mem_index);
+        Block* block = HwMgr::ins()->get_mem_block(mem_index);
+        vector<Tuple> tuples = block->getTuples();
+        for (const auto& tuple : tuples) {
+            //dump_normal(TinyTuple(tuple));
+            table.add_row(TinyTuple(tuple).str_list());
+        }
+    }
+
+    table.set_header(relation->get_attr_list());
+    table.draw();
+    //cout << table.size() << " "
+
+    return true;
+}
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------

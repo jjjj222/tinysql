@@ -68,12 +68,17 @@ void parser_reset();
 int node_is_create_table(tree_node_t*);
 int node_is_insert(tree_node_t*);
 int node_is_select(tree_node_t*);
+int node_is_where(tree_node_t*);
+int node_is_order_by(tree_node_t*);
 int node_is_attribute_type_list(tree_node_t*);
 int node_is_name_type(tree_node_t*);
 int node_is_name_list(tree_node_t*);
 int node_is_value_list(tree_node_t*);
+int node_is_select_list(tree_node_t*);
 int node_is_int(tree_node_t*);
 int node_is_str20(tree_node_t*);
+int node_is_distinct(tree_node_t*);
+int node_is_null(tree_node_t*);
 
 
 //------------------------------------------------------------------------------

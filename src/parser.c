@@ -146,7 +146,7 @@ void dump_tree_node_rec(const tree_node_t* node, const char* indent, bool is_las
     size_t indent_len = strlen(indent);
     char* next_indent = malloc(sizeof(char) * (indent_len + indent_one_len + 1));
     memcpy(next_indent, indent, indent_len);
-    memcpy(next_indent + indent_len, indent_one, indent_one_len);
+    memcpy(next_indent + indent_len, indent_one, indent_one_len + 1);
 
     const tree_node_t* child = node->child;
     while (child != NULL) {
@@ -263,6 +263,24 @@ int node_is_value_list(tree_node_t* node)
     return node->type == VALUE_LIST;
 }
 
+int node_is_select_list(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == SELECT_LIST;
+}
+
+int node_is_where(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == WHERE_OPTION;
+}
+
+int node_is_order_by(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == ORDER_OPTION;
+}
+
 int node_is_int(tree_node_t* node)
 {
     assert(node != NULL);
@@ -274,6 +292,19 @@ int node_is_str20(tree_node_t* node)
     assert(node != NULL);
     return node->type == STR20;
 }
+
+int node_is_distinct(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == DISTINCT;
+}
+
+int node_is_null(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == NULL_VALUE;
+}
+
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -513,7 +544,7 @@ const char* get_lex_macro_str(int type)
         TOKEN(NAME_LIST);
         TOKEN(VALUE_LIST);
         TOKEN(INSERT_TUPLES);
-        TOKEN(SELECT_SUB_LIST);
+        TOKEN(SELECT_LIST);
         TOKEN(ORDER_OPTION);
         TOKEN(WHERE_OPTION);
         TOKEN(COMPARISON_PREDICATE); 

@@ -1,10 +1,10 @@
 #include<iostream>
 using namespace std;
 
-#include "parser.h"
+//#include "parser.h"
 #include "cmd.h"
-#include "test.h"
-#include "dbMgr.h"
+//#include "test.h"
+//#include "dbMgr.h"
 
 int test_storage_mgr();
 
