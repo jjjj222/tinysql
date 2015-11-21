@@ -285,10 +285,6 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
         return false;
     }
 
-    //bool nullTuple(int tuple_offset); // invalidates the tuple at the offset
-    //bool nullTuples(); // invalidates all the tuples in the block
-
-    //ConditionMgr cond_mgr(where_node, relation->get_tiny_schema());
     ConditionMgr cond_mgr(where_node, relation);
     if (cond_mgr.is_error())
         return false;
@@ -302,10 +298,7 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
         relation->load_block_to_mem(disk_index, mem_index);
         Block* block = HwMgr::ins()->get_mem_block(mem_index);
 
-        
-        //block->nullTuples();
         vector<Tuple> tuples = block->getTuples();
-        //for (const auto& tuple : tuples) {
         for (size_t j = 0; j < tuples.size(); ++j) {
             const Tuple& tuple = tuples[j];
 
@@ -318,22 +311,11 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
             }
         }
 
-
-        //cout << "QQ" << endl;
         relation->save_block_to_disk(disk_index, mem_index);
-        //bool deleteBlocks(int starting_block_index);
-
-        //TODO
-        //relation->get_relation()->
-        //vector<Tuple> tuples = block->getTuples();
-        //for (const auto& tuple : tuples) {
-        //    //dump_normal(TinyTuple(tuple));
-        //    table.add_row(TinyTuple(tuple).str_list());
-        //}
     }
-    //relation->reduce_blocks_to(0);
 
     relation->refresh_block_num();
+
     return true;
 }
 

@@ -119,7 +119,44 @@ void ConditionNode::dump_tree(const string& indent, bool is_last) const
     }
 }
 
-bool EqNode::is_tuple_match(const TinyTuple& tiny_tuple) const
+bool AndNode::is_tuple_match(const TinyTuple& tuple) const
+{
+    const vector<ConditionNode*>& childs = get_childs();
+    assert(childs.size() >= 2);
+
+    for (const auto& child_ptr : childs) {
+        bool res = child_ptr->is_tuple_match(tuple);
+        if (!res)
+            return false;
+    }
+
+    return true;
+}
+
+bool OrNode::is_tuple_match(const TinyTuple& tuple) const
+{
+    const vector<ConditionNode*>& childs = get_childs();
+    assert(childs.size() >= 2);
+
+    for (const auto& child_ptr : childs) {
+        bool res = child_ptr->is_tuple_match(tuple);
+        if (res)
+            return true;
+    }
+
+    return false;
+}
+
+bool NotNode::is_tuple_match(const TinyTuple& tuple) const
+{
+    const vector<ConditionNode*>& childs = get_childs();
+    assert(childs.size() == 1);
+
+    bool res = !childs[0]->is_tuple_match(tuple);
+    return res;
+}
+
+bool CompNode::is_tuple_match(const TinyTuple& tiny_tuple) const
 {
     const vector<ConditionNode*>& childs = get_childs();
     assert(childs.size() == 2);
@@ -127,8 +164,23 @@ bool EqNode::is_tuple_match(const TinyTuple& tiny_tuple) const
     DataValue l_v = childs[0]->get_value(tiny_tuple);
     DataValue r_v = childs[1]->get_value(tiny_tuple);
 
-    bool res = l_v == r_v;
+    bool res = comp_op(l_v, r_v);
     return res;
+}
+
+bool EqNode::comp_op(const DataValue& lhs, const DataValue& rhs) const
+{
+    return lhs == rhs;
+}
+
+bool GtNode::comp_op(const DataValue& lhs, const DataValue& rhs) const
+{
+    return lhs > rhs;
+}
+
+bool LtNode::comp_op(const DataValue& lhs, const DataValue& rhs) const
+{
+    return lhs < rhs;
 }
 
 VarNode::VarNode(const string& table, const string& column)
@@ -158,9 +210,64 @@ LiteralNode::LiteralNode(const string& value)
     ;
 }
 
+DataValue ArithNode::get_value(const TinyTuple& tuple) const
+{
+    const vector<ConditionNode*>& childs = get_childs();
+    assert(childs.size() >= 2);
+
+    //DataValue l_v = childs[0]->get_value(tiny_tuple);
+    //DataValue r_v = childs[1]->get_value(tiny_tuple);
+    DataValue tmp = childs[0]->get_value(tuple);
+    for (size_t i = 1; i < childs.size(); ++i) {
+        ConditionNode* child_ptr = childs[i];
+        tmp = arith_op(tmp, child_ptr->get_value(tuple));
+    }
+
+    //bool res = comp_op(l_v, r_v);
+    //return res;
+    return tmp;
+}
+
+
+DataValue AddNode::arith_op(const DataValue& lhs, const DataValue& rhs) const
+{
+    return lhs + rhs;
+}
+
+DataValue MinusNode::arith_op(const DataValue& lhs, const DataValue& rhs) const
+{
+    return lhs - rhs;
+}
+
+DataValue MultiNode::arith_op(const DataValue& lhs, const DataValue& rhs) const
+{
+    return lhs * rhs;
+}
+
+DataValue DivNode::arith_op(const DataValue& lhs, const DataValue& rhs) const
+{
+    return lhs / rhs;
+}
+
 DataValue LiteralNode::get_value(const TinyTuple&) const
 {
     return DataValue(_value);
+}
+
+IntegerNode::IntegerNode(int value)
+: _value(value)
+{
+    ;
+}
+
+DataValue IntegerNode::get_value(const TinyTuple&) const
+{
+    return DataValue(_value);
+}
+
+string IntegerNode::dump_str() const
+{
+    return jjjj222::dump_str(_value);
 }
 //------------------------------------------------------------------------------
 //   
@@ -190,15 +297,15 @@ ConditionMgr::~ConditionMgr()
 
 bool ConditionMgr::is_tuple_match(const Tuple& tuple)
 {
+    if (_root == NULL)
+        return true;
+
     assert(TinyTuple(tuple).get_tiny_schema() == _tiny_relation->get_tiny_schema());
 
     delete_not_null(_tiny_tuple);
-
     _tiny_tuple = new TinyTuple(tuple);
-    //dump_normal(_tiny_tuple);
 
     bool res = _root->is_tuple_match(*_tiny_tuple);
-    //return true;
     return res;
 }
 
@@ -211,23 +318,26 @@ bool ConditionMgr::build_condition_node(tree_node_t* node)
     tree_node_t* child = node->child;
     assert(child != NULL);
 
-    ConditionNode* node_ptr = NULL;
-    if (node_is_or(child) || node_is_and(child) || node_is_not(child)) {
-        cout << "TODO: and or not" << endl;
-    }
-
-    if (node_is_comp_op(child)) {
-        //cout << "comp_op" << endl;
-        node_ptr = build_comp_op_node(child);
-    }
-    
-    _root = node_ptr;
-
-    //dump_normal(_root);
-    //dump_pretty(_root);
+    _root = build_condition_node_rec(child);
 
     bool res = check_condition_tree();
     return res;
+}
+
+ConditionNode* ConditionMgr::build_condition_node_rec(tree_node_t* node)
+{
+    assert(node != NULL);
+
+    ConditionNode* node_ptr = NULL;
+    if (node_is_or(node) || node_is_and(node) || node_is_not(node)) {
+        node_ptr = build_boolean_node(node);
+    } else if (node_is_comp_op(node)) {
+        node_ptr = build_comp_op_node(node);
+    } else {
+        assert(false);
+    }
+
+    return node_ptr;
 }
 
 bool ConditionMgr::check_condition_tree() const
@@ -247,24 +357,29 @@ bool ConditionMgr::check_condition_rec(ConditionNode* node) const
             return false;
     }
 
-    if (node->get_type() == ConditionNode::VAR) {
-        if (check_var_node(node) == false)
+    VarNode* var_node = dynamic_cast<VarNode*>(node);
+    //if (node->get_type() == ConditionNode::VAR) {
+    if (var_node != NULL) {
+        if (check_var_node(var_node) == false)
             return false;
     }
 
     return true;
 }
 
-bool ConditionMgr::check_var_node(ConditionNode* node) const
+//bool ConditionMgr::check_var_node(ConditionNode* node) const
+bool ConditionMgr::check_var_node(VarNode* node) const
 {
     assert(node != NULL);
-    assert(node->get_type() == ConditionNode::VAR);
+    //assert(node->get_type() == ConditionNode::VAR);
 
-    VarNode* var_node = dynamic_cast<VarNode*>(node);
-    assert(var_node != NULL);
+    //VarNode* var_node = dynamic_cast<VarNode*>(node);
+    //assert(var_node != NULL);
 
-    string table = var_node->get_table();
-    string column = var_node->get_column();
+    //string table = var_node->get_table();
+    //string column = var_node->get_column();
+    string table = node->get_table();
+    string column = node->get_column();
 
     string field_name = column;
     if (!table.empty() && _tiny_relation->get_name() != table) {
@@ -302,6 +417,35 @@ bool ConditionMgr::check_var_node(ConditionNode* node) const
     return true;
 }
 
+ConditionNode* ConditionMgr::build_boolean_node(tree_node_t* node)
+{
+    assert(node != NULL);
+
+    tree_node_t* child = node->child;
+    assert(child != NULL);
+
+    ConditionNode* new_node = NULL;
+
+    if (node_is_or(node)) {
+        new_node = new OrNode();
+    } else if (node_is_and(node)) {
+        new_node = new AndNode();
+    } else if (node_is_not(node)) {
+        new_node = new NotNode();
+    } else {
+        // do nothing
+    }
+    assert(new_node != NULL);
+    
+    while (child != NULL) {
+        ConditionNode* tmp = build_condition_node_rec(child);
+        new_node->add_child(tmp);
+        child = child->next;
+    }
+
+    return new_node;
+}
+
 ConditionNode* ConditionMgr::build_comp_op_node(tree_node_t* node)
 {
     assert(node != NULL);
@@ -324,10 +468,49 @@ ConditionNode* ConditionMgr::build_comp_op_node(tree_node_t* node)
     ConditionNode* new_node = NULL;
     if (comp_type == "=") {
         new_node = new EqNode();
-        new_node->add_child(l_new_node);
-        new_node->add_child(r_new_node);
+    } else if (comp_type == ">") {
+        new_node = new GtNode();
     } else {
-        cout << "todo: <, >" << endl;
+        assert(comp_type == "<");
+        new_node = new LtNode();
+    }
+
+    new_node->add_child(l_new_node);
+    new_node->add_child(r_new_node);
+
+    return new_node;
+}
+
+ConditionNode* ConditionMgr::build_arith_op_node(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_arith_op(node));
+
+    tree_node_t* child = node->child;
+    assert(child != NULL);
+
+    ConditionNode* new_node = NULL;
+
+    switch (node->type) {
+        case '+':
+            new_node = new AddNode();
+            break;
+        case '-':
+            new_node = new MinusNode();
+            break;
+        case '*':
+            new_node = new MultiNode();
+            break;
+        case '/':
+            new_node = new DivNode();
+            break;
+    }
+    assert(new_node != NULL);
+    
+    while (child != NULL) {
+        ConditionNode* tmp = build_expression_node(child);
+        new_node->add_child(tmp);
+        child = child->next;
     }
 
     return new_node;
@@ -337,15 +520,20 @@ ConditionNode* ConditionMgr::build_expression_node(tree_node_t* node)
 {
     assert(node != NULL);
 
+    ConditionNode* new_node = NULL;
     if (node_is_name(node) || node_is_column_name(node)) {
-        return build_var_node(node);
+        new_node = build_var_node(node);
     } else if (node_is_literal(node)) {
-        return build_literal_node(node);
+        new_node = build_literal_node(node);
+    } else if (node_is_integer(node)) {
+        new_node = build_integer_node(node);
+    } else if (node_is_arith_op(node)) {
+        new_node = build_arith_op_node(node);
     } else {
-        cout << "todo: expression" << endl;
+        //cout << "todo: expression" << endl;
     }
 
-    return NULL;
+    return new_node;
 }
 
 ConditionNode* ConditionMgr::build_var_node(tree_node_t* node)
@@ -373,6 +561,17 @@ ConditionNode* ConditionMgr::build_literal_node(tree_node_t* node)
     string value = get_literal_value(node->value);
 
     ConditionNode* new_node = new LiteralNode(value);
+    return new_node;
+}
+
+ConditionNode* ConditionMgr::build_integer_node(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_integer(node));
+
+    int value = str_to<int>(node->value);
+
+    ConditionNode* new_node = new IntegerNode(value);
     return new_node;
 }
 
@@ -521,32 +720,6 @@ bool QueryMgr::delete_from(tree_node_t* node)
 
     bool res = HwMgr::ins()->delete_from(name, where_node);
     return res;
-    //TinyRelation* relation = HwMgr::ins()->get_tiny_relation(_name);
-    //assert(relation != NULL);
-    ////if (relation == NULL) {
-    ////    error_msg_table_not_exist(table_name);
-    ////    return false;
-    ////}
-
-    //DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
-
-    //size_t mem_index = 0;
-    //size_t num_of_block = relation->get_num_of_block();
-    //for (size_t i = 0; i < num_of_block; ++i) {
-    //    relation->load_block_to_mem(i, mem_index);
-    //    //_relation->getBlock(i, mem_index);
-    //    Block* block = HwMgr::ins()->get_mem_block(mem_index);
-    //    vector<Tuple> tuples = block->getTuples();
-    //    for (const auto& tuple : tuples) {
-    //        //dump_normal(TinyTuple(tuple));
-    //        table.add_row(TinyTuple(tuple).str_list());
-    //    }
-    //}
-
-    //table.set_header(relation->get_attr_list());
-    //table.draw();
-
-    //return true;
 }
 
 bool QueryMgr::select_from(tree_node_t* node)

@@ -45,20 +45,26 @@ class ConditionNode
     public:
         friend class ConditionMgr;
 
-    public:
-        enum NodeType {
-            VAR,
-            LITERAL,
-            COMP_EQ
-        };
+    //public:
+    //    enum NodeType {
+    //        VAR,
+    //        LITERAL,
+    //        INTEGER,
+    //        AND,
+    //        OR,
+    //        NOT,
+    //        COMP_EQ,
+    //        COMP_GT,
+    //        COMP_LT
+    //    };
 
-    protected:
+    //protected:
     public:
         ConditionNode() {}
         virtual ~ConditionNode();
 
         // get
-        virtual NodeType get_type() const = 0;
+        //virtual NodeType get_type() const = 0;
 
         virtual bool is_tuple_match(const TinyTuple&) const { return false; }
         virtual DataValue get_value(const TinyTuple&) const;
@@ -77,20 +83,89 @@ class ConditionNode
         vector<ConditionNode*>      _childs;
 };
 
+class AndNode : public ConditionNode
+{
+    public:
+        //NodeType get_type() const { return AND; }
+        bool is_tuple_match(const TinyTuple&) const;
+};
+
+class OrNode : public ConditionNode
+{
+    public:
+        //NodeType get_type() const { return OR; }
+        bool is_tuple_match(const TinyTuple&) const;
+};
+
+class NotNode : public ConditionNode
+{
+    public:
+        //NodeType get_type() const { return NOT; }
+        bool is_tuple_match(const TinyTuple&) const;
+};
+
 class CompNode : public ConditionNode
 {
     public:
-        //CompNode() {}
+        bool is_tuple_match(const TinyTuple&) const;
+
+        virtual bool comp_op(const DataValue&, const DataValue&) const = 0;
 };
 
 class EqNode : public CompNode
 {
     public:
-        NodeType get_type() const { return COMP_EQ; }
-
-        bool is_tuple_match(const TinyTuple&) const;
-
+        //NodeType get_type() const { return COMP_EQ; }
+        bool comp_op(const DataValue&, const DataValue&) const;
         string dump_str() const { return "="; }
+};
+
+class GtNode : public CompNode
+{
+    public:
+        //NodeType get_type() const { return COMP_GT; }
+        bool comp_op(const DataValue&, const DataValue&) const;
+        string dump_str() const { return ">"; }
+};
+
+class LtNode : public CompNode
+{
+    public:
+        //NodeType get_type() const { return COMP_LT; }
+        bool comp_op(const DataValue&, const DataValue&) const;
+        string dump_str() const { return "<"; }
+};
+
+class ArithNode : public ConditionNode
+{
+    public:
+        DataValue get_value(const TinyTuple&) const;
+        virtual DataValue arith_op(const DataValue&, const DataValue&) const = 0;
+};
+
+class AddNode : public ArithNode
+{
+    public:
+        DataValue arith_op(const DataValue&, const DataValue&) const;
+        //DataValue get_value(const TinyTuple&) const;
+};
+
+class MinusNode : public ArithNode
+{
+    public:
+        DataValue arith_op(const DataValue&, const DataValue&) const;
+};
+
+class MultiNode : public ArithNode
+{
+    public:
+        DataValue arith_op(const DataValue&, const DataValue&) const;
+};
+
+class DivNode : public ArithNode
+{
+    public:
+        DataValue arith_op(const DataValue&, const DataValue&) const;
 };
 
 class VarNode : public ConditionNode
@@ -98,7 +173,7 @@ class VarNode : public ConditionNode
     public:
         VarNode(const string&, const string&);
 
-        NodeType get_type() const { return VAR; }
+        //NodeType get_type() const { return VAR; }
         DataValue get_value(const TinyTuple&) const;
         const string& get_table() const { return _table; }
         const string& get_column() const { return _column; }
@@ -115,7 +190,7 @@ class LiteralNode : public ConditionNode
     public:
         LiteralNode(const string&);
 
-        NodeType get_type() const { return LITERAL; }
+        //NodeType get_type() const { return LITERAL; }
         DataValue get_value(const TinyTuple&) const;
 
         // debug
@@ -125,11 +200,25 @@ class LiteralNode : public ConditionNode
         string _value;
 };
 
+class IntegerNode : public ConditionNode
+{
+    public:
+        IntegerNode(int);
+
+        //NodeType get_type() const { return INTEGER; }
+        DataValue get_value(const TinyTuple&) const;
+
+        // debug
+        string dump_str() const;
+
+    private:
+        int _value;
+};
+
 class ConditionMgr
 {
     public:
         ConditionMgr(tree_node_t*, TinyRelation* relation);
-        //ConditionMgr(tree_node_t*, const vector<TinyRelation*>& relations);
         ~ConditionMgr();
 
         bool is_error() const { return _error; }
@@ -143,15 +232,19 @@ class ConditionMgr
         bool build_condition_node(tree_node_t*);
         bool check_condition_tree() const;
         bool check_condition_rec(ConditionNode*) const;
-        bool check_var_node(ConditionNode*) const;
+        //bool check_var_node(ConditionNode*) const;
+        bool check_var_node(VarNode*) const;
+        ConditionNode* build_condition_node_rec(tree_node_t*);
+        ConditionNode* build_boolean_node(tree_node_t*);
         ConditionNode* build_comp_op_node(tree_node_t*);
+        ConditionNode* build_arith_op_node(tree_node_t*);
         ConditionNode* build_expression_node(tree_node_t*);
         ConditionNode* build_var_node(tree_node_t*);
         ConditionNode* build_literal_node(tree_node_t*);
+        ConditionNode* build_integer_node(tree_node_t*);
 
     private:
         ConditionNode*          _root;
-        //vector<TinyRelation*>   _relations;
         TinyRelation*           _tiny_relation;
         bool                    _error;
         TinyTuple*              _tiny_tuple;

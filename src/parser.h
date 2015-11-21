@@ -85,6 +85,7 @@ int node_is_or(tree_node_t*);
 int node_is_and(tree_node_t*);
 int node_is_not(tree_node_t*);
 int node_is_comp_op(tree_node_t*);
+int node_is_arith_op(tree_node_t*);
 int node_is_name(tree_node_t*);
 int node_is_column_name(tree_node_t*);
 int node_is_literal(tree_node_t*);

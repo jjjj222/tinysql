@@ -341,6 +341,14 @@ int node_is_comp_op(tree_node_t* node)
     return node->type == COMP_OP;
 }
 
+int node_is_arith_op(tree_node_t* node)
+{
+    assert(node != NULL);
+    
+    int type = node->type;
+    return type == '+' || type == '-' || type == '*' || type == '/';
+}
+
 int node_is_name(tree_node_t* node)
 {
     assert(node != NULL);

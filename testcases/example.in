@@ -1,10 +1,12 @@
 CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
+INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 10, "A")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "B")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "E")
 SELECT * FROM course
-DELETE FROM course WHERE grade = "E"
+DELETE FROM course WHERE  exam - 10 = 90
+#DELETE FROM course WHERE grade > "B"
 #DELETE FROM course WHERE (grade * 3) = "E"
 #DELETE FROM course WHERE course1.grade = "E"
 #DELETE FROM course WHERE course.grade.qq = "E"

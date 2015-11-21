@@ -122,7 +122,86 @@ bool DataValue::is_equal_to(const DataValue& rhs) const
         return _integer == rhs._integer;
     } else {
         assert(_type == TINY_STR20);
-        return _literal== rhs._literal;
+        return _literal == rhs._literal;
     }
 }
 
+bool DataValue::is_greater_than(const DataValue& rhs) const
+{
+    assert(_type == rhs._type);
+
+    if (_type == TINY_INT) {
+        return _integer > rhs._integer;
+    } else {
+        assert(_type == TINY_STR20);
+        return _literal > rhs._literal;
+    }
+}
+
+bool DataValue::is_less_than(const DataValue& rhs) const
+{
+    assert(_type == rhs._type);
+
+    if (_type == TINY_INT) {
+        return _integer < rhs._integer;
+    } else {
+        assert(_type == TINY_STR20);
+        return _literal < rhs._literal;
+    }
+}
+
+DataValue& DataValue::add(const DataValue& rhs)
+{
+    assert(_type == rhs._type);
+
+    if (_type == TINY_INT) {
+        _integer += rhs._integer;
+    } else {
+        assert(_type == TINY_STR20);
+        _literal += rhs._literal;
+    }
+
+    return *this;
+}
+
+DataValue& DataValue::sub(const DataValue& rhs)
+{
+    assert(_type == rhs._type);
+
+    if (_type == TINY_INT) {
+        _integer -= rhs._integer;
+    } else {
+        assert(_type == TINY_STR20);
+        //_literal += rhs._literal;
+    }
+
+    return *this;
+}
+
+DataValue& DataValue::mult(const DataValue& rhs)
+{
+    assert(_type == rhs._type);
+
+    if (_type == TINY_INT) {
+        _integer *= rhs._integer;
+    } else {
+        assert(_type == TINY_STR20);
+        //_literal += rhs._literal;
+    }
+
+    return *this;
+}
+
+DataValue& DataValue::div(const DataValue& rhs)
+{
+    assert(_type == rhs._type);
+
+    if (_type == TINY_INT) {
+        _integer /= rhs._integer;
+    } else {
+        assert(_type == TINY_STR20);
+        //_literal += rhs._literal;
+    }
+
+    return *this;
+}
