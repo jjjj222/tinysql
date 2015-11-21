@@ -9,6 +9,8 @@ using std::vector;
 using std::string;
 using std::pair;
 
+#include "enum.h"
+
 struct tree_node;
 typedef struct tree_node tree_node_t;
 
@@ -22,15 +24,6 @@ class Block;
 //enum FIELD_TYPE;
 
 class TinyRelation;
-
-//------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-enum DataType {
-    TINY_INT,
-    TINY_STR20,
-    TINY_UNKNOWN
-};
 
 //------------------------------------------------------------------------------
 //   SqlParser
@@ -59,15 +52,16 @@ class HwMgr
     public:
         ~HwMgr();
 
-        Relation* create_relation(const string& name, const Schema&);
-        Tuple create_tuple(const Relation&); // TODO
         Block* get_mem_block(size_t);
+        size_t get_mem_size() const;
         vector<Tuple> get_block_tuple(const Block&) const;
         TinyRelation* get_tiny_relation(const string& name) const;
 
         //
         bool create_table(const string&, const vector<pair<string, DataType>>&);
+        bool drop_table(const string&);
         bool insert_into(const string&, const vector<pair<string, string>>&);
+        bool delete_from(const string&, tree_node_t* where_node);
         //bool select_from(const string&);
         bool select_from(
             const vector<string>&,
@@ -98,42 +92,26 @@ class HwMgr
 
     private:
         HwMgr();
-
         void init();
+
+        Relation* create_relation(const string& name, const Schema&);
+        Tuple create_tuple(const Relation&); // TODO
+
+        Relation* get_relation(const string& name) const;
+        bool delete_relation(const string& name) const;
+
+        bool assert_relations() const;
 
     private:
         static HwMgr*   _ins;
 
     private:
-        //vector<string>          _table_names;
         vector<TinyRelation*>   _relations;
 
     private:
         MainMemory*             _mem;
         Disk*                   _disk;
         SchemaManager*          _schema_mgr;
-};
-
-//------------------------------------------------------------------------------
-//   query mgr
-//------------------------------------------------------------------------------
-class QueryMgr
-{
-    public:
-        QueryMgr() {};
-
-        // exec
-        bool exec_query(const string&);
-
-    private:
-        bool create_table(tree_node_t*);
-        bool insert_into(tree_node_t*);
-        bool select_from(tree_node_t*);
-
-    private:
-        vector<pair<string, DataType>> get_attribute_type_list(tree_node_t*);
-        pair<string, DataType> get_name_type(tree_node_t*);
-        vector<string> get_string_list(tree_node_t*);
 };
 
 //------------------------------------------------------------------------------

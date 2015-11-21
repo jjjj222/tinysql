@@ -66,7 +66,9 @@ void parser_reset();
 //   node type
 //------------------------------------------------------------------------------
 int node_is_create_table(tree_node_t*);
+int node_is_drop_table(tree_node_t*);
 int node_is_insert(tree_node_t*);
+int node_is_delete(tree_node_t*);
 int node_is_select(tree_node_t*);
 int node_is_where(tree_node_t*);
 int node_is_order_by(tree_node_t*);
@@ -79,6 +81,14 @@ int node_is_int(tree_node_t*);
 int node_is_str20(tree_node_t*);
 int node_is_distinct(tree_node_t*);
 int node_is_null(tree_node_t*);
+int node_is_or(tree_node_t*);
+int node_is_and(tree_node_t*);
+int node_is_not(tree_node_t*);
+int node_is_comp_op(tree_node_t*);
+int node_is_name(tree_node_t*);
+int node_is_column_name(tree_node_t*);
+int node_is_literal(tree_node_t*);
+int node_is_integer(tree_node_t*);
 
 
 //------------------------------------------------------------------------------

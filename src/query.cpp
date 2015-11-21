@@ -9,8 +9,394 @@ using std::endl;
 
 using namespace jjjj222;
 
+#include "Block.h"
+#include "Config.h"
+#include "Disk.h"
+#include "Field.h"
+#include "MainMemory.h"
+#include "Relation.h"
+#include "Schema.h"
+#include "SchemaManager.h"
+#include "Tuple.h"
+
+#include "enum.h"
+#include "wrapper.h"
+#include "query.h"
 #include "dbMgr.h"
 #include "parser.h"
+#include "tiny_util.h"
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+TableInfo::TableInfo(const string& name)
+: _name(name)
+, _is_in_disk(false)
+{
+    ;
+}
+
+
+void TableInfo::print_table() const
+{
+    if (_is_in_disk) {
+        //bool res = HwMgr::ins()->select_from(name_list, attr_list, where_tree, is_distinct);
+        TinyRelation* relation = HwMgr::ins()->get_tiny_relation(_name);
+        assert(relation != NULL);
+        //if (relation == NULL) {
+        //    error_msg_table_not_exist(table_name);
+        //    return false;
+        //}
+
+        DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
+
+        size_t mem_index = 0;
+        size_t num_of_block = relation->get_num_of_block();
+        //dump_normal(num_of_block);
+        for (size_t i = 0; i < num_of_block; ++i) {
+            relation->load_block_to_mem(i, mem_index);
+            //_relation->getBlock(i, mem_index);
+            Block* block = HwMgr::ins()->get_mem_block(mem_index);
+            vector<Tuple> tuples = block->getTuples();
+            for (const auto& tuple : tuples) {
+                //dump_normal(TinyTuple(tuple));
+                if (!tuple.isNull())
+                    table.add_row(TinyTuple(tuple).str_list());
+            }
+        }
+
+        table.set_header(relation->get_attr_list());
+        table.draw();
+        //cout << table.size() << " "
+    } else {
+        cout << "TODO: !_is_in_disk" << endl;
+    }
+}
+
+void TableInfo::dump() const
+{
+    cout << dump_str() << endl;
+}
+
+string TableInfo::dump_str() const
+{
+    return _name;
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+ConditionNode::~ConditionNode()
+{
+    delete_all(_childs);
+}
+
+void ConditionNode::add_child(ConditionNode* node)
+{
+    assert(node != NULL);
+    _childs.push_back(node);
+}
+
+DataValue ConditionNode::get_value(const TinyTuple&) const
+{
+    return DataValue();
+}
+
+void ConditionNode::dump() const
+{
+    dump_tree("", true);
+}
+
+void ConditionNode::dump_tree(const string& indent, bool is_last) const
+{
+    const string current_indent = indent + (is_last ? " `- " : " |- ");
+    cout << current_indent << dump_str() << endl;
+
+    const string next_indent = indent + (is_last ? "    " : " |  ");
+    for (size_t i = 0; i < _childs.size(); ++i) {
+        const ConditionNode* node_ptr = _childs[i];
+        node_ptr->dump_tree(next_indent, i == _childs.size() - 1);
+    }
+}
+
+bool EqNode::is_tuple_match(const TinyTuple& tiny_tuple) const
+{
+    const vector<ConditionNode*>& childs = get_childs();
+    assert(childs.size() == 2);
+
+    DataValue l_v = childs[0]->get_value(tiny_tuple);
+    DataValue r_v = childs[1]->get_value(tiny_tuple);
+
+    bool res = l_v == r_v;
+    return res;
+}
+
+VarNode::VarNode(const string& table, const string& column)
+: _table(table)
+, _column(column)
+{
+    ;
+}
+
+DataValue VarNode::get_value(const TinyTuple& tuple) const
+{
+    ColumnName column_name(_table, _column);
+    return tuple.get_value(column_name.get_column_name());
+}
+
+string VarNode::dump_str() const
+{
+    if (_table.empty())
+        return _column;
+
+    return _table + "." + _column;
+}
+
+LiteralNode::LiteralNode(const string& value)
+: _value(value)
+{
+    ;
+}
+
+DataValue LiteralNode::get_value(const TinyTuple&) const
+{
+    return DataValue(_value);
+}
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+ConditionMgr::ConditionMgr(tree_node_t* node, TinyRelation* relation)
+: _root(NULL)
+, _tiny_relation(relation)
+, _error(false)
+, _tiny_tuple(NULL)
+{
+    assert(relation != NULL);
+
+    //_relations.push_back(relation);
+    //init(node);
+    if (node != NULL) {
+        bool res = build_condition_node(node);
+        _error = !res;
+    }
+}
+
+ConditionMgr::~ConditionMgr()
+{
+    delete_not_null(_root);
+    delete_not_null(_tiny_tuple);
+    //delete_not_null(_tiny_schema);
+}
+
+bool ConditionMgr::is_tuple_match(const Tuple& tuple)
+{
+    assert(TinyTuple(tuple).get_tiny_schema() == _tiny_relation->get_tiny_schema());
+
+    delete_not_null(_tiny_tuple);
+
+    _tiny_tuple = new TinyTuple(tuple);
+    //dump_normal(_tiny_tuple);
+
+    bool res = _root->is_tuple_match(*_tiny_tuple);
+    //return true;
+    return res;
+}
+
+
+bool ConditionMgr::build_condition_node(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_where(node));
+
+    tree_node_t* child = node->child;
+    assert(child != NULL);
+
+    ConditionNode* node_ptr = NULL;
+    if (node_is_or(child) || node_is_and(child) || node_is_not(child)) {
+        cout << "TODO: and or not" << endl;
+    }
+
+    if (node_is_comp_op(child)) {
+        //cout << "comp_op" << endl;
+        node_ptr = build_comp_op_node(child);
+    }
+    
+    _root = node_ptr;
+
+    //dump_normal(_root);
+    //dump_pretty(_root);
+
+    bool res = check_condition_tree();
+    return res;
+}
+
+bool ConditionMgr::check_condition_tree() const
+{
+    assert(_root != NULL);
+
+    bool res = check_condition_rec(_root); 
+    return res;
+}
+
+bool ConditionMgr::check_condition_rec(ConditionNode* node) const
+{
+    assert(node != NULL);
+
+    for (const auto& child_ptr : node->_childs) {
+        if (check_condition_rec(child_ptr) == false)
+            return false;
+    }
+
+    if (node->get_type() == ConditionNode::VAR) {
+        if (check_var_node(node) == false)
+            return false;
+    }
+
+    return true;
+}
+
+bool ConditionMgr::check_var_node(ConditionNode* node) const
+{
+    assert(node != NULL);
+    assert(node->get_type() == ConditionNode::VAR);
+
+    VarNode* var_node = dynamic_cast<VarNode*>(node);
+    assert(var_node != NULL);
+
+    string table = var_node->get_table();
+    string column = var_node->get_column();
+
+    string field_name = column;
+    if (!table.empty() && _tiny_relation->get_name() != table) {
+        field_name = table + "." + column;
+    }
+    //dump_normal(field_name);
+
+    TinySchema schema = _tiny_relation->get_tiny_schema();
+    if (!schema.is_field_name_exist(field_name)) {
+        //error_msg_not_exist("attribute", build_column_name(table, column));
+        ColumnName column_name(table, column);
+        error_msg_not_exist("attribute", column_name.get_column_name());
+        return false;
+    }
+    //schema
+
+    //if (table.empty()) {
+        //size_t count = _tiny_schema->count_field_name(var_node->get_table(), var_node->get_column());
+
+    //} else {
+    
+        //for (const auto& relation_ptr : _relations) {
+        //    if (relation_ptr->get_name == )
+        //}
+    //}
+    //dump_normal(table);
+    //dump_normal(column);
+        //if (count == 0) {
+        //    error_msg("Con't find \'" + var_node->dump_str() + "\'" );
+        //    return false;
+        //} else if (count >= 2) {
+        //    error_msg("Ambiguous \'" + var_node->dump_str() + "\'" );
+        //    return false;
+        //}
+    return true;
+}
+
+ConditionNode* ConditionMgr::build_comp_op_node(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_comp_op(node));
+
+    tree_node_t* l_child = node->child;
+    assert(l_child != NULL);
+
+    tree_node_t* r_child = l_child->next;
+    assert(r_child != NULL);
+    assert(r_child->next == NULL);
+
+    ConditionNode* l_new_node = build_expression_node(l_child);
+    ConditionNode* r_new_node = build_expression_node(r_child);
+    assert(l_new_node != NULL);
+    assert(r_new_node != NULL);
+
+    string comp_type = node->value;
+    
+    ConditionNode* new_node = NULL;
+    if (comp_type == "=") {
+        new_node = new EqNode();
+        new_node->add_child(l_new_node);
+        new_node->add_child(r_new_node);
+    } else {
+        cout << "todo: <, >" << endl;
+    }
+
+    return new_node;
+}
+
+ConditionNode* ConditionMgr::build_expression_node(tree_node_t* node)
+{
+    assert(node != NULL);
+
+    if (node_is_name(node) || node_is_column_name(node)) {
+        return build_var_node(node);
+    } else if (node_is_literal(node)) {
+        return build_literal_node(node);
+    } else {
+        cout << "todo: expression" << endl;
+    }
+
+    return NULL;
+}
+
+ConditionNode* ConditionMgr::build_var_node(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_name(node) || node_is_column_name(node));
+
+    //string var_name;
+    //string table_name;
+    //if (node_is_column_name(node)) {
+    //pair<string, string> table_var = get_column_name_value(node->value);
+    ColumnName column_name(node->value);
+    //dump_normal(table_var);
+    //ConditionNode* new_node = new VarNode(table_var.first, table_var.second);
+    ConditionNode* new_node = new VarNode(column_name.get_table(), column_name.get_column());
+
+    return new_node;
+}
+
+ConditionNode* ConditionMgr::build_literal_node(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_literal(node));
+
+    string value = get_literal_value(node->value);
+
+    ConditionNode* new_node = new LiteralNode(value);
+    return new_node;
+}
+
+void ConditionMgr::dump() const
+{
+    //dump_normal(_tiny_schema);
+    dump_normal(_error);
+    dump_normal(_tiny_relation->get_tiny_schema());
+    dump_pretty(_root);
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+QueryMgr::QueryMgr()
+: _root(NULL)
+{
+    ;
+}
+
+QueryMgr::~QueryMgr()
+{
+    delete_not_null(_root);
+}
 
 bool QueryMgr::exec_query(const string& query)
 {
@@ -30,8 +416,14 @@ bool QueryMgr::exec_query(const string& query)
     if (node_is_create_table(root)) {
         if (!create_table(root))
             error = true;
+    } else if (node_is_drop_table(root)) {
+        if (!drop_table(root))
+            error = true;
     } else if (node_is_insert(root)) {
         if (!insert_into(root))
+            error = true;
+    } else if (node_is_delete(root)) {
+        if (!delete_from(root))
             error = true;
     } else if (node_is_select(root)) {
         if (!select_from(root))
@@ -60,6 +452,21 @@ bool QueryMgr::create_table(tree_node_t* node)
 
     //return true;
     bool res = HwMgr::ins()->create_table(name, attr_list);
+    return res;
+}
+
+bool QueryMgr::drop_table(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_drop_table(node));
+
+    tree_node_t* name_node = node->child;
+    assert(name_node != NULL);
+    assert(name_node->next == NULL);
+    assert(name_node->child == NULL);
+
+    
+    bool res = HwMgr::ins()->drop_table(name_node->value);
     return res;
 }
 
@@ -101,7 +508,108 @@ bool QueryMgr::insert_into(tree_node_t* node)
     return res;
 }
 
+bool QueryMgr::delete_from(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_delete(node));
+
+    tree_node_t* name_node = node->child;
+    assert(name_node != NULL);
+    string name = name_node->value;
+
+    tree_node_t* where_node = name_node->next;
+
+    bool res = HwMgr::ins()->delete_from(name, where_node);
+    return res;
+    //TinyRelation* relation = HwMgr::ins()->get_tiny_relation(_name);
+    //assert(relation != NULL);
+    ////if (relation == NULL) {
+    ////    error_msg_table_not_exist(table_name);
+    ////    return false;
+    ////}
+
+    //DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
+
+    //size_t mem_index = 0;
+    //size_t num_of_block = relation->get_num_of_block();
+    //for (size_t i = 0; i < num_of_block; ++i) {
+    //    relation->load_block_to_mem(i, mem_index);
+    //    //_relation->getBlock(i, mem_index);
+    //    Block* block = HwMgr::ins()->get_mem_block(mem_index);
+    //    vector<Tuple> tuples = block->getTuples();
+    //    for (const auto& tuple : tuples) {
+    //        //dump_normal(TinyTuple(tuple));
+    //        table.add_row(TinyTuple(tuple).str_list());
+    //    }
+    //}
+
+    //table.set_header(relation->get_attr_list());
+    //table.draw();
+
+    //return true;
+}
+
 bool QueryMgr::select_from(tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_select(node));
+
+    // TODO
+    build_select_tree(node);
+
+    //dump_print(_root);
+    if (_root == NULL)
+        return false;
+
+    _root->print_result();
+    //tree_node_t* child = node->child;
+    //assert(child != NULL);
+
+    //bool is_distinct = false;
+    //if (node_is_distinct(child)) {
+    //    is_distinct = true;
+    //    child = child->next;
+    //    assert(child != NULL);
+    //}
+
+    //vector<string> attr_list;
+    //if (child->type == '*') {
+
+    //} else {
+    //    assert(node_is_select_list(child));
+    //    attr_list = get_string_list(child);
+    //}
+
+    //tree_node_t* name_list_node = child->next;
+    //assert(name_list_node != NULL);
+    //vector<string> name_list = get_string_list(name_list_node);
+
+    //child = name_list_node->next;
+    //tree_node_t* where_tree = NULL;
+    //if (child != NULL && node_is_where(child)) {
+    //    where_tree = child;
+    //    child = child->next;
+    //}
+
+    //string order_by = "";
+    //if (child != NULL) {
+    //    assert(node_is_order_by(child));
+    //    assert(child->child != NULL);
+    //    order_by = child->child->value;
+    //    //dump_normal(order_by);
+    //}
+    ////dump_normal(name_list);
+    ////while (child != NULL) {
+    ////    //attr_list.push_back(get_name_type(child));
+    ////    child = child->next;
+    ////}    
+    //bool res = HwMgr::ins()->select_from(name_list, attr_list, where_tree, is_distinct);
+    //return res;
+
+    return true;
+}
+
+void QueryMgr::build_select_tree(tree_node_t* node)
 {
     assert(node != NULL);
     assert(node_is_select(node));
@@ -109,29 +617,31 @@ bool QueryMgr::select_from(tree_node_t* node)
     tree_node_t* child = node->child;
     assert(child != NULL);
 
-    bool is_distinct = false;
+    //bool is_distinct = false;
     if (node_is_distinct(child)) {
-        is_distinct = true;
+        //is_distinct = true;
         child = child->next;
         assert(child != NULL);
     }
 
     vector<string> attr_list;
     if (child->type == '*') {
-
+        // do nothing
     } else {
         assert(node_is_select_list(child));
-        cout << "TODO: SELECT_LIST" << endl;
+        attr_list = get_string_list(child);
     }
+    //dump_normal(attr_list);
 
     tree_node_t* name_list_node = child->next;
     assert(name_list_node != NULL);
     vector<string> name_list = get_string_list(name_list_node);
+    //dump_normal(name_list);
 
     child = name_list_node->next;
-    tree_node_t* where_tree = NULL;
+    //tree_node_t* where_tree = NULL;
     if (child != NULL && node_is_where(child)) {
-        where_tree = child;
+        //where_tree = child;
         child = child->next;
     }
 
@@ -147,8 +657,43 @@ bool QueryMgr::select_from(tree_node_t* node)
     //    //attr_list.push_back(get_name_type(child));
     //    child = child->next;
     //}    
-    bool res = HwMgr::ins()->select_from(name_list, attr_list, where_tree, is_distinct);
-    return res;
+
+    delete_not_null(_root);
+
+    _root = build_cross_product(name_list);
+    //dump_normal(_root);
+    //dump_print(_root);
+}
+
+QueryNode* QueryMgr::build_cross_product(const vector<string>& table_list)
+{
+    assert(!table_list.empty()); 
+
+    QueryNode* node_ptr = NULL;
+    if (table_list.size() == 1) {
+        node_ptr = build_base_node(table_list[0]);
+    } else {
+        node_ptr = new CrossProductNode();
+        QueryNode* child_ptr = NULL;
+        for (const auto& table_name : table_list) {
+            child_ptr = build_base_node(table_name);
+            node_ptr->add_child(child_ptr);
+        }
+    }
+
+    return node_ptr;
+}
+
+QueryNode* QueryMgr::build_base_node(const string& table_name)
+{
+    QueryNode* node_ptr = new QueryNode();
+    node_ptr->set_real_table(table_name);
+    return node_ptr;
+}
+
+QueryNode* QueryMgr::build_where(const tree_node_t* node)
+{
+    return NULL;
 }
 
 vector<pair<string, DataType>> QueryMgr::get_attribute_type_list(tree_node_t* node)
@@ -206,3 +751,123 @@ vector<string> QueryMgr::get_string_list(tree_node_t* node)
 
     return string_list;
 }
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+QueryNode::QueryNode()
+: _table_info(NULL)
+{
+    ;
+}
+QueryNode::~QueryNode()
+{
+    delete_not_null(_table_info);
+    delete_all(_childs);
+}
+
+void QueryNode::add_child(QueryNode* child)
+{
+    assert(child != NULL);
+
+    _childs.push_back(child);
+}
+
+void QueryNode::set_real_table(const string& name)
+{
+    delete_not_null(_table_info);
+    _table_info = new TableInfo(name);
+    _table_info->set_is_in_disk();
+}
+
+void QueryNode::print_result()
+{
+    assert(_table_info != NULL);
+
+    _table_info->print_table(); 
+}
+
+void QueryNode::calculate_result()
+{
+    assert(_table_info != NULL);
+    // do nothing
+}
+
+#define NODE_TYPE(name) case name: return #name
+string QueryNode::get_type_str(NodeType t) const
+{
+    switch (t) {
+        NODE_TYPE(DISTINCT);
+        NODE_TYPE(CROSS_PRODUCT);
+        NODE_TYPE(WHERE);
+        NODE_TYPE(BASE_NODE);
+    }
+
+    return "ERROR";
+}
+
+void QueryNode::dump() const
+{
+    //cout << dump_str() << endl;
+    dump_tree("", true);
+}
+
+string QueryNode::dump_str() const
+{
+    string tmp = "{";
+    tmp += get_type_str(get_type());
+    tmp += ": ";
+    tmp += jjjj222::dump_str(_table_info);
+    tmp += "}";
+    return tmp;
+}
+
+void QueryNode::dump_tree(const string& indent, bool is_last) const
+{
+    const string current_indent = indent + (is_last ? " `- " : " |- ");
+    cout << current_indent << dump_str() << endl;
+
+    const string next_indent = indent + (is_last ? "    " : " |  ");
+    for (size_t i = 0; i < _childs.size(); ++i) {
+        const QueryNode* node_ptr = _childs[i];
+        node_ptr->dump_tree(next_indent, i == _childs.size() - 1);
+    }
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+void CrossProductNode::print_result()
+{
+    vector<QueryNode*> childs = get_childs();
+
+    assert(childs.size() == 2);
+
+    for (auto& child_ptr : childs) {
+        child_ptr->calculate_result();
+    }
+    //TableInfo* get_table_info() const { return _table_info; }
+    string table_0_name = childs[0]->get_table_info()->get_name();
+    string table_1_name = childs[1]->get_table_info()->get_name();
+    TinyRelation* relation_0 = HwMgr::ins()->get_tiny_relation(table_0_name);
+    TinyRelation* relation_1 = HwMgr::ins()->get_tiny_relation(table_1_name);
+    size_t mem_size = HwMgr::ins()->get_mem_size();
+    dump_normal(relation_0->size());
+    dump_normal(relation_1->size());
+    dump_normal(mem_size);
+    //dump_pretty(relation_0);
+    //dump_pretty(relation_1);
+    //size_t mem_index = 0;
+    //size_t num_of_block = relation->get_num_of_block();
+    //for (size_t i = 0; i < num_of_block; ++i) {
+    //    relation->load_block_to_mem(i, mem_index);
+    //    //_relation->getBlock(i, mem_index);
+    //    Block* block = HwMgr::ins()->get_mem_block(mem_index);
+    //    vector<Tuple> tuples = block->getTuples();
+    //    for (const auto& tuple : tuples) {
+    //        //dump_normal(TinyTuple(tuple));
+    //        table.add_row(TinyTuple(tuple).str_list());
+    //    }
+    //}
+}
+

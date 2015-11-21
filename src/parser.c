@@ -227,10 +227,22 @@ int node_is_create_table(tree_node_t* node)
     return node->type == CREATE_TABLE_STATEMENT;
 }
 
+int node_is_drop_table(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == DROP_TABLE_STATEMENT;
+}
+
 int node_is_insert(tree_node_t* node)
 {
     assert(node != NULL);
     return node->type == INSERT_STATEMENT;
+}
+
+int node_is_delete(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == DELETE_STATEMENT;
 }
 
 int node_is_select(tree_node_t* node)
@@ -305,6 +317,53 @@ int node_is_null(tree_node_t* node)
     return node->type == NULL_VALUE;
 }
 
+int node_is_or(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == OR;
+}
+
+int node_is_and(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == AND;
+}
+
+int node_is_not(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == NOT;
+}
+
+int node_is_comp_op(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == COMP_OP;
+}
+
+int node_is_name(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == NAME;
+}
+
+int node_is_column_name(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == COLUMN_NAME;
+}
+
+int node_is_literal(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == LITERAL;
+}
+
+int node_is_integer(tree_node_t* node)
+{
+    assert(node != NULL);
+    return node->type == INTEGER;
+}
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------

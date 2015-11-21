@@ -9,6 +9,8 @@ class Relation;
 class Tuple;
 class Block;
 
+class DataValue;
+
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -27,6 +29,7 @@ class TinySchema
         TinySchema(const TinySchema&);
         ~TinySchema();
 
+        bool operator==(const TinySchema& rhs) const { return is_equal_to(rhs); }
         TinySchema& operator=(const TinySchema& rhs) { assign(rhs); return *this; }
         operator const Schema& () const { return *_schema; }
 
@@ -38,12 +41,19 @@ class TinySchema
         size_t size() const;
         size_t tuple_per_block() const;
 
+        bool is_field_name_exist(const string&) const;
+        //bool is_field_name_exist(const string&, const string&) const;
+        //size_t count_field_name(const string&, const string&) const;
+
         // debug
         void dump() const;
         string dump_str() const;
 
     private:
         void assign(const TinySchema&);
+        bool is_equal_to(const TinySchema& rhs) const;
+
+        //bool is_field_name_exist(const string&) const;
 
 
     private:
@@ -59,15 +69,17 @@ class TinyTuple
         TinyTuple(const Tuple&);
         ~TinyTuple();
 
+
         operator const Tuple& () const { return *_tuple; }
         //operator const vector<>& () const { return *_tuple; }
 
-        void init(); // TODO; private
+        void init();
         bool set_value(const string&, const string&);
         bool set_str_value(const string&, const string&);
         bool set_int_value(const string&, int);
 
-        string get_value_str(const string&) const;
+        DataValue get_value(const string&) const;
+        //string get_value_str(const string&) const;
         TinySchema get_tiny_schema() const;
         vector<string> get_attr_list() const;
         vector<string> str_list() const;
@@ -76,6 +88,7 @@ class TinyTuple
 
         void dump() const;
         string dump_str() const;
+
 
     private:
         Tuple* _tuple;
@@ -89,11 +102,17 @@ class TinyRelation
     public:
         TinyRelation(Relation*);
 
-        operator const Relation& () const { return *_relation; }
+        //operator const Relation& () const { return *_relation; }
 
         void push_back(const TinyTuple&);
+        void add_space(size_t, size_t);
+        void add_space(size_t);
 
+        void refresh_block_num();
         bool load_block_to_mem(size_t, size_t) const;
+        bool save_block_to_disk(size_t, size_t) const;
+
+        bool reduce_blocks_to(size_t) const;
 
         // get
         TinyTuple create_tuple() const;
@@ -112,12 +131,13 @@ class TinyRelation
         // debug
         void dump() const;
         string dump_str() const;
+        Relation* get_relation() const { return _relation; }
 
     private:
         Relation* _relation;
 
     private:
-        //size_t              _size;
+    //    //size_t              _size;
         vector<size_t>      _space;
 };
 

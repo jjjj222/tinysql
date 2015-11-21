@@ -1,5 +1,5 @@
 EXEC_NAME = tinysql
-CXX_SRCS = main.cpp cmd.cpp dbMgr.cpp query.cpp test.cpp obj_util.cpp wrapper.cpp
+CXX_SRCS = main.cpp cmd.cpp dbMgr.cpp query.cpp test.cpp obj_util.cpp wrapper.cpp tiny_util.cpp
 C_SRCS = parser.c
 LEX_SRC = sql.l
 YACC_SRC = sql.y

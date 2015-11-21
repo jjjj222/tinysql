@@ -23,6 +23,7 @@ using jjjj222::error_msg;
 #include "parser.h"
 #include "cmd.h"
 #include "dbMgr.h"
+#include "query.h"
 
 //------------------------------------------------------------------------------
 //   

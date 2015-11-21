@@ -22,6 +22,7 @@ using namespace jjjj222;
 
 #include "dbMgr.h"
 #include "wrapper.h"
+#include "tiny_util.h"
 
 //------------------------------------------------------------------------------
 //   
@@ -159,10 +160,46 @@ size_t TinySchema::tuple_per_block() const
     return (size_t)_schema->getTuplesPerBlock();
 }
 
+//bool TinySchema::is_field_name_exist(const string& column) const
+//{
+//    vector<string> attr_list = get_attr_list();
+//    size_t count = 0;
+//    for (const auto& attr : attr_list) {
+//        pair<string, string> table_name = get_column_name_value(attr);
+//        
+//    }
+//    return false;
+//}
+bool TinySchema::is_field_name_exist(const string& name) const
+{
+    vector<string> attr_list = get_attr_list();
+    bool res = is_contain(attr_list, name);
+    return res;
+}
+
+//size_t TinySchema::count_field_name(const string& table, const string& column) const
+//{
+//    vector<string> attr_list = get_attr_list();
+//    for (const auto& attr : attr_list) {
+//        pair<string, string> table_name = get_column_name_value(attr);
+//        //dump_normal(table_name);        
+//    }
+//    
+//    
+//    //bool res = is_contain(attr_list, table_name);
+//    //return res;
+//    return 0;
+//}
+
 void TinySchema::assign(const TinySchema& rhs)
 {
     delete_not_null(_schema);
     _schema = new Schema( *(rhs._schema) );
+}
+
+bool TinySchema::is_equal_to(const TinySchema& rhs) const
+{
+    return *_schema == *(rhs._schema);
 }
 
 void TinySchema::dump() const
@@ -234,7 +271,8 @@ bool TinyTuple::set_value(const string& name, const string& raw_value)
 
     bool res = false;
     if (raw_value[0] == '\"') {
-        res = set_str_value(name, raw_value.substr(1, raw_value.size() - 2));
+        //res = set_str_value(name, raw_value.substr(1, raw_value.size() - 2));
+        res = set_str_value(name, get_literal_value(raw_value));
     } else {
         res = set_int_value(name, str_to<int>(raw_value));
     }
@@ -281,20 +319,46 @@ TinySchema TinyTuple::get_tiny_schema() const
     return TinySchema(_tuple->getSchema());
 }
 
-string TinyTuple::get_value_str(const string& name) const
+DataValue TinyTuple::get_value(const string& column_name) const
 {
-    //DataType data_type = get_tiny_schema().get_data_type(name);
-    //Field value = _tuple->getField(name);
+    //pair<string, string> get_
+    ColumnName cn(column_name);
 
-    //if (type == TINY_INT) {
-    //    return jjjj222::dump_str(value.integer);
-    //} else {
-    //    assert(type == TINY_STR20);
-    //    return *(value.str);
-    //}
+    vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
 
-    return "<ERROR>";
+    for (const auto& name_type : name_type_list) {
+        const auto& name = name_type.first;
+        const auto& type = name_type.second;
+
+        if (name == cn.get_column() || name == cn.get_column_name()) {
+            Field value = _tuple->getField(name);
+            if (type == INT) {
+                return DataValue(value.integer);
+            } else {
+                assert(type == STR20);
+
+                return DataValue(*(value.str));
+            }
+        }
+    }
+
+    return DataValue();
 }
+
+//string TinyTuple::get_value_str(const string& name) const
+//{
+//    //DataType data_type = get_tiny_schema().get_data_type(name);
+//    //Field value = _tuple->getField(name);
+//
+//    //if (type == TINY_INT) {
+//    //    return jjjj222::dump_str(value.integer);
+//    //} else {
+//    //    assert(type == TINY_STR20);
+//    //    return *(value.str);
+//    //}
+//
+//    return "<ERROR>";
+//}
 
 vector<string> TinyTuple::get_attr_list() const
 {
@@ -431,9 +495,55 @@ void TinyRelation::push_back(const TinyTuple& tuple)
 
 }
 
+void TinyRelation::add_space(size_t block_idx, size_t tuple_idx)
+{
+    size_t space_idx = block_idx * tuple_per_block() + tuple_idx; 
+    add_space(space_idx);
+}
+
+void TinyRelation::add_space(size_t space_idx)
+{
+    _space.push_back(space_idx);
+    for (size_t i = _space.size() - 1; i > 0; --i) {
+        assert(_space[i] != _space[i-1]);
+        if (_space[i] < _space[i-1]) {
+            swap(_space[i], _space[i-1]);
+        }
+    }
+}
+
+void TinyRelation::refresh_block_num()
+{
+    size_t total_size = size() + _space.size();
+    for (size_t i = _space.size(); i-- > 0;) {
+        if (_space[i] == total_size - 1) {
+            total_size--;
+            _space.pop_back();
+        }
+    }
+
+    size_t new_block_size = total_size / tuple_per_block();
+
+    if (total_size % tuple_per_block() != 0)
+        new_block_size++;
+
+    reduce_blocks_to(new_block_size);
+}
+
 bool TinyRelation::load_block_to_mem(size_t block_index, size_t mem_index) const
 {
     return _relation->getBlock(block_index, mem_index);
+}
+
+bool TinyRelation::save_block_to_disk(size_t block_index, size_t mem_index) const
+{
+    return _relation->setBlock(block_index, mem_index);
+}
+
+bool TinyRelation::reduce_blocks_to(size_t block_num) const
+{
+    //dump_normal(block_num);
+    return _relation->deleteBlocks(block_num);
 }
 
 TinyTuple TinyRelation::create_tuple() const
@@ -480,10 +590,7 @@ size_t TinyRelation::tuple_per_block() const
 
 bool TinyRelation::next_is_new_block() const
 {
-    if (!_space.empty())
-        return false;
-
-    return size() % tuple_per_block() == 0; 
+    return (size() + _space.size()) % tuple_per_block() == 0; 
 }
 
 void TinyRelation::dump() const
@@ -493,6 +600,7 @@ void TinyRelation::dump() const
     cout << "size: " << size() << endl; 
     cout << "num of block: " << get_num_of_block() << endl; 
     cout << "tuple per block: " << tuple_per_block() << endl; 
+    cout << "_space" << jjjj222::dump_str(_space) << endl;
 
     size_t mem_index = 0;
 

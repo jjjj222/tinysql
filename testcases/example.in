@@ -1,12 +1,41 @@
 CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
+INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
+INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "B")
+INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "E")
 SELECT * FROM course
+DELETE FROM course WHERE grade = "E"
+#DELETE FROM course WHERE (grade * 3) = "E"
+#DELETE FROM course WHERE course1.grade = "E"
+#DELETE FROM course WHERE course.grade.qq = "E"
+SELECT * FROM course
+#DELETE FROM course
+#SELECT sid, homework FROM course, course2
+#CREATE TABLE course2 (sid INT, exam INT, grade STR20)
+#INSERT INTO course2 (sid, exam, grade) VALUES (1, 100, "A")
+#INSERT INTO course2 (sid, exam, grade) VALUES (16, 25, "E")
+#INSERT INTO course2 (sid, exam, grade) VALUES (17, 0, "A")
+#SELECT * FROM course
+#SELECT * FROM course2
+#SELECT * FROM course, course2
+#SELECT sid, homework FROM course
+#SELECT * FROM course WHERE exam = 100
+#SELECT * FROM course WHERE grade = "A"
+#SELECT * FROM course WHERE exam = 100 AND project = 100
+#SELECT * FROM course WHERE exam = 100 OR exam = 99
+#SELECT * FROM course WHERE NOT exam = 0
+#SELECT * FROM course WHERE exam > 70
+#SELECT * FROM course WHERE exam = 100 OR homework = 100 AND project = 100
+#SELECT * FROM course WHERE [ exam = 100 OR homework = 100 ] AND project = 100
+#SELECT * FROM course WHERE exam + homework = 200
+#SELECT * FROM course WHERE ( exam * 30 + homework * 20 + project * 50 ) / 100 = 100
+#SELECT * FROM course WHERE grade = "C" AND [ exam > 70 OR project > 70 ] AND NOT ( exam * 30 + homework * 20 + project * 50 ) / 100 < 60
 #INSERT INTO course (sid, homework, project, exam, grade) VALUES (2, NULL, 100, 100, "E")
-INSERT INTO course (sid, homework, project, exam, grade) VALUES (2, 0, 100, 100, "E")
-SELECT * FROM course
-INSERT INTO course (sid, grade, exam, project, homework) VALUES (3, "E", 100, 100, 100)
-SELECT * FROM course
-INSERT INTO course (sid, homework, project, exam, grade) SELECT * FROM course
+#INSERT INTO course (sid, homework, project, exam, grade) VALUES (2, 0, 100, 100, "E")
+#SELECT * FROM course
+#INSERT INTO course (sid, grade, exam, project, homework) VALUES (3, "E", 100, 100, 100)
+#SELECT * FROM course
+#INSERT INTO course (sid, homework, project, exam, grade) SELECT * FROM course
 #SELECT * FROM course
 #DELETE FROM course WHERE grade = "E"
 #SELECT * FROM course

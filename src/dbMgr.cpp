@@ -20,6 +20,7 @@ using namespace jjjj222;
 #include "SchemaManager.h"
 #include "Tuple.h"
 
+#include "query.h"
 #include "dbMgr.h"
 #include "parser.h"
 #include "wrapper.h"
@@ -106,11 +107,16 @@ void HwMgr::init()
 
 TinyRelation* HwMgr::get_tiny_relation(const string& name) const
 {
+    TinyRelation* res = NULL;
     for (const auto& r : _relations) {
-        if (name == r->get_name())
-            return r;
+        if (name == r->get_name()) {
+            res = r;
+        }
     }
-    return NULL;
+    
+    assert(res == NULL || res->get_relation() == get_relation(name));
+
+    return res;
 }
 
 //------------------------------------------------------------------------------
@@ -134,6 +140,11 @@ Tuple HwMgr::create_tuple(const Relation& relation)
 Block* HwMgr::get_mem_block(size_t i)
 {
     return _mem->getBlock(i);
+}
+
+size_t HwMgr::get_mem_size() const
+{
+    return NUM_OF_BLOCKS_IN_MEMORY;
 }
 
 vector<Tuple> HwMgr::get_block_tuple(const Block& block) const
@@ -163,6 +174,40 @@ bool HwMgr::create_table(const string& name, const vector<pair<string, DataType>
     //dump_relation(*relation);
 
     return true;
+}
+
+bool HwMgr::drop_table(const string& name)
+{
+    const TinyRelation* to_delete = NULL;
+    size_t pos = 0;
+    for (size_t i = 0; i < _relations.size(); ++i) {
+        const TinyRelation* r_ptr = _relations[i];
+        if (r_ptr->get_name() == name) {
+            to_delete = r_ptr;
+            pos = i;
+        }
+    }
+
+    if (to_delete == NULL) {
+        //assert(get_relation(name) == NULL);
+        assert(!_schema_mgr->relationExists(name));
+
+        error_msg("Unknown table '" + name + "'");
+        return false;
+    }
+
+    assert(to_delete->get_relation() == get_relation(name));
+
+    delete to_delete;
+    for (size_t i = pos+1; i < _relations.size(); ++i) {
+        _relations[i-1] = _relations[i];
+    }
+    _relations.resize(_relations.size() - 1);
+
+    bool res = delete_relation(name); 
+    assert(res == true);
+
+    return res;
 }
 
 bool HwMgr::insert_into(const string& name, const vector<pair<string, string>>& data)
@@ -229,6 +274,66 @@ bool HwMgr::insert_into(const string& name, const vector<pair<string, string>>& 
 //  }  
 //}
 
+    return true;
+}
+
+bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
+{
+    TinyRelation* relation = get_tiny_relation(name);
+    if (relation == NULL) {
+        error_msg_table_not_exist(name);
+        return false;
+    }
+
+    //bool nullTuple(int tuple_offset); // invalidates the tuple at the offset
+    //bool nullTuples(); // invalidates all the tuples in the block
+
+    //ConditionMgr cond_mgr(where_node, relation->get_tiny_schema());
+    ConditionMgr cond_mgr(where_node, relation);
+    if (cond_mgr.is_error())
+        return false;
+    //cond_mgr.dump();
+
+    size_t mem_index = 0;
+    size_t num_of_block = relation->get_num_of_block();
+    size_t tuple_count = 0;
+    for (size_t i = 0; i < num_of_block; ++i) {
+        size_t disk_index = i;
+        relation->load_block_to_mem(disk_index, mem_index);
+        Block* block = HwMgr::ins()->get_mem_block(mem_index);
+
+        
+        //block->nullTuples();
+        vector<Tuple> tuples = block->getTuples();
+        //for (const auto& tuple : tuples) {
+        for (size_t j = 0; j < tuples.size(); ++j) {
+            const Tuple& tuple = tuples[j];
+
+            if (!tuple.isNull()) {
+                tuple_count++;
+                if (cond_mgr.is_tuple_match(tuple)) {
+                    block->nullTuple(j);
+                    relation->add_space(i, j);
+                }
+            }
+        }
+
+
+        //cout << "QQ" << endl;
+        relation->save_block_to_disk(disk_index, mem_index);
+        //bool deleteBlocks(int starting_block_index);
+
+        //TODO
+        //relation->get_relation()->
+        //vector<Tuple> tuples = block->getTuples();
+        //for (const auto& tuple : tuples) {
+        //    //dump_normal(TinyTuple(tuple));
+        //    table.add_row(TinyTuple(tuple).str_list());
+        //}
+    }
+    //relation->reduce_blocks_to(0);
+
+    relation->refresh_block_num();
     return true;
 }
 
@@ -299,6 +404,34 @@ bool HwMgr::select_from_single_table(
 
     return true;
 }
+
+Relation* HwMgr::get_relation(const string& name) const
+{
+    return _schema_mgr->getRelation(name);
+}
+
+bool HwMgr::delete_relation(const string& name) const
+{
+    return _schema_mgr->deleteRelation(name);
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+bool HwMgr::assert_relations() const
+{
+    //bool relationExists(string relation_name) const; //returns true if the relation exists
+    
+    //// returns a pointer to the newly allocated relation; the relation name must not exist already
+    //Relation* createRelation(string relation_name,const Schema& schema);
+    //Relation* getRelation(string relation_name); //returns NULL if the relation is not found
+    //bool deleteRelation(string relation_name); //returns false if the relation is not found
+    //for(const auto* tiny_relation_ptr : _relations) {
+
+    //}
+    return true;
+}
+
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------

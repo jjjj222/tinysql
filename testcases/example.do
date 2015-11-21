@@ -3,4 +3,5 @@ source testcases/example.in
 #show tables
 #dump relation course
 #dump memory
+#dump relation course
 #dump relation course2
