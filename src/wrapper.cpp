@@ -51,7 +51,7 @@ string dump_tiny_type_str(const DataType& type)
     return "UNKNOWN";
 }
 
-DataType field_to_tiny_type(const FIELD_TYPE& type)
+DataType field_to_data_type(const FIELD_TYPE& type)
 {
     if (type == INT) {
         return TINY_INT;
@@ -115,7 +115,7 @@ DataType TinySchema::get_data_type(const string& field_name) const
     for (const auto& name_type : name_type_list) {
         const string& name = name_type.first;
         if (name == field_name)
-            return field_to_tiny_type(name_type.second);
+            return field_to_data_type(name_type.second);
     }
     return TINY_UNKNOWN;
 }
@@ -131,22 +131,21 @@ vector<pair<string, FIELD_TYPE>> TinySchema::get_name_type_list() const
     vector<FIELD_TYPE> types = _schema->getFieldTypes();
     assert(names.size() == types.size());
 
-    //string tmp;
-    //tmp += "(";
     vector<pair<string, FIELD_TYPE>> tmp;
     for (size_t i = 0; i < names.size(); ++i) {
         tmp.push_back(make_pair(names[i], types[i]));
     }
-    //    if (i != 0) {
-    //        tmp += ", ";
-    //    }
-    //    tmp += names[i];
-    //    tmp += " ";
-    //    tmp += dump_field_type_str(types[i]);
-    //}
-    //tmp += ")";
 
+    return tmp;
+}
 
+vector<DataType> TinySchema::get_type_list() const
+{
+    vector<FIELD_TYPE> types = _schema->getFieldTypes();
+    vector<DataType> tmp;
+    for (const auto& type : types) {
+        tmp.push_back(field_to_data_type(type));
+    }
     return tmp;
 }
 
@@ -257,6 +256,12 @@ TinyTuple::TinyTuple(const Tuple& tuple)
 : _tuple(NULL)
 {
     _tuple = new Tuple(tuple);
+}
+
+TinyTuple::TinyTuple(const TinyTuple& rhs)
+: _tuple(NULL)
+{
+    assign(rhs);
 }
 
 TinyTuple::~TinyTuple()
@@ -384,6 +389,19 @@ vector<string> TinyTuple::str_list() const
     return str_list;
 }
 
+bool TinyTuple::is_null() const
+{   
+    assert(_tuple != NULL);
+    
+    return _tuple->isNull();
+}
+
+void TinyTuple::assign(const TinyTuple& rhs)
+{
+    delete_not_null(_tuple);
+    _tuple = new Tuple(rhs);
+}
+
 string TinyTuple::dump_str() const
 {
     vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
@@ -435,6 +453,42 @@ void TinyTuple::dump() const
         }
     }
   //union Field getField(int offset) const; // returns INT_MIN if out of bound
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+TinyBlock::TinyBlock(Block* block)
+: _block(block)
+{
+    ;
+}
+
+vector<Tuple> TinyBlock::get_tuples() const
+{
+    return _block->getTuples();
+}
+
+vector<TinyTuple> TinyBlock::get_tiny_tuples() const
+{
+    vector<TinyTuple> tmp;
+
+    vector<Tuple> tuples = get_tuples();
+    for (const auto& tuple : tuples) {
+        tmp.push_back(tuple);
+    }
+
+    return tmp;
+}
+
+bool TinyBlock::empty() const
+{
+    vector<Tuple> tuples = get_tuples();
+    for (const auto& tuple : tuples) {
+        if (!tuple.isNull())
+            return false;
+    }
+    return true;
 }
 
 //------------------------------------------------------------------------------
@@ -573,6 +627,11 @@ size_t TinyRelation::get_num_of_attribute() const
     return get_tiny_schema().size();
 }
 
+vector<DataType> TinyRelation::get_type_list() const
+{
+    return get_tiny_schema().get_type_list();
+}
+
 vector<string> TinyRelation::get_attr_list() const
 {
     return get_tiny_schema().get_attr_list();
@@ -595,28 +654,74 @@ bool TinyRelation::next_is_new_block() const
 
 void TinyRelation::dump() const
 {
-    cout << "name: " << get_name() << endl;
+    DrawTable table(2, DrawTable::MYSQL_TABLE);
+    table.add_row("name", get_name());
+    table.add_row("size", tiny_dump_str(size()));
+    table.add_row("# of blocks", tiny_dump_str(get_num_of_block()));
+    table.add_row("tuple per block", tiny_dump_str(tuple_per_block()));
+    //table.add_row("schema", get_tiny_schema().dump_str());
+    //cout << "name: " << get_name() << endl;
     cout << "schema: " << get_tiny_schema().dump_str() << endl;
-    cout << "size: " << size() << endl; 
-    cout << "num of block: " << get_num_of_block() << endl; 
-    cout << "tuple per block: " << tuple_per_block() << endl; 
+    //cout << "size: " << size() << endl; 
+    //cout << "num of block: " << get_num_of_block() << endl; 
+    //cout << "tuple per block: " << tuple_per_block() << endl; 
     cout << "_space" << jjjj222::dump_str(_space) << endl;
+    table.draw();
 
-    size_t mem_index = 0;
-
-    size_t num_of_block = get_num_of_block();
-    for (size_t i = 0; i < num_of_block; ++i) {
-        _relation->getBlock(i, mem_index);
-        Block* block = HwMgr::ins()->get_mem_block(mem_index);
-        vector<Tuple> tuples = block->getTuples();
-        for (const auto& tuple : tuples) {
-            dump_normal(TinyTuple(tuple));
-        }
-    }
     //DrawTable t(2);
     //t.add_row("name", get_name());
     //t.add_row("schema", get_tiny_schema().dump_str());
     //t.draw();
+    dump_tuples();
+}
+
+void TinyRelation::dump_tuples() const
+{
+    DrawTable table(get_num_of_attribute() + 3, DrawTable::MYSQL_TABLE);
+    table.set_align_right(0);
+    table.set_align_right(1);
+    vector<DataType> type_list = get_type_list();
+    for (size_t i = 0; i < type_list.size(); ++i) {
+        if (type_list[i] == TINY_INT) {
+            table.set_align_right(i+3);
+        }
+    }
+
+    vector<string> header = {"i", "j", "d"};
+    add_into(header, get_attr_list());
+    table.set_header(header);
+
+    size_t mem_index = 0;
+    size_t num_of_block = get_num_of_block();
+    for (size_t i = 0; i < num_of_block; ++i) {
+        _relation->getBlock(i, mem_index);
+        //Block* block = HwMgr::ins()->get_mem_block(mem_index);
+        TinyBlock tiny_block = HwMgr::ins()->get_mem_block(mem_index);
+        //vector<Tuple> tuples = block->getTuples();
+        //vector<Tuple> tuples = tiny_block.get_tuples();
+        vector<TinyTuple> tuples = tiny_block.get_tiny_tuples();
+        //for (const auto& tuple : tuples) {
+        for (size_t j = 0; j < tuples.size(); ++j) {
+            //const Tuple& tuple = tuples[j];
+            const TinyTuple& tuple = tuples[j];
+
+            vector<string> row = {jjjj222::dump_str(i), jjjj222::dump_str(j)};
+            //cout << i << "-" << j;
+            //if (tuple.isNull()) {
+            if (tuple.is_null()) {
+                //cout << "<delete>" << endl;
+                row.push_back("D");
+            } else {
+                row.push_back("");
+                //dump_normal(TinyTuple(tuple));
+                //dump_normal(tuple);
+                add_into(row, tuple.str_list());
+            }
+            table.add_row(row);
+        }
+    }
+
+    table.draw();
 }
 
 string TinyRelation::dump_str() const

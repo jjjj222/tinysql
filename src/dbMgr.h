@@ -24,6 +24,7 @@ class Block;
 //enum FIELD_TYPE;
 
 class TinyRelation;
+class TinyBlock;
 
 //------------------------------------------------------------------------------
 //   SqlParser
@@ -53,8 +54,9 @@ class HwMgr
         ~HwMgr();
 
         Block* get_mem_block(size_t);
+        TinyBlock get_tiny_block(size_t);
         size_t get_mem_size() const;
-        vector<Tuple> get_block_tuple(const Block&) const;
+        //vector<Tuple> get_block_tuple(const Block&) const;
         TinyRelation* get_tiny_relation(const string& name) const;
 
         //
@@ -63,19 +65,19 @@ class HwMgr
         bool insert_into(const string&, const vector<pair<string, string>>&);
         bool delete_from(const string&, tree_node_t* where_node);
         //bool select_from(const string&);
-        bool select_from(
-            const vector<string>&,
-            const vector<string>&,
-            tree_node_t*,
-            bool is_distinct
-        );
+        //bool select_from(
+        //    const vector<string>&,
+        //    const vector<string>&,
+        //    tree_node_t*,
+        //    bool is_distinct
+        //);
 
-        bool select_from_single_table(
-            const string&, 
-            const vector<string>&,
-            tree_node_t*,
-            bool is_distinct
-        );
+        //bool select_from_single_table(
+        //    const string&, 
+        //    const vector<string>&,
+        //    tree_node_t*,
+        //    bool is_distinct
+        //);
 
         // debug
         void dump();
@@ -95,7 +97,7 @@ class HwMgr
         void init();
 
         Relation* create_relation(const string& name, const Schema&);
-        Tuple create_tuple(const Relation&); // TODO
+        //Tuple create_tuple(const Relation&); // TODO
 
         Relation* get_relation(const string& name) const;
         bool delete_relation(const string& name) const;

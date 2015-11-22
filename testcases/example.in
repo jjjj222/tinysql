@@ -1,23 +1,26 @@
 CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
-INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 10, "A")
-INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
+#INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 10, "A")
+#INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "B")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "E")
-SELECT * FROM course
-DELETE FROM course WHERE  exam - 10 = 90
+#SELECT * FROM course
+#DELETE FROM course WHERE  (exam - 10) - 5 = 85
 #DELETE FROM course WHERE grade > "B"
 #DELETE FROM course WHERE (grade * 3) = "E"
 #DELETE FROM course WHERE course1.grade = "E"
 #DELETE FROM course WHERE course.grade.qq = "E"
-SELECT * FROM course
+#SELECT * FROM course
 #DELETE FROM course
 #SELECT sid, homework FROM course, course2
-#CREATE TABLE course2 (sid INT, exam INT, grade STR20)
-#INSERT INTO course2 (sid, exam, grade) VALUES (1, 100, "A")
-#INSERT INTO course2 (sid, exam, grade) VALUES (16, 25, "E")
-#INSERT INTO course2 (sid, exam, grade) VALUES (17, 0, "A")
-#SELECT * FROM course
+CREATE TABLE course2 (sid INT, exam INT, grade STR20)
+INSERT INTO course2 (sid, exam, grade) VALUES (1, 100, "A")
+INSERT INTO course2 (sid, exam, grade) VALUES (16, 25, "E")
+INSERT INTO course2 (sid, exam, grade) VALUES (17, 0, "A")
+SELECT * FROM course
+DELETE FROM course WHERE grade = "A"
+SELECT * FROM course
+dump relation course
 #SELECT * FROM course2
 #SELECT * FROM course, course2
 #SELECT sid, homework FROM course

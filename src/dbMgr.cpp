@@ -132,10 +132,10 @@ Relation* HwMgr::create_relation(const string& name, const Schema& schema)
     return relation_ptr;
 }
 
-Tuple HwMgr::create_tuple(const Relation& relation)
-{
-    return relation.createTuple();
-}
+//Tuple HwMgr::create_tuple(const Relation& relation)
+//{
+//    return relation.createTuple();
+//}
 
 Block* HwMgr::get_mem_block(size_t i)
 {
@@ -147,10 +147,10 @@ size_t HwMgr::get_mem_size() const
     return NUM_OF_BLOCKS_IN_MEMORY;
 }
 
-vector<Tuple> HwMgr::get_block_tuple(const Block& block) const
-{
-    return block.getTuples();
-}
+//vector<Tuple> HwMgr::get_block_tuple(const Block& block) const
+//{
+//    return block.getTuples();
+//}
 
 //------------------------------------------------------------------------------
 //   
@@ -293,25 +293,35 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
     size_t mem_index = 0;
     size_t num_of_block = relation->get_num_of_block();
     size_t tuple_count = 0;
+    size_t shift_idx = 0;
     for (size_t i = 0; i < num_of_block; ++i) {
         size_t disk_index = i;
         relation->load_block_to_mem(disk_index, mem_index);
         Block* block = HwMgr::ins()->get_mem_block(mem_index);
+        TinyBlock tiny_block(block);
 
         vector<Tuple> tuples = block->getTuples();
+        bool is_delete = false;
         for (size_t j = 0; j < tuples.size(); ++j) {
             const Tuple& tuple = tuples[j];
 
             if (!tuple.isNull()) {
                 tuple_count++;
                 if (cond_mgr.is_tuple_match(tuple)) {
+                    is_delete = true;
                     block->nullTuple(j);
                     relation->add_space(i, j);
                 }
             }
         }
 
-        relation->save_block_to_disk(disk_index, mem_index);
+        if (is_delete) {
+            //if (tiny_block.empty()) {
+            //    shift_idx++;
+            //} else {
+                relation->save_block_to_disk(disk_index - shift_idx, mem_index);
+            //}
+        }
     }
 
     relation->refresh_block_num();
@@ -319,73 +329,73 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
     return true;
 }
 
-bool HwMgr::select_from(
-    const vector<string>& table_list, 
-    const vector<string>& attr_list,
-    tree_node_t* where_tree,
-    bool is_distinct
-)
-{
-    assert(!table_list.empty());
-
-    if (table_list.size() == 1) {
-        return select_from_single_table(table_list[0], attr_list, where_tree, is_distinct);
-    }
-    cout << "TODO: table_list.size() > 1" << endl;
-    //TinyRelation* relation = get_tiny_relation(name);
-    //if (relation == NULL) {
-    //    error_msg_table_not_exist(name);
-    //    return false;
-    //}
-
-    //dump_pretty(table_list);
-    //dump_pretty(attr_list);
-
-    return true;
-}
-
-bool HwMgr::select_from_single_table(
-    const string& table_name, 
-    const vector<string>& attr_list,
-    tree_node_t* where_tree,
-    bool is_distinct
-)
-{
-    TinyRelation* relation = get_tiny_relation(table_name);
-    if (relation == NULL) {
-        error_msg_table_not_exist(table_name);
-        return false;
-    }
-
-    if (where_tree != NULL) {
-        cout << "TODO: where != NULL" << endl;
-    }
-
-    if (!attr_list.empty()) {
-        cout << "TODO: !attr_list.empty()" << endl;
-    }
-
-    DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
-
-    size_t mem_index = 0;
-    size_t num_of_block = relation->get_num_of_block();
-    for (size_t i = 0; i < num_of_block; ++i) {
-        relation->load_block_to_mem(i, mem_index);
-        //_relation->getBlock(i, mem_index);
-        Block* block = HwMgr::ins()->get_mem_block(mem_index);
-        vector<Tuple> tuples = block->getTuples();
-        for (const auto& tuple : tuples) {
-            //dump_normal(TinyTuple(tuple));
-            table.add_row(TinyTuple(tuple).str_list());
-        }
-    }
-
-    table.set_header(relation->get_attr_list());
-    table.draw();
-    //cout << table.size() << " "
-
-    return true;
-}
+//bool HwMgr::select_from(
+//    const vector<string>& table_list, 
+//    const vector<string>& attr_list,
+//    tree_node_t* where_tree,
+//    bool is_distinct
+//)
+//{
+//    assert(!table_list.empty());
+//
+//    if (table_list.size() == 1) {
+//        return select_from_single_table(table_list[0], attr_list, where_tree, is_distinct);
+//    }
+//    cout << "TODO: table_list.size() > 1" << endl;
+//    //TinyRelation* relation = get_tiny_relation(name);
+//    //if (relation == NULL) {
+//    //    error_msg_table_not_exist(name);
+//    //    return false;
+//    //}
+//
+//    //dump_pretty(table_list);
+//    //dump_pretty(attr_list);
+//
+//    return true;
+//}
+//
+//bool HwMgr::select_from_single_table(
+//    const string& table_name, 
+//    const vector<string>& attr_list,
+//    tree_node_t* where_tree,
+//    bool is_distinct
+//)
+//{
+//    TinyRelation* relation = get_tiny_relation(table_name);
+//    if (relation == NULL) {
+//        error_msg_table_not_exist(table_name);
+//        return false;
+//    }
+//
+//    if (where_tree != NULL) {
+//        cout << "TODO: where != NULL" << endl;
+//    }
+//
+//    if (!attr_list.empty()) {
+//        cout << "TODO: !attr_list.empty()" << endl;
+//    }
+//
+//    DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
+//
+//    size_t mem_index = 0;
+//    size_t num_of_block = relation->get_num_of_block();
+//    for (size_t i = 0; i < num_of_block; ++i) {
+//        relation->load_block_to_mem(i, mem_index);
+//        //_relation->getBlock(i, mem_index);
+//        Block* block = HwMgr::ins()->get_mem_block(mem_index);
+//        vector<Tuple> tuples = block->getTuples();
+//        for (const auto& tuple : tuples) {
+//            //dump_normal(TinyTuple(tuple));
+//            table.add_row(TinyTuple(tuple).str_list());
+//        }
+//    }
+//
+//    table.set_header(relation->get_attr_list());
+//    table.draw();
+//    //cout << table.size() << " "
+//
+//    return true;
+//}
 
 Relation* HwMgr::get_relation(const string& name) const
 {
@@ -419,51 +429,51 @@ bool HwMgr::assert_relations() const
 //------------------------------------------------------------------------------
 void HwMgr::dump()
 {
-    dump_memory();
-
-    vector<string> field_names;
-    vector<FIELD_TYPE> field_types;
-    field_names.push_back("f1");
-    field_names.push_back("f2");
-    field_names.push_back("f3");
-    field_names.push_back("f4");
-    field_types.push_back(STR20);
-    //field_types.push_back(STR20);
-    field_types.push_back(INT);
-    field_types.push_back(INT);
-    field_types.push_back(STR20);
-    Schema schema(field_names,field_types);
-    //dump_schema(schema);
-
-    string relation_name="ExampleTable1";
-    Relation* relation = create_relation(relation_name, schema);
-    //dump_relation(*relation);
-
-    Tuple tuple = create_tuple(*relation);
-    tuple.setField(0,"v11");
-    tuple.setField(1,21);
-    tuple.setField(2,31);
-    tuple.setField(3,"v41");
-    // Another way of setting the tuples
-    //tuple.setField("f1","v11");
-    //tuple.setField("f2",21);
-    //tuple.setField("f3",31);
-    //tuple.setField("f4","v41");
-    //dump_tuple(tuple);
-
-    // Set up a block in the memory
-    //cout << "Clear the memory block 0" << endl;
-    //Block* block_ptr = _mem->getBlock(0); //access to memory block 0
-    Block* block_ptr = get_mem_block(0); 
-    block_ptr->clear(); //clear the block
-
-    // A block stores at most 2 tuples in this case
-    // -----------first tuple-----------
-    //cout << "Set the tuple at offset 0 of the memory block 0" << endl;
-    block_ptr->setTuple(0,tuple); // You can also use appendTuple()
-    //dump_block(*block_ptr);
     //dump_memory();
-    //dump_relation(*relation);
+
+    //vector<string> field_names;
+    //vector<FIELD_TYPE> field_types;
+    //field_names.push_back("f1");
+    //field_names.push_back("f2");
+    //field_names.push_back("f3");
+    //field_names.push_back("f4");
+    //field_types.push_back(STR20);
+    ////field_types.push_back(STR20);
+    //field_types.push_back(INT);
+    //field_types.push_back(INT);
+    //field_types.push_back(STR20);
+    //Schema schema(field_names,field_types);
+    ////dump_schema(schema);
+
+    //string relation_name="ExampleTable1";
+    //Relation* relation = create_relation(relation_name, schema);
+    ////dump_relation(*relation);
+
+    //Tuple tuple = create_tuple(*relation);
+    //tuple.setField(0,"v11");
+    //tuple.setField(1,21);
+    //tuple.setField(2,31);
+    //tuple.setField(3,"v41");
+    //// Another way of setting the tuples
+    ////tuple.setField("f1","v11");
+    ////tuple.setField("f2",21);
+    ////tuple.setField("f3",31);
+    ////tuple.setField("f4","v41");
+    ////dump_tuple(tuple);
+
+    //// Set up a block in the memory
+    ////cout << "Clear the memory block 0" << endl;
+    ////Block* block_ptr = _mem->getBlock(0); //access to memory block 0
+    //Block* block_ptr = get_mem_block(0); 
+    //block_ptr->clear(); //clear the block
+
+    //// A block stores at most 2 tuples in this case
+    //// -----------first tuple-----------
+    ////cout << "Set the tuple at offset 0 of the memory block 0" << endl;
+    //block_ptr->setTuple(0,tuple); // You can also use appendTuple()
+    ////dump_block(*block_ptr);
+    ////dump_memory();
+    ////dump_relation(*relation);
 }
 
 void HwMgr::dump_memory() const

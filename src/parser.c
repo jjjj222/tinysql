@@ -24,7 +24,6 @@ tree_node_t* query_list_last = NULL;
 //------------------------------------------------------------------------------
 //   parse tree
 //------------------------------------------------------------------------------
-//void tree_add_child_front(tree_node_t* node, tree_node_t* child)
 tree_node_t* tree_add_child_front(tree_node_t* node, tree_node_t* child)
 {
     assert(node != NULL);
@@ -400,21 +399,6 @@ void dump_name_list()
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-//void sql_parser()
-//{
-//    lineno = 1;
-//    yyparse();
-//
-//    //char tstr[] = "CREATE TABLE Tad\n\0";
-//    //char tstr[] = "CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)\n\0";
-//    //// note yy_scan_buffer is is looking for a double null string
-//    //yy_scan_buffer(tstr, sizeof(tstr));
-//    //yyparse();
-//
-//
-//    //printf("%s\n", tstr);
-//}
-
 tree_node_t* parse_sql_file(const char* file_name)
 {
     assert(file_name != NULL);
@@ -472,10 +456,6 @@ tree_node_t* parse_sql_string(const char* sql_string)
     return query_list;
 }
 
-//void parser_set_file_name(const char* file_name)
-//{
-//    parser_file_name = file_name;
-//}
 int parser_get_error()
 {
     return parser_error;
@@ -514,9 +494,6 @@ char* new_str(const char* str)
 
 str_list_t* new_str_list(const char* str)
 {
-    //size_t len = strlen(str);
-    //char* tmp = malloc(sizeof(char) * (len + 1));
-    //memcpy(tmp, str, len + 1);
     char* tmp = new_str(str);
 
     str_list_t* list_node = malloc(sizeof(str_list_t));

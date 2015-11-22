@@ -16,7 +16,7 @@ class DataValue;
 //------------------------------------------------------------------------------
 string dump_field_type_str(const FIELD_TYPE&);
 string dump_tiny_type_str(const DataType&);
-DataType field_to_tiny_type(const FIELD_TYPE&);
+DataType field_to_data_type(const FIELD_TYPE&);
 FIELD_TYPE tiny_to_field_type(const DataType&);
 //------------------------------------------------------------------------------
 //   TinySchema
@@ -35,6 +35,7 @@ class TinySchema
 
         vector<string> get_attr_list() const;
         vector<pair<string, FIELD_TYPE>> get_name_type_list() const;
+        vector<DataType> get_type_list() const;
         DataType get_data_type(const string&) const;
         
 
@@ -67,6 +68,7 @@ class TinyTuple
 {
     public:
         TinyTuple(const Tuple&);
+        TinyTuple(const TinyTuple&);
         ~TinyTuple();
 
 
@@ -86,12 +88,43 @@ class TinyTuple
         //const string& get_str_value(const string&) const;
         //int get_int_value(const string&) const;
 
+        // is
+        bool is_null() const;
+
+        // debug
         void dump() const;
         string dump_str() const;
 
+    private:
+        void assign(const TinyTuple&);
 
     private:
         Tuple* _tuple;
+};
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+class TinyBlock
+{
+    public:
+        TinyBlock(Block*);
+
+        vector<Tuple> get_tuples() const;
+        vector<TinyTuple> get_tiny_tuples() const;
+
+        // is
+        bool empty() const;
+
+        //    if (!tuple.isNull()) {
+        //        tuple_count++;
+        //        if (cond_mgr.is_tuple_match(tuple)) {
+        //            is_delete = true;
+        //            block->nullTuple(j);
+        //            relation->add_space(i, j);
+
+    private:
+        Block* _block;
 };
 
 //------------------------------------------------------------------------------
@@ -119,6 +152,7 @@ class TinyRelation
 
         string get_name() const;
         TinySchema get_tiny_schema() const;
+        vector<DataType> get_type_list() const;
         vector<string> get_attr_list() const;
         size_t size() const;
         size_t get_num_of_attribute() const;
@@ -132,6 +166,8 @@ class TinyRelation
         void dump() const;
         string dump_str() const;
         Relation* get_relation() const { return _relation; }
+    private:
+        void dump_tuples() const;
 
     private:
         Relation* _relation;

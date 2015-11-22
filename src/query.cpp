@@ -49,6 +49,7 @@ void TableInfo::print_table() const
         //}
 
         DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
+        table.set_header(relation->get_attr_list());
 
         size_t mem_index = 0;
         size_t num_of_block = relation->get_num_of_block();
@@ -65,7 +66,6 @@ void TableInfo::print_table() const
             }
         }
 
-        table.set_header(relation->get_attr_list());
         table.draw();
         //cout << table.size() << " "
     } else {
@@ -734,6 +734,7 @@ bool QueryMgr::select_from(tree_node_t* node)
     if (_root == NULL)
         return false;
 
+    //dump_pretty(_root);
     _root->print_result();
     //tree_node_t* child = node->child;
     //assert(child != NULL);
@@ -1012,22 +1013,36 @@ void QueryNode::dump_tree(const string& indent, bool is_last) const
 //------------------------------------------------------------------------------
 void CrossProductNode::print_result()
 {
-    vector<QueryNode*> childs = get_childs();
-
+    const vector<QueryNode*>& childs = get_childs();
     assert(childs.size() == 2);
 
     for (auto& child_ptr : childs) {
         child_ptr->calculate_result();
+        //child_ptr->print_result();
     }
     //TableInfo* get_table_info() const { return _table_info; }
     string table_0_name = childs[0]->get_table_info()->get_name();
     string table_1_name = childs[1]->get_table_info()->get_name();
-    TinyRelation* relation_0 = HwMgr::ins()->get_tiny_relation(table_0_name);
-    TinyRelation* relation_1 = HwMgr::ins()->get_tiny_relation(table_1_name);
+    TinyRelation* relation_s = HwMgr::ins()->get_tiny_relation(table_0_name);
+    TinyRelation* relation_l = HwMgr::ins()->get_tiny_relation(table_1_name);
+    assert(relation_s != NULL);
+    assert(relation_l != NULL);
+
+    if (relation_s->size() > relation_l->size()) {
+        swap(relation_s, relation_l);
+    }
+
+
     size_t mem_size = HwMgr::ins()->get_mem_size();
-    dump_normal(relation_0->size());
-    dump_normal(relation_1->size());
-    dump_normal(mem_size);
+    //dump_normal(relation_0->size());
+    //dump_normal(relation_1->size());
+    //dump_normal(mem_size);
+    if (relation_s->size() < mem_size) {
+
+    } else {
+
+    }
+
     //dump_pretty(relation_0);
     //dump_pretty(relation_1);
     //size_t mem_index = 0;

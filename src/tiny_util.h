@@ -6,9 +6,20 @@
 
 using namespace std;
 
+#include "debug.h"
+
+using namespace jjjj222;
+
 #include "enum.h"
 
 string get_literal_value(const string&);
+//DataType get_data_type(FIELD_TYPE);
+
+template<typename T>
+string tiny_dump_str(const T& data)
+{
+    return jjjj222::dump_str(data);
+}
 
 //------------------------------------------------------------------------------
 //   

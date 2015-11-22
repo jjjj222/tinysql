@@ -9,6 +9,8 @@ using namespace jjjj222;
 
 #include "tiny_util.h"
 
+#include "field.h"
+
 string get_literal_value(const string& literal)
 {
     assert(literal.front() == '\"');
@@ -17,36 +19,40 @@ string get_literal_value(const string& literal)
     return literal.substr(1, literal.size() - 2);
 }
 
-pair<string, string> get_column_name_value(const string& column_name)
-{
-    vector<string> toks = tokenize(column_name, ".");
+//DataType get_data_type_by_field_type(FIELD_TYPE t)
+//{
+//}
 
-    pair<string, string> res;
-    if (toks.size() == 1) {
-        res.second = toks[0];
-    } else {
-        assert(toks.size() == 2);
-
-        res.first = toks[0];
-        res.second = toks[1];
-    }
-
-    return res;
-}
-
-string build_column_name(const string& table, const string& column)
-{
-    assert(!column.empty());
-
-    string tmp;
-    if (!table.empty()) {
-        tmp += table;
-        tmp += ".";
-    }
-    tmp += column;
-
-    return tmp;
-}
+//pair<string, string> get_column_name_value(const string& column_name)
+//{
+//    vector<string> toks = tokenize(column_name, ".");
+//
+//    pair<string, string> res;
+//    if (toks.size() == 1) {
+//        res.second = toks[0];
+//    } else {
+//        assert(toks.size() == 2);
+//
+//        res.first = toks[0];
+//        res.second = toks[1];
+//    }
+//
+//    return res;
+//}
+//
+//string build_column_name(const string& table, const string& column)
+//{
+//    assert(!column.empty());
+//
+//    string tmp;
+//    if (!table.empty()) {
+//        tmp += table;
+//        tmp += ".";
+//    }
+//    tmp += column;
+//
+//    return tmp;
+//}
 
 //------------------------------------------------------------------------------
 //   

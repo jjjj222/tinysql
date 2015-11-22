@@ -86,21 +86,18 @@ class ConditionNode
 class AndNode : public ConditionNode
 {
     public:
-        //NodeType get_type() const { return AND; }
         bool is_tuple_match(const TinyTuple&) const;
 };
 
 class OrNode : public ConditionNode
 {
     public:
-        //NodeType get_type() const { return OR; }
         bool is_tuple_match(const TinyTuple&) const;
 };
 
 class NotNode : public ConditionNode
 {
     public:
-        //NodeType get_type() const { return NOT; }
         bool is_tuple_match(const TinyTuple&) const;
 };
 
@@ -115,7 +112,6 @@ class CompNode : public ConditionNode
 class EqNode : public CompNode
 {
     public:
-        //NodeType get_type() const { return COMP_EQ; }
         bool comp_op(const DataValue&, const DataValue&) const;
         string dump_str() const { return "="; }
 };
@@ -123,7 +119,6 @@ class EqNode : public CompNode
 class GtNode : public CompNode
 {
     public:
-        //NodeType get_type() const { return COMP_GT; }
         bool comp_op(const DataValue&, const DataValue&) const;
         string dump_str() const { return ">"; }
 };
@@ -131,7 +126,6 @@ class GtNode : public CompNode
 class LtNode : public CompNode
 {
     public:
-        //NodeType get_type() const { return COMP_LT; }
         bool comp_op(const DataValue&, const DataValue&) const;
         string dump_str() const { return "<"; }
 };
@@ -147,7 +141,6 @@ class AddNode : public ArithNode
 {
     public:
         DataValue arith_op(const DataValue&, const DataValue&) const;
-        //DataValue get_value(const TinyTuple&) const;
 };
 
 class MinusNode : public ArithNode
