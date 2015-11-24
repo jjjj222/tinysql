@@ -21,6 +21,11 @@ string tiny_dump_str(const T& data)
     return jjjj222::dump_str(data);
 }
 
+template<typename T, typename D>
+string tiny_dump_str(const T& data, const D& data2)
+{
+    return jjjj222::dump_str(data, data2);
+}
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------

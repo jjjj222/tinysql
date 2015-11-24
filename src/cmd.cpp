@@ -28,6 +28,12 @@ using jjjj222::error_msg;
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
+bool cmd_is_not_comment(const string& line)
+{
+    bool res = !line.empty() && line[0] != '#' && line[0] != '-';
+    return res;
+}
+
 //int cmd_process(const char* buf)
 CmdState cmd_process(const char* buf)
 {
@@ -87,6 +93,11 @@ CmdState cmd_process(const char* buf)
             state = CMD_ERROR;
     }
 
+    if (cmd_is_not_comment(buf)) {
+        cout << endl;
+    }
+
+    //cout << endl;
     return state;
 }
 
@@ -120,13 +131,18 @@ CmdState cmd_readfile(const char* file_name)
     while (fin.good()) {
         getline(fin, line);
         parser_file_lineno++;
-        if (!line.empty() && line[0] != '#' && line[0] != '-') {
+        //if (!line.empty() && line[0] != '#' && line[0] != '-') {
+        if (cmd_is_not_comment(line)) {
             cout << parser_file_name << ":" << parser_file_lineno << "> " << line << endl;
         }
 
         if (cmd_process(line.c_str()) != CMD_OK) {
             return CMD_ERROR;
         }
+
+        //if (cmd_is_not_comment(line)) {
+        //    cout << endl;
+        //}
     }
 
     fin.close();

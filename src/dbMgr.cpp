@@ -20,6 +20,7 @@ using namespace jjjj222;
 #include "SchemaManager.h"
 #include "Tuple.h"
 
+#include "tiny_util.h"
 #include "query.h"
 #include "dbMgr.h"
 #include "parser.h"
@@ -137,7 +138,8 @@ Relation* HwMgr::create_relation(const string& name, const Schema& schema)
 //    return relation.createTuple();
 //}
 
-Block* HwMgr::get_mem_block(size_t i)
+//Block* HwMgr::get_mem_block(size_t i)
+TinyBlock HwMgr::get_mem_block(size_t i)
 {
     return _mem->getBlock(i);
 }
@@ -145,6 +147,11 @@ Block* HwMgr::get_mem_block(size_t i)
 size_t HwMgr::get_mem_size() const
 {
     return NUM_OF_BLOCKS_IN_MEMORY;
+}
+
+size_t HwMgr::get_block_size() const
+{
+    return FIELDS_PER_BLOCK;
 }
 
 //vector<Tuple> HwMgr::get_block_tuple(const Block& block) const
@@ -293,14 +300,16 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
     size_t mem_index = 0;
     size_t num_of_block = relation->get_num_of_block();
     size_t tuple_count = 0;
-    size_t shift_idx = 0;
+    //size_t shift_idx = 0;
     for (size_t i = 0; i < num_of_block; ++i) {
         size_t disk_index = i;
         relation->load_block_to_mem(disk_index, mem_index);
-        Block* block = HwMgr::ins()->get_mem_block(mem_index);
-        TinyBlock tiny_block(block);
+        TinyBlock tiny_block = HwMgr::ins()->get_mem_block(mem_index);
+        //Block* block = HwMgr::ins()->get_mem_block(mem_index);
+        //TinyBlock tiny_block(block);
 
-        vector<Tuple> tuples = block->getTuples();
+        //vector<Tuple> tuples = block->getTuples();
+        vector<Tuple> tuples = tiny_block.get_tuples();
         bool is_delete = false;
         for (size_t j = 0; j < tuples.size(); ++j) {
             const Tuple& tuple = tuples[j];
@@ -309,7 +318,8 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
                 tuple_count++;
                 if (cond_mgr.is_tuple_match(tuple)) {
                     is_delete = true;
-                    block->nullTuple(j);
+                    //block->nullTuple(j);
+                    tiny_block.null_tuple(j);
                     relation->add_space(i, j);
                 }
             }
@@ -318,8 +328,10 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
         if (is_delete) {
             //if (tiny_block.empty()) {
             //    shift_idx++;
+            //    //dump_normal(shift_idx);
             //} else {
-                relation->save_block_to_disk(disk_index - shift_idx, mem_index);
+                //relation->save_block_to_disk(disk_index - shift_idx, mem_index);
+                relation->save_block_to_disk(disk_index, mem_index);
             //}
         }
     }
@@ -479,9 +491,29 @@ void HwMgr::dump()
 void HwMgr::dump_memory() const
 {
     //cout << NUM_OF_BLOCKS_IN_MEMORY << endl;
-    cout << *_mem << endl;
+    //cout << *_mem << endl;
 
-    //for (int i = 0; i < NUM_OF_BLOCKS_IN_MEMORY; ++i) {
+    DrawTable table(get_block_size() + 1);
+
+    vector<string> header;
+    header.push_back("\\");
+    for (size_t i = 0; i < get_block_size(); ++i) {
+        header.push_back("(" + tiny_dump_str(i) + ")");
+    }
+    table.set_header(header);
+
+    for (size_t i = 0; i < get_mem_size(); ++i) {
+
+        TinyBlock b = _mem->getBlock(i);
+        //dump_normal(b.dump_str_list());
+        vector<string> row;
+        row.push_back("(" + tiny_dump_str(i) + ")");
+        add_into(row, b.dump_str_list());
+        table.add_row(row);
+        //cout << "QQ" << endl;
+    //    b.dump();
+    }
+    table.draw();
     //    cout << "block " << i << ":" << endl;
     //    Block* b = _mem->getBlock(i);
     //    vector<Tuple> ts = b->getTuples();

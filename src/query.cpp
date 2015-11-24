@@ -57,8 +57,10 @@ void TableInfo::print_table() const
         for (size_t i = 0; i < num_of_block; ++i) {
             relation->load_block_to_mem(i, mem_index);
             //_relation->getBlock(i, mem_index);
-            Block* block = HwMgr::ins()->get_mem_block(mem_index);
-            vector<Tuple> tuples = block->getTuples();
+            //Block* block = HwMgr::ins()->get_mem_block(mem_index);
+            TinyBlock block = HwMgr::ins()->get_mem_block(mem_index);
+            //vector<Tuple> tuples = block->getTuples();
+            vector<Tuple> tuples = block.get_tuples();
             for (const auto& tuple : tuples) {
                 //dump_normal(TinyTuple(tuple));
                 if (!tuple.isNull())
@@ -601,7 +603,8 @@ bool QueryMgr::exec_query(const string& query)
 {
     SqlParser parser;
     tree_node_t* root = parser.parse_string(query);
-    parser.dump();
+    //parser.dump();
+
     if (parser.is_error())
         return false;
 
@@ -736,49 +739,6 @@ bool QueryMgr::select_from(tree_node_t* node)
 
     //dump_pretty(_root);
     _root->print_result();
-    //tree_node_t* child = node->child;
-    //assert(child != NULL);
-
-    //bool is_distinct = false;
-    //if (node_is_distinct(child)) {
-    //    is_distinct = true;
-    //    child = child->next;
-    //    assert(child != NULL);
-    //}
-
-    //vector<string> attr_list;
-    //if (child->type == '*') {
-
-    //} else {
-    //    assert(node_is_select_list(child));
-    //    attr_list = get_string_list(child);
-    //}
-
-    //tree_node_t* name_list_node = child->next;
-    //assert(name_list_node != NULL);
-    //vector<string> name_list = get_string_list(name_list_node);
-
-    //child = name_list_node->next;
-    //tree_node_t* where_tree = NULL;
-    //if (child != NULL && node_is_where(child)) {
-    //    where_tree = child;
-    //    child = child->next;
-    //}
-
-    //string order_by = "";
-    //if (child != NULL) {
-    //    assert(node_is_order_by(child));
-    //    assert(child->child != NULL);
-    //    order_by = child->child->value;
-    //    //dump_normal(order_by);
-    //}
-    ////dump_normal(name_list);
-    ////while (child != NULL) {
-    ////    //attr_list.push_back(get_name_type(child));
-    ////    child = child->next;
-    ////}    
-    //bool res = HwMgr::ins()->select_from(name_list, attr_list, where_tree, is_distinct);
-    //return res;
 
     return true;
 }
@@ -1032,16 +992,25 @@ void CrossProductNode::print_result()
         swap(relation_s, relation_l);
     }
 
+    //size_t mem_size = HwMgr::ins()->get_mem_size();
+    //if (relation_s->size() < mem_size) {
 
-    size_t mem_size = HwMgr::ins()->get_mem_size();
-    //dump_normal(relation_0->size());
-    //dump_normal(relation_1->size());
-    //dump_normal(mem_size);
-    if (relation_s->size() < mem_size) {
+    //} else {
 
-    } else {
-
+    //}
+    relation_s->dump();
+    RelScanner scanner(relation_s, 2, 3);
+    //scanner.get_next();
+    while(!scanner.is_end()) {
+        cout << scanner.get_next().dump_str() << endl;
     }
+    HwMgr::ins()->dump_memory();
+    //for (TinyRelation::iterator it = relation_s->begin(); it != relation_s->end(); ++it) {
+    ////    cout << (*it).dump_str() << endl;
+    //    //TinyTuple = it.load_to_mem(0);
+    //    cout << it.load_to_mem(0).dump_str() << endl;
+    //}
+    
 
     //dump_pretty(relation_0);
     //dump_pretty(relation_1);

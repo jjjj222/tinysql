@@ -53,9 +53,11 @@ class HwMgr
     public:
         ~HwMgr();
 
-        Block* get_mem_block(size_t);
-        TinyBlock get_tiny_block(size_t);
+        //Block* get_mem_block(size_t);
+        TinyBlock get_mem_block(size_t);
+        //TinyBlock get_tiny_block(size_t);
         size_t get_mem_size() const;
+        size_t get_block_size() const;
         //vector<Tuple> get_block_tuple(const Block&) const;
         TinyRelation* get_tiny_relation(const string& name) const;
 

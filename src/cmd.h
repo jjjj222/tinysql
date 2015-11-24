@@ -12,6 +12,7 @@ enum CmdState {
     CMD_QUIT
 };
 
+bool cmd_is_not_comment(const string&);
 CmdState cmd_process(const char*);
 int cmd_readline();
 CmdState cmd_readfile(const char*);
