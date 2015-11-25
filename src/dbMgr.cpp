@@ -162,6 +162,43 @@ size_t HwMgr::get_block_size() const
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
+TinyRelation* HwMgr::create_tmp_relation(TinyRelation* r1, TinyRelation* r2)
+{
+    assert(r1 != NULL);
+    assert(r2 != NULL);
+
+    vector<pair<string, DataType>> attr_type_list;
+    bool with_prefix = false;
+    if (is_contain(r1->get_attr_list(), r2->get_attr_list())) {
+        add_into(attr_type_list, r1->get_attr_type_list_with_name());
+        add_into(attr_type_list, r2->get_attr_type_list_with_name());
+        with_prefix = true;
+    } else {
+        add_into(attr_type_list, r1->get_attr_type_list());
+        add_into(attr_type_list, r2->get_attr_type_list());
+    }
+
+
+    string name;
+    name += r1->get_name();
+    name += " ";
+    name += r2->get_name();
+    //dump_pretty(attr_type_list);
+
+    TinySchema schema_wrapper(attr_type_list);
+
+    //string relation_name="ExampleTable1";
+    //Relation* relation = create_relation(name, schema);
+    Relation* relation = create_relation(name, schema_wrapper);
+    TinyRelation* tiny_relation = new TinyRelation(relation);
+    if (with_prefix) {
+        tiny_relation->set_with_prefix();
+    }
+
+    add_into(_relations, tiny_relation);
+    return tiny_relation;
+}
+
 bool HwMgr::create_table(const string& name, const vector<pair<string, DataType>>& attribute_type_list)
 {
     for (const auto& r : _relations) {
@@ -219,8 +256,6 @@ bool HwMgr::drop_table(const string& name)
 
 bool HwMgr::insert_into(const string& name, const vector<pair<string, string>>& data)
 {
-    //dump_pretty(name);
-    //dump_pretty(data);
     TinyRelation* relation = get_tiny_relation(name);
     if (relation == NULL) {
         error_msg_table_not_exist(name);
@@ -229,8 +264,6 @@ bool HwMgr::insert_into(const string& name, const vector<pair<string, string>>& 
     
     TinyTuple tuple = relation->create_tuple();
     
-    //tuple.dump();
-
     for (const auto& name_value : data) { 
         const auto& name = name_value.first;
         const auto& value = name_value.second;
@@ -239,48 +272,7 @@ bool HwMgr::insert_into(const string& name, const vector<pair<string, string>>& 
         }
     }
 
-    //dump_pretty(tuple);
-
     relation->push_back(tuple);
-    //relation->push_back(tuple);
-    //Block* block = HwMgr::ins()->get_mem_block(0);
-    //if (relation->next_is_new_block()) {
-    //    block->clear();
-    //    block->appendTuple(tuple);
-    //} else {
-
-    //}
-    //relation_ptr->setBlock(relation_ptr->getNumOfBlocks(),memory_block_index);
-//void appendTupleToRelation(Relation* relation_ptr, MainMemory& mem, int memory_block_index, Tuple& tuple) {
-//  Block* block_ptr;
-//  if (relation_ptr->getNumOfBlocks()==0) {
-//    cout << "The relation is empty" << endl;
-//    cout << "Get the handle to the memory block " << memory_block_index << " and clear it" << endl;
-//    block_ptr=mem.getBlock(memory_block_index);
-//    block_ptr->clear(); //clear the block
-//    block_ptr->appendTuple(tuple); // append the tuple
-//    cout << "Write to the first block of the relation" << endl;
-//    relation_ptr->setBlock(relation_ptr->getNumOfBlocks(),memory_block_index);
-//  } else {
-//    cout << "Read the last block of the relation into memory block 5:" << endl;
-//    relation_ptr->getBlock(relation_ptr->getNumOfBlocks()-1,memory_block_index);
-//    block_ptr=mem.getBlock(memory_block_index);
-//
-//    if (block_ptr->isFull()) {
-//      cout << "(The block is full: Clear the memory block and append the tuple)" << endl;
-//      block_ptr->clear(); //clear the block
-//      block_ptr->appendTuple(tuple); // append the tuple
-//      cout << "Write to a new block at the end of the relation" << endl;
-//      relation_ptr->setBlock(relation_ptr->getNumOfBlocks(),memory_block_index); //write back to the relation
-//    } else {
-//      cout << "(The block is not full: Append it directly)" << endl;
-//      block_ptr->appendTuple(tuple); // append the tuple
-//      cout << "Write to the last block of the relation" << endl;
-//      relation_ptr->setBlock(relation_ptr->getNumOfBlocks()-1,memory_block_index); //write back to the relation
-//    }
-//  }  
-//}
-
     return true;
 }
 
@@ -441,51 +433,6 @@ bool HwMgr::assert_relations() const
 //------------------------------------------------------------------------------
 void HwMgr::dump()
 {
-    //dump_memory();
-
-    //vector<string> field_names;
-    //vector<FIELD_TYPE> field_types;
-    //field_names.push_back("f1");
-    //field_names.push_back("f2");
-    //field_names.push_back("f3");
-    //field_names.push_back("f4");
-    //field_types.push_back(STR20);
-    ////field_types.push_back(STR20);
-    //field_types.push_back(INT);
-    //field_types.push_back(INT);
-    //field_types.push_back(STR20);
-    //Schema schema(field_names,field_types);
-    ////dump_schema(schema);
-
-    //string relation_name="ExampleTable1";
-    //Relation* relation = create_relation(relation_name, schema);
-    ////dump_relation(*relation);
-
-    //Tuple tuple = create_tuple(*relation);
-    //tuple.setField(0,"v11");
-    //tuple.setField(1,21);
-    //tuple.setField(2,31);
-    //tuple.setField(3,"v41");
-    //// Another way of setting the tuples
-    ////tuple.setField("f1","v11");
-    ////tuple.setField("f2",21);
-    ////tuple.setField("f3",31);
-    ////tuple.setField("f4","v41");
-    ////dump_tuple(tuple);
-
-    //// Set up a block in the memory
-    ////cout << "Clear the memory block 0" << endl;
-    ////Block* block_ptr = _mem->getBlock(0); //access to memory block 0
-    //Block* block_ptr = get_mem_block(0); 
-    //block_ptr->clear(); //clear the block
-
-    //// A block stores at most 2 tuples in this case
-    //// -----------first tuple-----------
-    ////cout << "Set the tuple at offset 0 of the memory block 0" << endl;
-    //block_ptr->setTuple(0,tuple); // You can also use appendTuple()
-    ////dump_block(*block_ptr);
-    ////dump_memory();
-    ////dump_relation(*relation);
 }
 
 void HwMgr::dump_memory() const

@@ -147,6 +147,20 @@ vector<pair<string, FIELD_TYPE>> TinySchema::get_name_type_list() const
     return tmp;
 }
 
+vector<pair<string, DataType>> TinySchema::get_attr_type_list() const
+{
+    vector<string> names = _schema->getFieldNames();
+    vector<FIELD_TYPE> types = _schema->getFieldTypes();
+    assert(names.size() == types.size());
+
+    vector<pair<string, DataType>> res;
+    for (size_t i = 0; i < names.size(); ++i) {
+        res.push_back(make_pair(names[i], field_to_data_type(types[i])));
+    }
+
+    return res;
+}
+
 vector<DataType> TinySchema::get_type_list() const
 {
     vector<FIELD_TYPE> types = _schema->getFieldTypes();
@@ -299,6 +313,34 @@ bool TinyTuple::set_value(const string& name, const string& raw_value)
     return res;
 }
 
+void TinyTuple::set_value(size_t i, const DataValue& type_value)
+{
+    const DataType& type = type_value.get_type(); 
+    if (type == TINY_INT) {
+        _tuple->setField(i, type_value.get_int());
+    } else {
+        assert(type == TINY_STR20);
+
+        _tuple->setField(i, type_value.get_str());
+    }
+}
+
+void TinyTuple::set_value(const TinyTuple& t1, const TinyTuple& t2)
+{
+    assert(size() == t1.size() + t2.size()); 
+    assert(!t1.is_null());
+    assert(!t2.is_null());
+    
+    vector<DataValue> tmp;
+    add_into(tmp, t1.get_value_list());
+    add_into(tmp, t2.get_value_list());
+    //dump_normal(v1);
+     
+    for (size_t i = 0; i < tmp.size(); ++i) {
+        set_value(i, tmp[i]);
+    }
+}
+
 bool TinyTuple::set_str_value(const string& name, const string& value)
 {
     bool res = _tuple->setField(name, value);
@@ -372,6 +414,26 @@ DataValue TinyTuple::get_value(const string& column_name) const
     }
 
     return DataValue();
+}
+
+vector<DataValue> TinyTuple::get_value_list() const
+{
+    vector<DataType> type_list = get_tiny_schema().get_type_list();
+
+    vector<DataValue> res;
+    for (size_t i = 0; i < type_list.size(); ++i) {
+        Field value = _tuple->getField(i);
+        if (type_list[i] == TINY_INT) {
+
+            res.push_back(DataValue(value.integer)); 
+        } else {
+            assert(type_list[i] == TINY_STR20);
+    
+            res.push_back(DataValue(*(value.str))); 
+        }
+    }
+
+    return res;
 }
 
 //string TinyTuple::get_value_str(const string& name) const
@@ -796,14 +858,13 @@ RelScanner::RelScanner(TinyRelation* r, size_t base_idx, size_t mem_size)
 
 TinyTuple RelScanner::get_next()
 {
-    //move_to_non_null();
-    _iter.skip_null();
-    if (_iter.is_end()) {
-        return _relation->create_null_tuple();
-    }
-
     if (_m_iter == _m_iter_end) {
-        load_to_mem();
+        _iter.skip_null();
+        if (_iter.is_end()) {
+            return _relation->create_null_tuple();
+        } else {
+            load_to_mem();
+        }
     }
 
     TinyTuple res = _m_iter.get_tuple();
@@ -934,12 +995,21 @@ size_t RelScanner::get_last_mem_block() const
     return _base_idx + _mem_size - 1;
 }
 
+void RelScanner::dump() const
+{
+    dump_normal(_base_idx);
+    dump_normal(_mem_size);
+    dump_normal(_m_iter);
+    dump_normal(_m_iter_end);
+    dump_normal(_iter);
+}
 //------------------------------------------------------------------------------
 //   TinyRelation
 //------------------------------------------------------------------------------
 
 TinyRelation::TinyRelation(Relation* r)
 : _relation(r)
+, _with_prefix(false)
 //, _size(0)
 {
     ;
@@ -1088,6 +1158,22 @@ vector<DataType> TinyRelation::get_type_list() const
 vector<string> TinyRelation::get_attr_list() const
 {
     return get_tiny_schema().get_attr_list();
+}
+
+vector<pair<string, DataType>> TinyRelation::get_attr_type_list() const
+{
+    return get_tiny_schema().get_attr_type_list();
+}
+
+vector<pair<string, DataType>> TinyRelation::get_attr_type_list_with_name() const
+{
+    vector<pair<string, DataType>> attr_list = get_tiny_schema().get_attr_type_list();
+    vector<pair<string, DataType>> res;
+    for (const auto& name_type : attr_list) {
+        const string& name = name_type.first;
+        res.push_back( make_pair(get_name() + "." + name, name_type.second) );
+    }
+    return res;
 }
 
 size_t TinyRelation::get_num_of_block() const

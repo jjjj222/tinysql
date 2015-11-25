@@ -79,6 +79,10 @@ class DataValue {
             lhs /= rhs; return lhs;
         }
 
+        DataType get_type() const { return _type; }
+        int get_int() const { return _integer; }
+        string get_str() const { return _literal; }
+
         string dump_str() const;
 
     private:

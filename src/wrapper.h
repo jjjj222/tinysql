@@ -38,6 +38,7 @@ class TinySchema
 
         vector<string> get_attr_list() const;
         vector<pair<string, FIELD_TYPE>> get_name_type_list() const;
+        vector<pair<string, DataType>> get_attr_type_list() const;
         vector<DataType> get_type_list() const;
         DataType get_data_type(const string&) const;
         
@@ -83,11 +84,14 @@ class TinyTuple
         void init();
         void set_null();
         bool set_value(const string&, const string&);
+        void set_value(size_t, const DataValue&);
+        void set_value(const TinyTuple&, const TinyTuple&);
         bool set_str_value(const string&, const string&);
         bool set_int_value(const string&, int);
 
         size_t size() const;
         DataValue get_value(const string&) const;
+        vector<DataValue> get_value_list() const;
         //string get_value_str(const string&) const;
         TinySchema get_tiny_schema() const;
         vector<string> get_attr_list() const;
@@ -222,6 +226,8 @@ class RelScanner
 
         bool is_end() const;
 
+        void dump() const;
+
     private:
         void clear_mem();
         void clear_mem_block(size_t);
@@ -261,6 +267,7 @@ class TinyRelation
         void push_back(const TinyTuple&);
         void add_space(size_t, size_t);
         void add_space(size_t);
+        void set_with_prefix() { _with_prefix = true; }
 
         void refresh_block_num();
         bool load_block_to_mem(size_t, size_t) const;
@@ -276,6 +283,8 @@ class TinyRelation
         TinySchema get_tiny_schema() const;
         vector<DataType> get_type_list() const;
         vector<string> get_attr_list() const;
+        vector<pair<string, DataType>> get_attr_type_list() const;
+        vector<pair<string, DataType>> get_attr_type_list_with_name() const;
         size_t size() const;
         size_t get_num_of_attribute() const;
         size_t get_num_of_block() const;
@@ -284,6 +293,7 @@ class TinyRelation
         size_t get_tuple_idx_by_pos(size_t) const;
         pair<size_t, size_t> get_idx_by_pos(size_t) const;
         bool is_null(size_t) const;
+        bool is_with_prefix() const { return _with_prefix; }
 
         iterator begin();
         iterator end();
@@ -301,10 +311,8 @@ class TinyRelation
         size_t get_total_pos() const;
 
     private:
-        Relation* _relation;
-
-    private:
-    //    //size_t              _size;
+        Relation*           _relation;
+        bool                _with_prefix;
         vector<size_t>      _space;
 };
 

@@ -988,8 +988,13 @@ void CrossProductNode::print_result()
     assert(relation_s != NULL);
     assert(relation_l != NULL);
 
+    TinyRelation* cross_relation = HwMgr::ins()->create_tmp_relation(relation_s, relation_l);
+    //cross_relation->dump();
+
+    bool is_swap = false;
     if (relation_s->size() > relation_l->size()) {
         swap(relation_s, relation_l);
+        is_swap = true;
     }
 
     //size_t mem_size = HwMgr::ins()->get_mem_size();
@@ -998,13 +1003,48 @@ void CrossProductNode::print_result()
     //} else {
 
     //}
-    relation_s->dump();
-    RelScanner scanner(relation_s, 2, 3);
-    //scanner.get_next();
-    while(!scanner.is_end()) {
-        cout << scanner.get_next().dump_str() << endl;
+    //relation_s->dump();
+    //relation_l->dump();
+    //RelScanner scanner_l(relation_l, 0, 1);
+    ////size_t i = 0;
+    //while(!scanner_l.is_end()) {
+    //    //relation_l->dump();
+    //    //scanner_l.dump();
+    //    //HwMgr::ins()->dump_memory();
+    //    cout << scanner_l.get_next().dump_str() << endl;
+
+    //    //if (++i == 10)
+    //    //    break;
+    //}
+    size_t total_size = HwMgr::ins()->get_mem_size() - 1;
+    size_t l_index = 1;
+    size_t l_size = 1;
+    size_t s_index = l_index + l_size;
+    size_t s_size = total_size - l_size;;
+
+    //return;
+    RelScanner scanner_s(relation_s, s_index, s_size);
+    while(!scanner_s.is_end()) {
+        TinyTuple tuple_s = scanner_s.get_next();
+        RelScanner scanner_l(relation_l, l_index, l_size);
+        while(!scanner_l.is_end()) {
+            TinyTuple tuple_l = scanner_l.get_next();
+        
+            TinyTuple new_tuple = cross_relation->create_tuple();
+            if (is_swap) {
+                new_tuple.set_value(tuple_l, tuple_s);
+            } else {
+                new_tuple.set_value(tuple_s, tuple_l);
+            }
+            //new_tuple.dump();
+            cout << new_tuple.dump_str() << endl;
+            cross_relation->push_back(new_tuple); // TODO: it use mem addr 0
+        }
     }
-    HwMgr::ins()->dump_memory();
+
+    cross_relation->dump();
+
+    //HwMgr::ins()->dump_memory();
     //for (TinyRelation::iterator it = relation_s->begin(); it != relation_s->end(); ++it) {
     ////    cout << (*it).dump_str() << endl;
     //    //TinyTuple = it.load_to_mem(0);

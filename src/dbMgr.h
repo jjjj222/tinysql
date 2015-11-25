@@ -60,6 +60,7 @@ class HwMgr
         size_t get_block_size() const;
         //vector<Tuple> get_block_tuple(const Block&) const;
         TinyRelation* get_tiny_relation(const string& name) const;
+        TinyRelation* create_tmp_relation(TinyRelation*, TinyRelation*);
 
         //
         bool create_table(const string&, const vector<pair<string, DataType>>&);
