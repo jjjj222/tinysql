@@ -389,17 +389,41 @@ bool ConditionMgr::check_var_node(VarNode* node) const
     //string column = var_node->get_column();
     string table = node->get_table();
     string column = node->get_column();
+    ColumnName column_name(table, column);
 
-    string field_name = column;
-    if (!table.empty() && _tiny_relation->get_name() != table) {
-        field_name = table + "." + column;
+    string field_name;
+
+    if (table.empty()) {
+        if (_tiny_relation->is_with_prefix()) {
+            error_msg("ambiguous \'" + column + "\'");
+            return false;
+            //field_name = table + "." + column;
+            //field_name = column_name;
+            //field_name = column;
+        } else {
+
+            field_name = column;
+        }
+    } else { // !table.empty()
+        if (_tiny_relation->is_with_prefix()) {
+            //field_name = table + "." + column;
+            field_name = column_name;
+        } else {
+            if (table != _tiny_relation->get_base_name()) {
+                error_msg_not_exist("attribute", column_name);
+                return false;
+            }
+
+            field_name = column;
+        }
+
     }
+    //if (!table.empty() && _tiny_relation->get_name() != table) {
     //dump_normal(field_name);
 
     TinySchema schema = _tiny_relation->get_tiny_schema();
     if (!schema.is_field_name_exist(field_name)) {
         //error_msg_not_exist("attribute", build_column_name(table, column));
-        ColumnName column_name(table, column);
         error_msg_not_exist("attribute", column_name.get_column_name());
         return false;
     }
@@ -596,14 +620,14 @@ void ConditionMgr::dump() const
 //   
 //------------------------------------------------------------------------------
 QueryMgr::QueryMgr()
-: _root(NULL)
+: _select_root(NULL)
 {
     ;
 }
 
 QueryMgr::~QueryMgr()
 {
-    delete_not_null(_root);
+    delete_not_null(_select_root);
 }
 
 bool QueryMgr::exec_query(const string& query)
@@ -738,27 +762,32 @@ bool QueryMgr::select_from(tree_node_t* node)
     assert(node_is_select(node));
 
     // TODO
-    build_select_tree(node);
+    bool is_ok = build_select_tree(node);
+    if (!is_ok) {
+        return false;
+    }
 
     //dump_print(_root);
-    if (_root == NULL)
+    if (_select_root == NULL)
         return false;
 
-    dump_pretty(_root);
+    dump_pretty(_select_root);
     //return true;
-    _root->print_result();
+    bool res = _select_root->print_result();
 
-    return true;
+    return res;
 }
 
 bool QueryMgr::build_select_tree(tree_node_t* node)
 {
     assert(node != NULL);
     assert(node_is_select(node));
+    assert(_select_root == NULL);
 
     tree_node_t* child = node->child;
     assert(child != NULL);
 
+    // DISTINCT
     bool is_distinct = false;
     if (node_is_distinct(child)) {
         is_distinct = true;
@@ -766,20 +795,19 @@ bool QueryMgr::build_select_tree(tree_node_t* node)
         assert(child != NULL);
     }
 
+    // SELECT *
     vector<string> attr_list;
-    if (child->type == '*') {
-        // do nothing
-    } else {
+    if (child->type != '*') {
         assert(node_is_select_list(child));
         attr_list = get_string_list(child);
     }
-    //dump_normal(attr_list);
 
+    // FROM
     tree_node_t* name_list_node = child->next;
     assert(name_list_node != NULL);
     vector<string> name_list = get_string_list(name_list_node);
-    //dump_normal(name_list);
 
+    // WHERE
     child = name_list_node->next;
     tree_node_t* where_tree = NULL;
     if (child != NULL && node_is_where(child)) {
@@ -787,12 +815,12 @@ bool QueryMgr::build_select_tree(tree_node_t* node)
         child = child->next;
     }
 
+    // ORDER BY
     string order_by = "";
     if (child != NULL) {
         assert(node_is_order_by(child));
         assert(child->child != NULL);
         order_by = child->child->value;
-        //dump_normal(order_by);
     }
     //dump_normal(name_list);
     //while (child != NULL) {
@@ -800,35 +828,38 @@ bool QueryMgr::build_select_tree(tree_node_t* node)
     //    child = child->next;
     //}    
 
-    delete_not_null(_root);
+    //delete_not_null(_select_root);
 
     QueryNode* cross_product_node = build_cross_product(name_list);
-    _root = cross_product_node;
+    if (cross_product_node == NULL)
+        return false;
+
+    _select_root = cross_product_node;
 
     if (where_tree != NULL) {
         QueryNode* where_node = build_where(where_tree);
-        where_node->add_child(_root);
-        _root = where_node;
+        where_node->add_child(_select_root);
+        _select_root = where_node;
     }
 
     if (!attr_list.empty()) {
         // TODO: build fail; return false;
         QueryNode* project_node = build_project(attr_list);
-        project_node->add_child(_root);
-        _root = project_node;
+        project_node->add_child(_select_root);
+        _select_root = project_node;
     }
 
     if (!order_by.empty()) {
         // TODO: build fail; return false;
         QueryNode* order_by_node = build_order_by(order_by);
-        order_by_node->add_child(_root);
-        _root = order_by_node;
+        order_by_node->add_child(_select_root);
+        _select_root = order_by_node;
     }
 
     if (is_distinct) {
         QueryNode* distinct_node = build_distinct();
-        distinct_node->add_child(_root);
-        _root = distinct_node;
+        distinct_node->add_child(_select_root);
+        _select_root = distinct_node;
     }
 
     return true;
@@ -841,11 +872,15 @@ QueryNode* QueryMgr::build_cross_product(const vector<string>& table_list)
     QueryNode* node_ptr = NULL;
     if (table_list.size() == 1) {
         node_ptr = build_base_node(table_list[0]);
+        if (node_ptr == NULL)
+            return NULL;
     } else {
         node_ptr = new CrossProductNode();
         QueryNode* child_ptr = NULL;
         for (const auto& table_name : table_list) {
             child_ptr = build_base_node(table_name);
+            if (child_ptr == NULL)
+                return NULL;
             node_ptr->add_child(child_ptr);
         }
     }
@@ -855,6 +890,12 @@ QueryNode* QueryMgr::build_cross_product(const vector<string>& table_list)
 
 QueryNode* QueryMgr::build_base_node(const string& table_name)
 {
+    TinyRelation* relation = HwMgr::ins()->get_tiny_relation(table_name);
+    if (relation == NULL) {
+        error_msg_table_not_exist(table_name);
+        return NULL;
+    }
+
     QueryNode* node_ptr = new QueryNode();
     node_ptr->set_real_table(table_name);
     return node_ptr;
@@ -975,21 +1016,24 @@ void QueryNode::set_real_table(const string& name)
     //_table_info->set_is_in_disk();
 }
 
-void QueryNode::print_result()
+bool QueryNode::print_result()
 {
     //assert(_table_info != NULL);
     if (_table_info == NULL) {
-        calculate_result();
+        if(!calculate_result())
+            return false;
     }
     
     assert(_table_info != NULL);
     _table_info->print_table(); 
+    return true;
 }
 
-void QueryNode::calculate_result()
+bool QueryNode::calculate_result()
 {
-    //assert(_table_info == NULL);
+    assert(_table_info != NULL);
     // do nothing
+    return true;
 }
 
 TinyRelation* QueryNode::get_or_create_relation()
@@ -1072,10 +1116,10 @@ ProjectNode::ProjectNode(const vector<string>& attr_list)
     ;
 }
 
-void ProjectNode::calculate_result()
+bool ProjectNode::calculate_result()
 {
     if (_table_info != NULL)
-        return;
+        return true;
 
     const vector<QueryNode*>& childs = get_childs();
     assert(childs.size() == 1);
@@ -1120,6 +1164,7 @@ void ProjectNode::calculate_result()
 
     set_real_table(tmp_table_name);
     set_tmp_table();
+    return true;
 }
 
 //------------------------------------------------------------------------------
@@ -1131,11 +1176,12 @@ WhereNode::WhereNode(tree_node_t* node)
     ;
 }
 
-void WhereNode::calculate_result()
+bool WhereNode::calculate_result()
 {
     //assert(get_table_info() == NULL);
-    if (get_table_info() != NULL) // TODO
-        return;
+    //if (get_table_info() != NULL) // TODO
+    if (_table_info != NULL)
+        return true;
 
     const vector<QueryNode*>& childs = get_childs();
     assert(childs.size() == 1);
@@ -1154,7 +1200,8 @@ void WhereNode::calculate_result()
     ConditionMgr cond_mgr(_where_tree, relation);
     if (cond_mgr.is_error()) {
         //return false;
-        cout << "ERROR in whereNode" << endl;
+        //cout << "ERROR in whereNode" << endl;
+        return false;
     }
 
     string tmp_table_name = "where " + relation->get_name();
@@ -1172,26 +1219,29 @@ void WhereNode::calculate_result()
 
     set_real_table(tmp_table_name);
     set_tmp_table();
-    // TODO: delete tmp table
+    return true;
 }
 
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-void CrossProductNode::print_result()
+//void CrossProductNode::print_result()
+bool CrossProductNode::calculate_result()
 {
     const vector<QueryNode*>& childs = get_childs();
-    assert(childs.size() == 2);
+    assert(childs.size() == 2); // TODO
 
-    for (auto& child_ptr : childs) {
-        child_ptr->calculate_result();
-        //child_ptr->print_result();
-    }
+    //for (auto& child_ptr : childs) {
+    //    child_ptr->calculate_result();
+    //    //child_ptr->print_result();
+    //}
     //TableInfo* get_table_info() const { return _table_info; }
-    string table_0_name = childs[0]->get_table_info()->get_name();
-    string table_1_name = childs[1]->get_table_info()->get_name();
-    TinyRelation* relation_s = HwMgr::ins()->get_tiny_relation(table_0_name);
-    TinyRelation* relation_l = HwMgr::ins()->get_tiny_relation(table_1_name);
+    //string table_0_name = childs[0]->get_table_info()->get_name();
+    //string table_1_name = childs[1]->get_table_info()->get_name();
+    //TinyRelation* relation_s = HwMgr::ins()->get_tiny_relation(table_0_name);
+    //TinyRelation* relation_l = HwMgr::ins()->get_tiny_relation(table_1_name);
+    TinyRelation* relation_s = childs[0]->get_or_create_relation();
+    TinyRelation* relation_l = childs[1]->get_or_create_relation();
     assert(relation_s != NULL);
     assert(relation_l != NULL);
 
@@ -1249,6 +1299,8 @@ void CrossProductNode::print_result()
         }
     }
 
+    set_real_table(cross_relation->get_name());
+    set_tmp_table();
     //cross_relation->dump();
 
     //HwMgr::ins()->dump_memory();
@@ -1273,5 +1325,6 @@ void CrossProductNode::print_result()
     //        table.add_row(TinyTuple(tuple).str_list());
     //    }
     //}
+    return true;
 }
 

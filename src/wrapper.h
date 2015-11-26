@@ -20,6 +20,7 @@ class Block;
 
 class TinyRelation;
 class DataValue;
+class ColumnName;
 
 //------------------------------------------------------------------------------
 //   TinySchema
@@ -284,6 +285,8 @@ class TinyRelation
         TinyTuple create_tuple(bool = false) const;
 
         string get_name() const;
+        string get_base_name() const;
+        string get_attr_search_name(const ColumnName&);
         TinySchema get_tiny_schema() const;
         vector<DataType> get_type_list() const;
         vector<string> get_attr_list() const;

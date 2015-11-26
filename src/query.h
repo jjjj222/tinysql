@@ -254,8 +254,8 @@ class QueryNode
         void set_real_table(const string&);
         void add_child(QueryNode*);
 
-        virtual void print_result();
-        virtual void calculate_result();
+        virtual bool print_result();
+        virtual bool calculate_result();
 
         //get
         TinyRelation* get_or_create_relation();
@@ -304,7 +304,7 @@ class ProjectNode : public QueryNode
         ProjectNode(const vector<string>&);
 
         virtual NodeType get_type() const { return PROJECT; }
-        virtual void calculate_result();
+        virtual bool calculate_result();
 
     private:
         vector<string> _attr_list;
@@ -317,7 +317,7 @@ class WhereNode : public QueryNode
         virtual NodeType get_type() const { return WHERE; }
 
         //virtual void print_result();
-        virtual void calculate_result();
+        virtual bool calculate_result();
     private:
         tree_node_t* _where_tree;
 };
@@ -327,7 +327,8 @@ class CrossProductNode : public QueryNode
     public:
         virtual NodeType get_type() const { return CROSS_PRODUCT; }
 
-        virtual void print_result();
+        //virtual void print_result();
+        virtual bool calculate_result();
     private:
 };
 
@@ -352,6 +353,7 @@ class QueryMgr
 
     private:
         bool build_select_tree(tree_node_t*);
+        //bool build_select_tree(tree_node_t*);
         QueryNode* build_cross_product(const vector<string>&);
         QueryNode* build_base_node(const string&);
         QueryNode* build_where(tree_node_t*);
@@ -366,7 +368,7 @@ class QueryMgr
         vector<string> get_string_list(tree_node_t*);
 
     private:
-        QueryNode*  _root;
+        QueryNode*  _select_root;
 };
 
 

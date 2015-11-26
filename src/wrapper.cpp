@@ -1150,6 +1150,52 @@ string TinyRelation::get_name() const
     return _relation->getRelationName();
 }
 
+string TinyRelation::get_base_name() const
+{
+    vector<string> toks = tokenize(get_name(), " ");
+    
+    return toks.back();
+}
+
+string TinyRelation::get_attr_search_name(const ColumnName& column_name)
+{
+    string res = column_name;
+    string table = column_name.get_table();
+
+    //if (column_name.get_table().empty()) {
+    ////if (table.empty()) {
+    //    res = column_name;
+    //} else { // !table.empty()
+    if (!table.empty() && !is_with_prefix() && table == get_base_name()) {
+        res = column_name.get_column();
+    }
+        //if (is_with_prefix()) {
+        //    //field_name = table + "." + column;
+        //    field_name = column_name;
+        //} else {
+        //    if (table != get_base_name()) {
+        //    //    error_msg_not_exist("attribute", column_name);
+        //    //    return false;
+        //        res = column_name;
+        //    } else {
+        //        res = column;
+        //    }
+        //}
+    //}
+    ////if (!table.empty() && _tiny_relation->get_name() != table) {
+    //if (is_with_prefix()) {
+    //    res = column_name;
+    //} else {
+    //    if (!table.empty() && table != _tiny_relation->get_base_name()) {
+    //        return false;
+    //    }
+
+    //    res = column_name.get_column();
+    //}
+
+    return res;
+}
+
 TinySchema TinyRelation::get_tiny_schema() const
 {
     return TinySchema(_relation->getSchema());
