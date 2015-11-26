@@ -291,6 +291,8 @@ class OrderByNode : public QueryNode
         OrderByNode(const string&);
 
         virtual NodeType get_type() const { return ORDER_BY; }
+        virtual bool calculate_result();
+        
 
         string dump_str() const;
 
