@@ -298,7 +298,7 @@ TinyTuple::~TinyTuple()
     delete _tuple;
 }
 
-bool TinyTuple::set_value(const string& name, const string& raw_value)
+bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
 {
     assert(raw_value != "NULL"); // NULL has been removed from spec
 
@@ -311,6 +311,16 @@ bool TinyTuple::set_value(const string& name, const string& raw_value)
     }
 
     return res;
+}
+
+void TinyTuple::set_value(const string& name, const DataValue& data_value)
+{
+    if (data_value.get_type() == TINY_INT) {
+        set_int_value(name, data_value.get_int());
+    } else {
+        assert(data_value.get_type() == TINY_STR20);
+        set_str_value(name, data_value.get_str());
+    }
 }
 
 void TinyTuple::set_value(size_t i, const DataValue& type_value)
@@ -388,6 +398,11 @@ TinySchema TinyTuple::get_tiny_schema() const
 size_t TinyTuple::size() const
 {
     return get_tiny_schema().size();
+}
+
+DataType TinyTuple::get_data_type(const string& name) const
+{
+    return get_tiny_schema().get_data_type(name);
 }
 
 DataValue TinyTuple::get_value(const string& column_name) const

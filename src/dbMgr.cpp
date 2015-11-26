@@ -26,20 +26,6 @@ using namespace jjjj222;
 #include "parser.h"
 #include "wrapper.h"
 
-
-//------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-//FIELD_TYPE tiny_to_field_type(const DataType type)
-//{
-//    if (type == TINY_INT) {
-//        return INT;
-//    } else {
-//        assert(type == TINY_STR20);
-//        return STR20;
-//    }
-//}
-
 //------------------------------------------------------------------------------
 //   SqlParser
 //------------------------------------------------------------------------------
@@ -124,21 +110,22 @@ TinyRelation* HwMgr::get_tiny_relation(const string& name) const
 //   
 //------------------------------------------------------------------------------
 
-Relation* HwMgr::create_relation(const string& name, const Schema& schema)
+//Relation* HwMgr::create_relation(const string& name, const Schema& schema)
+//TinyRelation* HwMgr::create_relation(const string& name, const Schema& schema)
+TinyRelation* HwMgr::create_relation(const string& name, const TinySchema& schema)
 {
-    //cout << "Creating table " << name << endl;  
-    Relation* relation_ptr = _schema_mgr->createRelation(name,schema);
+    assert(!name.empty());
+    assert(!is_table_exist(name));
 
-    // Print the information about the Relation
-    return relation_ptr;
+    Relation* relation_ptr = _schema_mgr->createRelation(name, schema);
+    assert(relation_ptr != NULL);
+    TinyRelation* tiny_relation = new TinyRelation(relation_ptr);
+    add_into(_relations, tiny_relation);
+
+    //return relation_ptr;
+    return tiny_relation;
 }
 
-//Tuple HwMgr::create_tuple(const Relation& relation)
-//{
-//    return relation.createTuple();
-//}
-
-//Block* HwMgr::get_mem_block(size_t i)
 TinyBlock HwMgr::get_mem_block(size_t i)
 {
     return _mem->getBlock(i);
@@ -189,33 +176,58 @@ TinyRelation* HwMgr::create_tmp_relation(TinyRelation* r1, TinyRelation* r2)
 
     //string relation_name="ExampleTable1";
     //Relation* relation = create_relation(name, schema);
-    Relation* relation = create_relation(name, schema_wrapper);
-    TinyRelation* tiny_relation = new TinyRelation(relation);
+    TinyRelation* tiny_relation = create_relation(name, schema_wrapper);
+    //Relation* relation = create_relation(name, schema_wrapper);
+    //TinyRelation* tiny_relation = new TinyRelation(relation);
     if (with_prefix) {
         tiny_relation->set_with_prefix();
     }
 
-    add_into(_relations, tiny_relation);
+    //add_into(_relations, tiny_relation);
     return tiny_relation;
 }
 
+//TinyRelation* HwMgr::create_tmp_relation(const string& name, TinyRelation* r)
+//{
+//    assert(r != NULL);
+//
+//    //vector<pair<string, DataType>> attr_type_list = r->get_attr_list();
+//    //vector<pair<string, DataType>> attr_type_list = r->get_attr_list();
+//
+//    //TinySchema schema_wrapper(attr_type_list);
+//    TinySchema schema_wrapper(r->get_attr_type_list());
+//
+//    TinyRelation* tiny_relation = create_relation(name, schema_wrapper);
+//    //Relation* relation = create_relation(name, schema_wrapper);
+//    //TinyRelation* tiny_relation = new TinyRelation(relation);
+//
+//    //add_into(_relations, tiny_relation);
+//    return tiny_relation;
+//}
+
 bool HwMgr::create_table(const string& name, const vector<pair<string, DataType>>& attribute_type_list)
 {
-    for (const auto& r : _relations) {
-        if (r->get_name() == name) {
-            error_msg("Table '" + name + "' already exists");
-            return false;
-        }
+    if (is_table_exist(name)) {
+        error_msg("Table '" + name + "' already exists");
+        return false;
     }
+    //for (const auto& r : _relations) {
+    //    if (r->get_name() == name) {
+    //        error_msg("Table '" + name + "' already exists");
+    //        return false;
+    //    }
+    //}
 
-    TinySchema schema_wrapper(attribute_type_list);
 
     //string relation_name="ExampleTable1";
     //Relation* relation = create_relation(name, schema);
-    Relation* relation = create_relation(name, schema_wrapper);
-    TinyRelation* tiny_relation = new TinyRelation(relation);
-    add_into(_relations, tiny_relation);
+    //Relation* relation = create_relation(name, schema_wrapper);
+    //TinyRelation* tiny_relation = new TinyRelation(relation);
+    //add_into(_relations, tiny_relation);
     //dump_relation(*relation);
+    //TinySchema schema_wrapper(attribute_type_list);
+    //create_relation(name, schema_wrapper);
+    create_relation(name, attribute_type_list);
 
     return true;
 }
@@ -233,7 +245,6 @@ bool HwMgr::drop_table(const string& name)
     }
 
     if (to_delete == NULL) {
-        //assert(get_relation(name) == NULL);
         assert(!_schema_mgr->relationExists(name));
 
         error_msg("Unknown table '" + name + "'");
@@ -242,13 +253,15 @@ bool HwMgr::drop_table(const string& name)
 
     assert(to_delete->get_relation() == get_relation(name));
 
-    delete to_delete;
-    for (size_t i = pos+1; i < _relations.size(); ++i) {
-        _relations[i-1] = _relations[i];
-    }
-    _relations.resize(_relations.size() - 1);
+    delete_pos(_relations, pos);
+    //delete to_delete;
+    //for (size_t i = pos+1; i < _relations.size(); ++i) {
+    //    _relations[i-1] = _relations[i];
+    //}
+    //_relations.resize(_relations.size() - 1);
 
-    bool res = delete_relation(name); 
+    bool res = _schema_mgr->deleteRelation(name);
+    //bool res = delete_relation(name); 
     assert(res == true);
 
     return res;
@@ -267,7 +280,7 @@ bool HwMgr::insert_into(const string& name, const vector<pair<string, string>>& 
     for (const auto& name_value : data) { 
         const auto& name = name_value.first;
         const auto& value = name_value.second;
-        if (!tuple.set_value(name, value)) {
+        if (!tuple.set_raw_value(name, value)) {
             return false;
         }
     }
@@ -400,16 +413,25 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
 //
 //    return true;
 //}
+bool HwMgr::is_table_exist(const string& name) const
+{
+    for (const auto& r : _relations) {
+        if (r->get_name() == name) {
+            return true;
+        }
+    }
+    return false;
+}
 
 Relation* HwMgr::get_relation(const string& name) const
 {
     return _schema_mgr->getRelation(name);
 }
 
-bool HwMgr::delete_relation(const string& name) const
-{
-    return _schema_mgr->deleteRelation(name);
-}
+//bool HwMgr::delete_relation(const string& name) const
+//{
+//    return _schema_mgr->deleteRelation(name);
+//}
 
 //------------------------------------------------------------------------------
 //   

@@ -31,15 +31,22 @@ using namespace jjjj222;
 //------------------------------------------------------------------------------
 TableInfo::TableInfo(const string& name)
 : _name(name)
-, _is_in_disk(false)
+//, _is_in_disk(false)
+, _is_tmp(false)
 {
     ;
 }
 
+TableInfo::~TableInfo()
+{
+    if (_is_tmp) {
+        HwMgr::ins()->drop_table(_name);
+    }
+}
 
 void TableInfo::print_table() const
 {
-    if (_is_in_disk) {
+    //if (_is_in_disk) {
         //bool res = HwMgr::ins()->select_from(name_list, attr_list, where_tree, is_distinct);
         TinyRelation* relation = HwMgr::ins()->get_tiny_relation(_name);
         assert(relation != NULL);
@@ -70,9 +77,9 @@ void TableInfo::print_table() const
 
         table.draw();
         //cout << table.size() << " "
-    } else {
-        cout << "TODO: !_is_in_disk" << endl;
-    }
+    //} else {
+    //    cout << "TODO: !_is_in_disk" << endl;
+    //}
 }
 
 void TableInfo::dump() const
@@ -737,13 +744,14 @@ bool QueryMgr::select_from(tree_node_t* node)
     if (_root == NULL)
         return false;
 
-    //dump_pretty(_root);
+    dump_pretty(_root);
+    //return true;
     _root->print_result();
 
     return true;
 }
 
-void QueryMgr::build_select_tree(tree_node_t* node)
+bool QueryMgr::build_select_tree(tree_node_t* node)
 {
     assert(node != NULL);
     assert(node_is_select(node));
@@ -751,9 +759,9 @@ void QueryMgr::build_select_tree(tree_node_t* node)
     tree_node_t* child = node->child;
     assert(child != NULL);
 
-    //bool is_distinct = false;
+    bool is_distinct = false;
     if (node_is_distinct(child)) {
-        //is_distinct = true;
+        is_distinct = true;
         child = child->next;
         assert(child != NULL);
     }
@@ -773,9 +781,9 @@ void QueryMgr::build_select_tree(tree_node_t* node)
     //dump_normal(name_list);
 
     child = name_list_node->next;
-    //tree_node_t* where_tree = NULL;
+    tree_node_t* where_tree = NULL;
     if (child != NULL && node_is_where(child)) {
-        //where_tree = child;
+        where_tree = child;
         child = child->next;
     }
 
@@ -794,9 +802,36 @@ void QueryMgr::build_select_tree(tree_node_t* node)
 
     delete_not_null(_root);
 
-    _root = build_cross_product(name_list);
-    //dump_normal(_root);
-    //dump_print(_root);
+    QueryNode* cross_product_node = build_cross_product(name_list);
+    _root = cross_product_node;
+
+    if (where_tree != NULL) {
+        QueryNode* where_node = build_where(where_tree);
+        where_node->add_child(_root);
+        _root = where_node;
+    }
+
+    if (!attr_list.empty()) {
+        // TODO: build fail; return false;
+        QueryNode* project_node = build_project(attr_list);
+        project_node->add_child(_root);
+        _root = project_node;
+    }
+
+    if (!order_by.empty()) {
+        // TODO: build fail; return false;
+        QueryNode* order_by_node = build_order_by(order_by);
+        order_by_node->add_child(_root);
+        _root = order_by_node;
+    }
+
+    if (is_distinct) {
+        QueryNode* distinct_node = build_distinct();
+        distinct_node->add_child(_root);
+        _root = distinct_node;
+    }
+
+    return true;
 }
 
 QueryNode* QueryMgr::build_cross_product(const vector<string>& table_list)
@@ -825,10 +860,30 @@ QueryNode* QueryMgr::build_base_node(const string& table_name)
     return node_ptr;
 }
 
-QueryNode* QueryMgr::build_where(const tree_node_t* node)
+QueryNode* QueryMgr::build_where(tree_node_t* node)
 {
-    return NULL;
+    QueryNode* res = new WhereNode(node);
+    return res;
 }
+
+QueryNode* QueryMgr::build_project(const vector<string>& attr_list)
+{
+    QueryNode* res = new ProjectNode(attr_list);
+    return res;
+}
+
+QueryNode* QueryMgr::build_order_by(const string& name)
+{
+    QueryNode* res = new OrderByNode(name);
+    return res;
+}
+
+QueryNode* QueryMgr::build_distinct()
+{
+    QueryNode* res = new DistinctNode();
+    return res;
+}
+
 
 vector<pair<string, DataType>> QueryMgr::get_attribute_type_list(tree_node_t* node)
 {
@@ -907,24 +962,45 @@ void QueryNode::add_child(QueryNode* child)
     _childs.push_back(child);
 }
 
+void QueryNode::set_tmp_table()
+{
+    assert(_table_info != NULL);
+    _table_info->set_is_tmp();
+}
+
 void QueryNode::set_real_table(const string& name)
 {
     delete_not_null(_table_info);
     _table_info = new TableInfo(name);
-    _table_info->set_is_in_disk();
+    //_table_info->set_is_in_disk();
 }
 
 void QueryNode::print_result()
 {
+    //assert(_table_info != NULL);
+    if (_table_info == NULL) {
+        calculate_result();
+    }
+    
     assert(_table_info != NULL);
-
     _table_info->print_table(); 
 }
 
 void QueryNode::calculate_result()
 {
-    assert(_table_info != NULL);
+    //assert(_table_info == NULL);
     // do nothing
+}
+
+TinyRelation* QueryNode::get_or_create_relation()
+{
+    if (_table_info == NULL) {
+        calculate_result();
+    }
+    
+    assert(_table_info != NULL);
+    TinyRelation* res = HwMgr::ins()->get_tiny_relation(_table_info->get_name());
+    return res;
 }
 
 #define NODE_TYPE(name) case name: return #name
@@ -934,6 +1010,8 @@ string QueryNode::get_type_str(NodeType t) const
         NODE_TYPE(DISTINCT);
         NODE_TYPE(CROSS_PRODUCT);
         NODE_TYPE(WHERE);
+        NODE_TYPE(PROJECT);
+        NODE_TYPE(ORDER_BY);
         NODE_TYPE(BASE_NODE);
     }
 
@@ -966,6 +1044,135 @@ void QueryNode::dump_tree(const string& indent, bool is_last) const
         const QueryNode* node_ptr = _childs[i];
         node_ptr->dump_tree(next_indent, i == _childs.size() - 1);
     }
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+OrderByNode::OrderByNode(const string& name)
+: _name(name)
+{
+    ;
+}
+
+string OrderByNode::dump_str() const
+{
+    string res = QueryNode::dump_str();
+    res += " ";
+    res += _name;
+    return res;
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+ProjectNode::ProjectNode(const vector<string>& attr_list)
+: _attr_list(attr_list)
+{
+    ;
+}
+
+void ProjectNode::calculate_result()
+{
+    if (_table_info != NULL)
+        return;
+
+    const vector<QueryNode*>& childs = get_childs();
+    assert(childs.size() == 1);
+
+    QueryNode* child = childs[0];
+    assert(child != NULL);
+
+    TinyRelation* relation = child->get_or_create_relation();
+    assert(relation != NULL);
+
+    vector<pair<string, DataType>> attr_type_list = relation->get_attr_type_list();
+    //dump_normal(_attr_list);
+    vector<pair<string, DataType>> new_attr_type_list;
+    for (const auto& attr_type : attr_type_list) {
+        //ColumnName attr_name(attr_type.first);
+        const string& attr_name =attr_type.first;
+        for (const auto& attr : _attr_list) {
+            //ColumnName project_name(attr);
+            const string& project_name = attr;
+            if (attr_name == project_name) {
+                new_attr_type_list.push_back(make_pair(attr_name, attr_type.second)); 
+                break;
+            }
+        }
+    }
+
+    string tmp_table_name = "project " + relation->get_name();
+    TinyRelation* new_relation = HwMgr::ins()->create_relation(
+        tmp_table_name, new_attr_type_list);
+    
+    //new_relation->dump();
+    RelScanner scanner(relation, 1, 1);
+    while(!scanner.is_end()) {
+        TinyTuple tuple = scanner.get_next();
+        TinyTuple new_tuple = new_relation->create_tuple();
+        for (const auto& attr_type : new_attr_type_list) {
+            const string& name = attr_type.first;
+            new_tuple.set_value(name, tuple.get_value(name));
+        }
+        new_relation->push_back(new_tuple);
+    }
+
+    set_real_table(tmp_table_name);
+    set_tmp_table();
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+WhereNode::WhereNode(tree_node_t* node)
+: _where_tree(node)
+{
+    ;
+}
+
+void WhereNode::calculate_result()
+{
+    //assert(get_table_info() == NULL);
+    if (get_table_info() != NULL) // TODO
+        return;
+
+    const vector<QueryNode*>& childs = get_childs();
+    assert(childs.size() == 1);
+
+    QueryNode* child = childs[0];
+    assert(child != NULL);
+
+    //child->calculate_result();
+    //TableInfo* child_table_info = child->get_table_info();
+    ////assert(child_table_info != NULL);
+    
+    //TinyRelation* relation = HwMgr::ins()->get_tiny_relation(child_table_info->get_name());
+    TinyRelation* relation = child->get_or_create_relation();
+    assert(relation != NULL);
+
+    ConditionMgr cond_mgr(_where_tree, relation);
+    if (cond_mgr.is_error()) {
+        //return false;
+        cout << "ERROR in whereNode" << endl;
+    }
+
+    string tmp_table_name = "where " + relation->get_name();
+    //TinyRelation* new_relation = HwMgr::ins()->create_tmp_relation(tmp_table_name, relation);
+    TinyRelation* new_relation = HwMgr::ins()->create_relation(
+        tmp_table_name, relation->get_tiny_schema());
+
+    RelScanner scanner(relation, 1, 1);
+    while(!scanner.is_end()) {
+        TinyTuple tuple = scanner.get_next();
+        if (cond_mgr.is_tuple_match(tuple)) {
+            new_relation->push_back(tuple);
+        }
+    }
+
+    set_real_table(tmp_table_name);
+    set_tmp_table();
+    // TODO: delete tmp table
 }
 
 //------------------------------------------------------------------------------
@@ -1037,12 +1244,12 @@ void CrossProductNode::print_result()
                 new_tuple.set_value(tuple_s, tuple_l);
             }
             //new_tuple.dump();
-            cout << new_tuple.dump_str() << endl;
+            //cout << new_tuple.dump_str() << endl;
             cross_relation->push_back(new_tuple); // TODO: it use mem addr 0
         }
     }
 
-    cross_relation->dump();
+    //cross_relation->dump();
 
     //HwMgr::ins()->dump_memory();
     //for (TinyRelation::iterator it = relation_s->begin(); it != relation_s->end(); ++it) {

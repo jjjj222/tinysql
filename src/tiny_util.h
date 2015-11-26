@@ -34,6 +34,7 @@ class ColumnName
     public:
         ColumnName(const string&);
         ColumnName(const string&, const string&);
+        operator string () const { return get_column_name(); }
 
         // get
         const string& get_table() const { return _table; }

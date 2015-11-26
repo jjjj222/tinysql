@@ -83,17 +83,18 @@ class TinyTuple
 
         void init();
         void set_null();
-        bool set_value(const string&, const string&);
+        bool set_raw_value(const string&, const string&);
+        void set_value(const string&, const DataValue&);
         void set_value(size_t, const DataValue&);
         void set_value(const TinyTuple&, const TinyTuple&);
-        bool set_str_value(const string&, const string&);
-        bool set_int_value(const string&, int);
 
         size_t size() const;
+        TinySchema get_tiny_schema() const;
+        DataType get_data_type(const string&) const;
         DataValue get_value(const string&) const;
+
         vector<DataValue> get_value_list() const;
         //string get_value_str(const string&) const;
-        TinySchema get_tiny_schema() const;
         vector<string> get_attr_list() const;
         vector<string> str_list() const;
         //const string& get_str_value(const string&) const;
@@ -109,6 +110,9 @@ class TinyTuple
 
     private:
         void assign(const TinyTuple&);
+
+        bool set_str_value(const string&, const string&);
+        bool set_int_value(const string&, int);
 
     private:
         Tuple* _tuple;

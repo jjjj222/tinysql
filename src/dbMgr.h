@@ -23,6 +23,7 @@ class Tuple;
 class Block;
 //enum FIELD_TYPE;
 
+class TinySchema;
 class TinyRelation;
 class TinyBlock;
 
@@ -61,26 +62,14 @@ class HwMgr
         //vector<Tuple> get_block_tuple(const Block&) const;
         TinyRelation* get_tiny_relation(const string& name) const;
         TinyRelation* create_tmp_relation(TinyRelation*, TinyRelation*);
+        //TinyRelation* create_tmp_relation(const string&, TinyRelation*);
+        TinyRelation* create_relation(const string& name, const TinySchema&);
 
         //
         bool create_table(const string&, const vector<pair<string, DataType>>&);
         bool drop_table(const string&);
         bool insert_into(const string&, const vector<pair<string, string>>&);
         bool delete_from(const string&, tree_node_t* where_node);
-        //bool select_from(const string&);
-        //bool select_from(
-        //    const vector<string>&,
-        //    const vector<string>&,
-        //    tree_node_t*,
-        //    bool is_distinct
-        //);
-
-        //bool select_from_single_table(
-        //    const string&, 
-        //    const vector<string>&,
-        //    tree_node_t*,
-        //    bool is_distinct
-        //);
 
         // debug
         void dump();
@@ -99,11 +88,13 @@ class HwMgr
         HwMgr();
         void init();
 
-        Relation* create_relation(const string& name, const Schema&);
+        bool is_table_exist(const string&) const;
+        //Relation* create_relation(const string& name, const Schema&);
+        //TinyRelation* create_relation(const string& name, const Schema&);
         //Tuple create_tuple(const Relation&); // TODO
 
         Relation* get_relation(const string& name) const;
-        bool delete_relation(const string& name) const;
+        //bool delete_relation(const string& name) const;
 
         bool assert_relations() const;
 

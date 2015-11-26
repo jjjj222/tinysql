@@ -131,7 +131,6 @@ CmdState cmd_readfile(const char* file_name)
     while (fin.good()) {
         getline(fin, line);
         parser_file_lineno++;
-        //if (!line.empty() && line[0] != '#' && line[0] != '-') {
         if (cmd_is_not_comment(line)) {
             cout << parser_file_name << ":" << parser_file_lineno << "> " << line << endl;
         }
@@ -139,10 +138,6 @@ CmdState cmd_readfile(const char* file_name)
         if (cmd_process(line.c_str()) != CMD_OK) {
             return CMD_ERROR;
         }
-
-        //if (cmd_is_not_comment(line)) {
-        //    cout << endl;
-        //}
     }
 
     fin.close();

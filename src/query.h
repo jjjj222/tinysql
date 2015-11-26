@@ -18,9 +18,11 @@ class TableInfo
 {
     public:
         TableInfo(const string&);
+        ~TableInfo();
 
         //
-        void set_is_in_disk() { _is_in_disk = true; }
+        void set_is_tmp() { _is_tmp = true; }
+        //void set_is_in_disk() { _is_in_disk = true; }
 
         //
         const string& get_name() const { return _name; }
@@ -34,7 +36,8 @@ class TableInfo
 
     private:
         string  _name;
-        bool    _is_in_disk;
+        //bool    _is_in_disk;
+        bool    _is_tmp;
 };
 
 //------------------------------------------------------------------------------
@@ -45,26 +48,9 @@ class ConditionNode
     public:
         friend class ConditionMgr;
 
-    //public:
-    //    enum NodeType {
-    //        VAR,
-    //        LITERAL,
-    //        INTEGER,
-    //        AND,
-    //        OR,
-    //        NOT,
-    //        COMP_EQ,
-    //        COMP_GT,
-    //        COMP_LT
-    //    };
-
-    //protected:
     public:
         ConditionNode() {}
         virtual ~ConditionNode();
-
-        // get
-        //virtual NodeType get_type() const = 0;
 
         virtual bool is_tuple_match(const TinyTuple&) const { return false; }
         virtual DataValue get_value(const TinyTuple&) const;
@@ -253,6 +239,8 @@ class QueryNode
             DISTINCT,
             CROSS_PRODUCT,
             WHERE,
+            PROJECT,
+            ORDER_BY,
             BASE_NODE
         };
 
@@ -261,6 +249,8 @@ class QueryNode
         QueryNode();
         virtual ~QueryNode();
 
+        //void set_table_info(const TableInfo&);
+        void set_tmp_table();
         void set_real_table(const string&);
         void add_child(QueryNode*);
 
@@ -268,6 +258,7 @@ class QueryNode
         virtual void calculate_result();
 
         //get
+        TinyRelation* get_or_create_relation();
         TableInfo* get_table_info() const { return _table_info; }
         virtual NodeType get_type() const { return BASE_NODE; };
 
@@ -282,21 +273,53 @@ class QueryNode
 
     protected:
         const vector<QueryNode*>& get_childs() const { return _childs; }
+        TableInfo*          _table_info;
 
     private:
-        TableInfo*          _table_info;
         vector<QueryNode*>  _childs;
+};
+
+class DistinctNode : public QueryNode
+{
+    public:
+        virtual NodeType get_type() const { return DISTINCT; }
+};
+
+class OrderByNode : public QueryNode
+{
+    public:
+        OrderByNode(const string&);
+
+        virtual NodeType get_type() const { return ORDER_BY; }
+
+        string dump_str() const;
+
+    private:
+        string  _name;
+};
+
+class ProjectNode : public QueryNode
+{
+    public:
+        ProjectNode(const vector<string>&);
+
+        virtual NodeType get_type() const { return PROJECT; }
+        virtual void calculate_result();
+
+    private:
+        vector<string> _attr_list;
 };
 
 class WhereNode : public QueryNode
 {
     public:
-        //WhereNode(const tree_node_t* node) 
-        //WhereNode()
-
+        WhereNode(tree_node_t* node);
         virtual NodeType get_type() const { return WHERE; }
 
+        //virtual void print_result();
+        virtual void calculate_result();
     private:
+        tree_node_t* _where_tree;
 };
 
 class CrossProductNode : public QueryNode
@@ -328,10 +351,14 @@ class QueryMgr
         bool select_from(tree_node_t*);
 
     private:
-        void build_select_tree(tree_node_t*);
+        bool build_select_tree(tree_node_t*);
         QueryNode* build_cross_product(const vector<string>&);
         QueryNode* build_base_node(const string&);
-        QueryNode* build_where(const tree_node_t*);
+        QueryNode* build_where(tree_node_t*);
+        QueryNode* build_project(const vector<string>&);
+        QueryNode* build_order_by(const string&);
+        QueryNode* build_distinct();
+    
 
     private:
         vector<pair<string, DataType>> get_attribute_type_list(tree_node_t*);
