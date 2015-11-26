@@ -273,6 +273,7 @@ class TinyRelation
         void add_space(size_t, size_t);
         void add_space(size_t);
         void set_with_prefix() { _with_prefix = true; }
+        //void set_with_prefix();
 
         void refresh_block_num();
         bool load_block_to_mem(size_t, size_t) const;

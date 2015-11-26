@@ -155,33 +155,45 @@ TinyRelation* HwMgr::create_tmp_relation(TinyRelation* r1, TinyRelation* r2)
     assert(r2 != NULL);
 
     vector<pair<string, DataType>> attr_type_list;
-    bool with_prefix = false;
-    if (is_contain(r1->get_attr_list(), r2->get_attr_list())) {
-        add_into(attr_type_list, r1->get_attr_type_list_with_name());
-        add_into(attr_type_list, r2->get_attr_type_list_with_name());
-        with_prefix = true;
-    } else {
+    if (r1->is_with_prefix()) {
         add_into(attr_type_list, r1->get_attr_type_list());
-        add_into(attr_type_list, r2->get_attr_type_list());
+    } else {
+        add_into(attr_type_list, r1->get_attr_type_list_with_name());
     }
+
+    if (r2->is_with_prefix()) {
+        add_into(attr_type_list, r2->get_attr_type_list());
+    } else {
+        add_into(attr_type_list, r2->get_attr_type_list_with_name());
+    }
+    //bool with_prefix = false;
+    //if (is_contain(r1->get_attr_list(), r2->get_attr_list())) {
+    //    add_into(attr_type_list, r1->get_attr_type_list_with_name());
+    //    add_into(attr_type_list, r2->get_attr_type_list_with_name());
+    //    with_prefix = true;
+    //} else {
+    //    add_into(attr_type_list, r1->get_attr_type_list());
+    //    add_into(attr_type_list, r2->get_attr_type_list());
+    //}
 
 
     string name;
     name += r1->get_name();
-    name += " ";
+    name += " + ";
     name += r2->get_name();
     //dump_pretty(attr_type_list);
 
-    TinySchema schema_wrapper(attr_type_list);
+    //TinySchema schema_wrapper(attr_type_list);
 
     //string relation_name="ExampleTable1";
     //Relation* relation = create_relation(name, schema);
-    TinyRelation* tiny_relation = create_relation(name, schema_wrapper);
+    //TinyRelation* tiny_relation = create_relation(name, schema_wrapper);
+    TinyRelation* tiny_relation = create_relation(name, attr_type_list);
     //Relation* relation = create_relation(name, schema_wrapper);
     //TinyRelation* tiny_relation = new TinyRelation(relation);
-    if (with_prefix) {
-        tiny_relation->set_with_prefix();
-    }
+    //if (with_prefix) {
+    //tiny_relation->set_with_prefix();
+    //}
 
     //add_into(_relations, tiny_relation);
     return tiny_relation;

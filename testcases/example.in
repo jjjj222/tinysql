@@ -23,7 +23,7 @@ INSERT INTO course2 (sid, exam, grade) VALUES (16, 25, "E")
 #dump relation course
 #SELECT * FROM course2
 #SELECT * FROM course, course2
-SELECT sid, homework FROM course WHERE exam = 10
+SELECT course2.sid, course.homework FROM course, course2 WHERE course.exam = 10
 #SELECT * FROM course, course2
 #SELECT * FROM course WHERE exam = 10
 #SELECT * FROM course, course2

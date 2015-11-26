@@ -1039,11 +1039,14 @@ bool QueryNode::calculate_result()
 TinyRelation* QueryNode::get_or_create_relation()
 {
     if (_table_info == NULL) {
-        calculate_result();
+        if (!calculate_result())
+            return NULL;
     }
     
     assert(_table_info != NULL);
     TinyRelation* res = HwMgr::ins()->get_tiny_relation(_table_info->get_name());
+
+    assert(res != NULL);
     return res;
 }
 
@@ -1128,21 +1131,31 @@ bool ProjectNode::calculate_result()
     assert(child != NULL);
 
     TinyRelation* relation = child->get_or_create_relation();
-    assert(relation != NULL);
+    if (relation == NULL)
+        return false;
+    //assert(relation != NULL);
 
-    vector<pair<string, DataType>> attr_type_list = relation->get_attr_type_list();
-    //dump_normal(_attr_list);
     vector<pair<string, DataType>> new_attr_type_list;
-    for (const auto& attr_type : attr_type_list) {
-        //ColumnName attr_name(attr_type.first);
-        const string& attr_name =attr_type.first;
-        for (const auto& attr : _attr_list) {
-            //ColumnName project_name(attr);
-            const string& project_name = attr;
+
+    //bool is_with_prefix = relation->get_is_with_prefix;
+    vector<pair<string, DataType>> attr_type_list = relation->get_attr_type_list();
+    for (const string& attr : _attr_list) {
+        const string project_name = relation->get_attr_search_name(attr);
+
+        bool is_match = false;
+        for (const auto& attr_type : attr_type_list) {
+            const string& attr_name = attr_type.first;
+            //cout << attr_name << " - " << project_name << endl;
             if (attr_name == project_name) {
-                new_attr_type_list.push_back(make_pair(attr_name, attr_type.second)); 
+                is_match = true;
+                new_attr_type_list.push_back(make_pair(attr, attr_type.second)); 
                 break;
             }
+        }
+
+        if (!is_match) {
+            error_msg_not_exist("attribute", attr);
+            return false;
         }
     }
 
@@ -1157,11 +1170,15 @@ bool ProjectNode::calculate_result()
         TinyTuple new_tuple = new_relation->create_tuple();
         for (const auto& attr_type : new_attr_type_list) {
             const string& name = attr_type.first;
-            new_tuple.set_value(name, tuple.get_value(name));
+            const string search_name = relation->get_attr_search_name(name);
+            new_tuple.set_value(name, tuple.get_value(search_name));
         }
         new_relation->push_back(new_tuple);
     }
 
+    if (relation->is_with_prefix()) {
+        new_relation->set_with_prefix();
+    }
     set_real_table(tmp_table_name);
     set_tmp_table();
     return true;
@@ -1195,7 +1212,9 @@ bool WhereNode::calculate_result()
     
     //TinyRelation* relation = HwMgr::ins()->get_tiny_relation(child_table_info->get_name());
     TinyRelation* relation = child->get_or_create_relation();
-    assert(relation != NULL);
+    if (relation == NULL)
+        return false;
+    //assert(relation != NULL);
 
     ConditionMgr cond_mgr(_where_tree, relation);
     if (cond_mgr.is_error()) {
@@ -1217,6 +1236,9 @@ bool WhereNode::calculate_result()
         }
     }
 
+    if (relation->is_with_prefix()) {
+        new_relation->set_with_prefix();
+    }
     set_real_table(tmp_table_name);
     set_tmp_table();
     return true;
@@ -1242,8 +1264,10 @@ bool CrossProductNode::calculate_result()
     //TinyRelation* relation_l = HwMgr::ins()->get_tiny_relation(table_1_name);
     TinyRelation* relation_s = childs[0]->get_or_create_relation();
     TinyRelation* relation_l = childs[1]->get_or_create_relation();
-    assert(relation_s != NULL);
-    assert(relation_l != NULL);
+    if (relation_s == NULL || relation_l == NULL)
+        return false;
+    //assert(relation_s != NULL);
+    //assert(relation_l != NULL);
 
     TinyRelation* cross_relation = HwMgr::ins()->create_tmp_relation(relation_s, relation_l);
     //cross_relation->dump();
@@ -1299,6 +1323,7 @@ bool CrossProductNode::calculate_result()
         }
     }
 
+    cross_relation->set_with_prefix();
     set_real_table(cross_relation->get_name());
     set_tmp_table();
     //cross_relation->dump();

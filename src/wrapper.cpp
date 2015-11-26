@@ -1098,6 +1098,20 @@ void TinyRelation::add_space(size_t space_idx)
     }
 }
 
+//void TinyRelation::set_with_prefix()
+//{
+//    _with_prefix = true;
+//    dump_normal(get_name());
+//    dump_normal(_with_prefix);
+//}
+//
+//bool TinyRelation::is_with_prefix() const
+//{
+//    dump_normal(get_name());
+//    dump_normal(_with_prefix);
+//    return _with_prefix;
+//}
+
 void TinyRelation::refresh_block_num()
 {
     size_t total_size = size() + _space.size();
@@ -1298,6 +1312,7 @@ void TinyRelation::dump() const
     table.add_row("size", tiny_dump_str(size()));
     table.add_row("# of blocks", tiny_dump_str(get_num_of_block()));
     table.add_row("tuple per block", tiny_dump_str(tuple_per_block()));
+    table.add_row("_with_prefix", tiny_dump_str(_with_prefix));
     //table.add_row("schema", get_tiny_schema().dump_str());
     //cout << "name: " << get_name() << endl;
     cout << "schema: " << get_tiny_schema().dump_str() << endl;

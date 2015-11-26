@@ -93,6 +93,10 @@ run:
 	@#./$(EXEC) testcases/example.in
 	@#./$(EXEC) < testcases/example.in
 
+.PHONY: valgrind
+valgrind:
+	valgrind --leak-check=yes $(EXEC) testcases/example.do
+
 .PHONY: clean
 clean:
 	rm -f $(OBJ_FOLDER)/*
