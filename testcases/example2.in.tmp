@@ -1,21 +1,33 @@
-CREATE TABLE course (sid INT, project INT, exam INT, grade STR20)
-INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 100, "K")
-INSERT INTO course (sid, project, exam, grade) VALUES (11, 99, 100, "G")
-INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 10, "A")
-INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
-INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 100, "B")
-INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 100, "E")
-INSERT INTO course (sid, project, exam, grade) VALUES (2, 99, 100, "F")
-INSERT INTO course (sid, project, exam, grade) VALUES (3, 99, 10, "F")
-INSERT INTO course (sid, project, exam, grade) VALUES (4, 99, 100, "F")
-INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
-INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 10, "A")
-INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
-INSERT INTO course (sid, project, exam, grade) VALUES (10, 99, 100, "F")
-
-DELETE FROM course WHERE grade = "B"
+CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)
+INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, "A")
 #SELECT * FROM course
-SELECT * FROM course ORDER BY sid
+INSERT INTO course (sid, homework, project, exam, grade) VALUES (2, 0, 100, 100, "E")
+#SELECT * FROM course
+INSERT INTO course (sid, grade, exam, project, homework) VALUES (3, "E", 100, 100, 100)
+#INSERT INTO course (sid, exam, project, homework) VALUES (3, 100, 100, 100)
+SELECT * FROM course
+INSERT INTO course (sid, homework, project, exam, grade) SELECT * FROM course
+SELECT * FROM course
+
+
+#CREATE TABLE course (sid INT, project INT, exam INT, grade STR20)
+#INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 100, "K")
+#INSERT INTO course (sid, project, exam, grade) VALUES (11, 99, 100, "G")
+#INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 10, "A")
+#INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
+#INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 100, "B")
+#INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 100, "E")
+#INSERT INTO course (sid, project, exam, grade) VALUES (2, 99, 100, "F")
+#INSERT INTO course (sid, project, exam, grade) VALUES (3, 99, 10, "F")
+#INSERT INTO course (sid, project, exam, grade) VALUES (4, 99, 100, "F")
+#INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
+#INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 10, "A")
+#INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
+#INSERT INTO course (sid, project, exam, grade) VALUES (10, 99, 100, "F")
+#
+#DELETE FROM course WHERE grade = "B"
+##SELECT * FROM course
+#SELECT * FROM course ORDER BY sid
 
 #DELETE FROM course WHERE grade > "B"
 #DELETE FROM course WHERE (grade * 3) = "E"

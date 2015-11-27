@@ -736,15 +736,22 @@ bool QueryMgr::insert_into(tree_node_t* node)
     assert(tuples_node != NULL);
 
     if (node_is_select(tuples_node)) {
-        cout << "TODO: SELECT in INSERT" << endl;
-        return true;
+        //cout << "TODO: SELECT in INSERT" << endl; // TODO
+        bool res = insert_into_from_select(table_name, name_list, tuples_node);
+        return res;
     }   
 
     assert(node_is_value_list(tuples_node));
 
     vector<string> value_list = get_string_list(tuples_node);
     if (name_list.size() != value_list.size()) {
-        error_msg("name_list.size() != value_list.size()");
+        //error_msg("size of attributes and data");
+        error_msg("size of attributes and data should be the same");
+        //if (name_list.size() > value_list.size()) {
+        //    error_msg("missing data");
+        //} else {
+        //    error_msg("missing a");
+        //}
         return false;
     }
 
@@ -753,6 +760,56 @@ bool QueryMgr::insert_into(tree_node_t* node)
     //dump_pretty(data);
     bool res = HwMgr::ins()->insert_into(table_name, data);
     return res;
+}
+
+bool QueryMgr::insert_into_from_select(const string& table_name, const vector<string>& attr_list, tree_node_t* node)
+{
+    assert(node != NULL);
+    assert(node_is_select(node));
+
+    TinyRelation* to_relation = HwMgr::ins()->get_tiny_relation(table_name);
+    if (to_relation == NULL) {
+        error_msg_table_not_exist(table_name);
+        return false;
+    }
+    
+    bool is_ok = build_select_tree(node);
+    if (!is_ok) {
+        return false;
+    }
+
+    //dump_print(_root);
+    if (_select_root == NULL)
+        return false;
+
+    TinyRelation* from_relation = _select_root->get_or_create_relation();
+    if (from_relation == NULL)
+        return false;
+    //dump_pretty(_select_root);
+    //return true;
+    //bool res = _select_root->print_result();
+    //return res;
+
+    //TinyTuple tuple = relation->create_tuple();
+    RelScanner scanner(from_relation, 1, 1);
+    while(!scanner.is_end()) {
+        TinyTuple tuple = scanner.get_next();
+        assert(!tuple.is_null());
+
+        to_relation->push_back(tuple);
+    }
+    
+    //for (const auto& name_value : data) { 
+    //    const auto& name = name_value.first;
+    //    const auto& value = name_value.second;
+    //    if (!tuple.set_raw_value(name, value)) {
+    //        return false;
+    //    }
+    //}
+
+    //relation->push_back(tuple);
+    return true;
+
 }
 
 bool QueryMgr::delete_from(tree_node_t* node)

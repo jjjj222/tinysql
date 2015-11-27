@@ -1662,5 +1662,267 @@ testcases/all.in:129> SELECT * FROM course, course2 WHERE course.sid = course2.s
 8 rows in set
 
 testcases/all.in:130> SELECT DISTINCT course.grade, course2.grade FROM course, course2 WHERE course.sid = course2.sid AND [ course.exam > course2.exam OR course.grade = "A" AND course2.grade = "A" ] ORDER BY course.exam
-Error: attribute 'course.exam' doesn't exist !!
++--------------+---------------+
+| course.grade | course2.grade |
++--------------+---------------+
+| A            | A             |
++--------------+---------------+
+1 row in set
 
+testcases/all.in:131> DROP TABLE course
+
+testcases/all.in:132> DROP TABLE course2
+
+testcases/all.in:133> CREATE TABLE r (a INT, b INT)
+
+testcases/all.in:134> CREATE TABLE s (b INT, c INT)
+
+testcases/all.in:135> CREATE TABLE t (a INT, c INT)
+
+testcases/all.in:136> INSERT INTO r (a, b) VALUES (0, 0)
+
+testcases/all.in:137> INSERT INTO r (a, b) VALUES (1, 1)
+
+testcases/all.in:138> INSERT INTO r (a, b) VALUES (1, 1)
+
+testcases/all.in:139> INSERT INTO r (a, b) VALUES (2, 2)
+
+testcases/all.in:140> INSERT INTO r (a, b) VALUES (3, 3)
+
+testcases/all.in:141> INSERT INTO r (a, b) VALUES (0, 0)
+
+testcases/all.in:142> INSERT INTO r (a, b) VALUES (1, 1)
+
+testcases/all.in:143> INSERT INTO r (a, b) VALUES (2, 2)
+
+testcases/all.in:144> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:145> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:146> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:147> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:148> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:149> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:150> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:151> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:152> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:153> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:154> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:155> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:156> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:157> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:158> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:159> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:160> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:161> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:162> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:163> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:164> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:165> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:166> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:167> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:168> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:169> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:170> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:171> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:172> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:173> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:174> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:175> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:176> INSERT INTO r (a, b) VALUES (100, 100)
+
+testcases/all.in:177> INSERT INTO s (b, c) VALUES (0, 0)
+
+testcases/all.in:178> INSERT INTO s (b, c) VALUES (2, 2)
+
+testcases/all.in:179> INSERT INTO s (b, c) VALUES (3, 3)
+
+testcases/all.in:180> INSERT INTO s (b, c) VALUES (0, 0)
+
+testcases/all.in:181> INSERT INTO s (b, c) VALUES (0, 0)
+
+testcases/all.in:182> INSERT INTO s (b, c) VALUES (1, 1)
+
+testcases/all.in:183> INSERT INTO s (b, c) VALUES (1, 1)
+
+testcases/all.in:184> INSERT INTO s (b, c) VALUES (2, 2)
+
+testcases/all.in:185> INSERT INTO s (b, c) VALUES (2, 2)
+
+testcases/all.in:186> INSERT INTO s (b, c) VALUES (3, 3)
+
+testcases/all.in:187> INSERT INTO s (b, c) VALUES (3, 3)
+
+testcases/all.in:188> INSERT INTO s (b, c) VALUES (3, 3)
+
+testcases/all.in:189> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:190> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:191> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:192> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:193> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:194> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:195> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:196> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:197> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:198> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:199> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:200> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:201> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:202> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:203> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:204> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:205> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:206> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:207> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:208> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:209> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:210> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:211> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:212> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:213> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:214> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:215> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:216> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:217> INSERT INTO s (b, c) VALUES (101, 101)
+
+testcases/all.in:218> INSERT INTO t (a, c) VALUES (0, 0)
+
+testcases/all.in:219> INSERT INTO t (a, c) VALUES (1, 1)
+
+testcases/all.in:220> INSERT INTO t (a, c) VALUES (2, 2)
+
+testcases/all.in:221> INSERT INTO t (a, c) VALUES (0, 0)
+
+testcases/all.in:222> INSERT INTO t (a, c) VALUES (1, 1)
+
+testcases/all.in:223> INSERT INTO t (a, c) VALUES (1, 1)
+
+testcases/all.in:224> INSERT INTO t (a, c) VALUES (2, 2)
+
+testcases/all.in:225> INSERT INTO t (a, c) VALUES (3, 3)
+
+testcases/all.in:226> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:227> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:228> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:229> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:230> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:231> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:232> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:233> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:234> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:235> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:236> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:237> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:238> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:239> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:240> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:241> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:242> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:243> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:244> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:245> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:246> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:247> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:248> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:249> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:250> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:251> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:252> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:253> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:254> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:255> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:256> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:257> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:258> INSERT INTO t (a, c) VALUES (102, 102)
+
+testcases/all.in:259> SELECT * FROM r, s, t WHERE r.a=t.a AND r.b=s.b AND s.c=t.c

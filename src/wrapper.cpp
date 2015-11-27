@@ -323,13 +323,24 @@ TinyTuple::~TinyTuple()
 
 bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
 {
-    assert(raw_value != "NULL"); // NULL has been removed from spec
+    //assert(raw_value != "NULL"); // NULL has been removed from spec
+    if (raw_value == "NULL") {
+        //error_msg
+        error_msg("do not support 'NULL' now");
+        return false;
+    }
+
+    DataType data_type = get_data_type(name);
 
     bool res = false;
     if (raw_value[0] == '\"') {
         //res = set_str_value(name, raw_value.substr(1, raw_value.size() - 2));
         res = set_str_value(name, get_literal_value(raw_value));
     } else {
+        if (data_type != TINY_INT) {
+            error_msg("\'" + name + "\' should be INT");
+            return false;
+        }
         res = set_int_value(name, str_to<int>(raw_value));
     }
 

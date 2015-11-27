@@ -355,6 +355,8 @@ class QueryMgr
         bool select_from(tree_node_t*);
 
     private:
+        bool insert_into_from_select(const string&, const vector<string>&, tree_node_t*);
+
         bool build_select_tree(tree_node_t*);
         //bool build_select_tree(tree_node_t*);
         QueryNode* build_cross_product(const vector<string>&);
@@ -363,7 +365,6 @@ class QueryMgr
         QueryNode* build_project(const vector<string>&);
         QueryNode* build_order_by(const string&);
         QueryNode* build_distinct();
-    
 
     private:
         vector<pair<string, DataType>> get_attribute_type_list(tree_node_t*);
