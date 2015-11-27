@@ -25,6 +25,7 @@ YACC_C = y.tab.c
 YACC_OBJ = y.tab.o
 
 EXEC = $(BIN_FOLDER)/$(EXEC_NAME)
+EXEC_TEST = $(BIN_FOLDER)/$(EXEC_NAME).test
 #DIRSRCS = $(addprefix $(SRC_FOLDER)/, $(SRCS))
 OBJS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(basename $(CXX_SRCS))))
 DEPS = $(addprefix $(DEP_FOLDER)/, $(addsuffix .d, $(basename $(CXX_SRCS))))
@@ -92,6 +93,29 @@ run:
 	@./$(EXEC) testcases/example.do
 	@#./$(EXEC) testcases/example.in
 	@#./$(EXEC) < testcases/example.in
+
+#.PHONY: run
+#run: testcases/*.in
+#	@for FILE in $^; do \
+#		base=`basename $$FILE .in`; \
+#		echo ">>> $$base:"; \
+#		./a.out < $$FILE; \
+#	done
+#
+#
+.PHONY: test
+test: testcases/*.in
+	@cp ./$(EXEC) ./$(EXEC_TEST)
+	@for FILE in $^; do \
+		base=`basename $$FILE .in`; \
+		out_file="testcases/$$base.out"; \
+		res_file="results/$$base.res"; \
+		diff_file="results/$$base.diff"; \
+		./$(EXEC_TEST) $$FILE > $$res_file; \
+		diff $$out_file $$res_file > $$diff_file; \
+		echo ">>> $$base:"; \
+		cat $$diff_file; \
+	done
 
 .PHONY: valgrind
 valgrind:

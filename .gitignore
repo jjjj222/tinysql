@@ -10,4 +10,6 @@ db_mgr/
 include/
 src/obj_util.cpp
 src/obj_util.h
+results/*.res
+results/*.diff
 tmp/

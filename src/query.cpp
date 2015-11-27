@@ -56,6 +56,13 @@ void TableInfo::print_table() const
         //}
 
         DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
+        vector<DataType> type_list = relation->get_type_list();
+        for (size_t i = 0; i < type_list.size(); ++i) {
+            if (type_list[i] == TINY_INT) {
+                table.set_align_right(i);
+            }
+        }
+
         table.set_header(relation->get_attr_list());
 
         size_t mem_index = 0;
@@ -75,8 +82,15 @@ void TableInfo::print_table() const
             }
         }
 
-        table.draw();
-        //cout << table.size() << " "
+        if (table.size() == 0) {
+            cout << "Empty set" << endl;
+        } else {
+            table.draw();
+            cout << table.size() << " ";
+            cout << ((table.size() == 1) ? "row" : "rows");
+            cout << " in set";
+            cout << endl;
+        }
     //} else {
     //    cout << "TODO: !_is_in_disk" << endl;
     //}
@@ -771,7 +785,7 @@ bool QueryMgr::select_from(tree_node_t* node)
     if (_select_root == NULL)
         return false;
 
-    dump_pretty(_select_root);
+    //dump_pretty(_select_root);
     //return true;
     bool res = _select_root->print_result();
 
@@ -842,18 +856,18 @@ bool QueryMgr::build_select_tree(tree_node_t* node)
         _select_root = where_node;
     }
 
-    if (!attr_list.empty()) {
-        // TODO: build fail; return false;
-        QueryNode* project_node = build_project(attr_list);
-        project_node->add_child(_select_root);
-        _select_root = project_node;
-    }
-
     if (!order_by.empty()) {
         // TODO: build fail; return false;
         QueryNode* order_by_node = build_order_by(order_by);
         order_by_node->add_child(_select_root);
         _select_root = order_by_node;
+    }
+
+    if (!attr_list.empty()) {
+        // TODO: build fail; return false;
+        QueryNode* project_node = build_project(attr_list);
+        project_node->add_child(_select_root);
+        _select_root = project_node;
     }
 
     if (is_distinct) {
