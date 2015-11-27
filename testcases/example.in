@@ -13,16 +13,16 @@ SELECT * FROM course
 #DELETE FROM course WHERE course.grade.qq = "E"
 #DELETE FROM course
 #SELECT sid, homework FROM course, course2
-#CREATE TABLE course2 (sid INT, exam INT, grade STR20)
-#INSERT INTO course2 (sid, exam, grade) VALUES (1, 100, "A")
-#INSERT INTO course2 (sid, exam, grade) VALUES (16, 25, "E")
-#INSERT INTO course2 (sid, exam, grade) VALUES (17, 0, "A")
+CREATE TABLE course2 (sid INT, exam INT, grade STR20)
+INSERT INTO course2 (sid, exam, grade) VALUES (1, 100, "A")
+INSERT INTO course2 (sid, exam, grade) VALUES (16, 25, "E")
+INSERT INTO course2 (sid, exam, grade) VALUES (17, 0, "A")
 #SELECT * FROM course
 #DELETE FROM course WHERE grade = "A"
 #SELECT * FROM course
 #dump relation course
 #SELECT * FROM course2
-SELECT * FROM course ORDER BY sid
+SELECT * FROM course, course2 ORDER BY course2.sid
 #SELECT * FROM course, course2
 #SELECT course2.sid, course.homework FROM course, course2 WHERE course.exam = 10
 #SELECT * FROM course, course2

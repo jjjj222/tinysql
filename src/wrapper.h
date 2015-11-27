@@ -72,7 +72,7 @@ class TinySchema
 class TinyTuple
 {
     public:
-        TinyTuple(TinyRelation*);
+        //TinyTuple(TinyRelation*);
         TinyTuple(const Tuple&);
         TinyTuple(const TinyTuple&);
         ~TinyTuple();
@@ -292,7 +292,8 @@ class RelSorter
 
         void set_attr(const string& attr) { _attr = attr; }
 
-        TinyTuple get_next();
+        //TinyTuple get_next();
+        bool sort();
 
     private:
         TinyTuple get_max();
@@ -341,7 +342,7 @@ class TinyRelation
 
         string get_name() const;
         string get_base_name() const;
-        string get_attr_search_name(const ColumnName&);
+        string get_attr_search_name(const ColumnName&) const;
         TinySchema get_tiny_schema() const;
         vector<DataType> get_type_list() const;
         vector<string> get_attr_list() const;
@@ -357,6 +358,7 @@ class TinyRelation
         pair<size_t, size_t> get_idx_by_pos(size_t) const;
         bool is_null(size_t) const;
         bool is_with_prefix() const { return _with_prefix; }
+        bool is_attr_exist(const string&) const;
 
         iterator begin();
         iterator end();

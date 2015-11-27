@@ -275,11 +275,11 @@ string TinySchema::dump_str() const
 //------------------------------------------------------------------------------
 //   TinyTuple
 //------------------------------------------------------------------------------
-TinyTuple::TinyTuple(TinyRelation* r)
-: _tuple(NULL)
-{
-    _tuple = new Tuple(r->create_null_tuple());
-}
+//TinyTuple::TinyTuple(TinyRelation* r)
+//: _tuple(NULL)
+//{
+//    _tuple = new Tuple(r->create_null_tuple());
+//}
 
 TinyTuple::TinyTuple(const Tuple& tuple)
 : _tuple(NULL)
@@ -561,22 +561,23 @@ string TinyTuple::dump_str() const
 
 void TinyTuple::dump() const
 {
-    vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
-    //cout << *_tuple << endl;
-    //dump_pretty(tmp);
-    //get_tiny_schema().dump();
+    cout << dump_str() << endl;
+    //vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
+    ////cout << *_tuple << endl;
+    ////dump_pretty(tmp);
+    ////get_tiny_schema().dump();
 
-    for (const auto& name_type : name_type_list) {
-        const auto& name = name_type.first;
-        const auto& type = name_type.second;
-        Field value = _tuple->getField(name);
-        if (type == INT) {
-            cout << name << ": " << value.integer << endl;
-        } else {
-            assert(type == STR20);
-            cout << name << ": \"" << *(value.str) << "\"" << endl;
-        }
-    }
+    //for (const auto& name_type : name_type_list) {
+    //    const auto& name = name_type.first;
+    //    const auto& type = name_type.second;
+    //    Field value = _tuple->getField(name);
+    //    if (type == INT) {
+    //        cout << name << ": " << value.integer << endl;
+    //    } else {
+    //        assert(type == STR20);
+    //        cout << name << ": \"" << *(value.str) << "\"" << endl;
+    //    }
+    //}
   //union Field getField(int offset) const; // returns INT_MIN if out of bound
 }
 
@@ -1023,7 +1024,8 @@ void RelScanner::load_to_mem()
         }
 
         size_t block_idx = _iter.get_block_idx();
-        TinyTuple tuple(_relation);
+        //TinyTuple tuple(_relation);
+        TinyTuple tuple = _relation->create_null_tuple();
         if (reuse_block && block_idx == old_block_idx) {
             tuple = _iter.get_from_mem(load_idx); 
         } else {
@@ -1043,36 +1045,41 @@ void RelScanner::load_to_mem()
         _iter.skip_null();
         //if (!_iter.is_end()) {
         if (!is_iter_end()) {
-            size_t last_block_idx = _iter.get_block_idx();
+            const size_t last_block_idx = _iter.get_block_idx();
+            const size_t first_tuple_idx = _iter.get_tuple_idx();
             //while (!_iter.is_end() && _iter.get_block_idx() == last_block_idx) {
-            while (!is_iter_end() && _iter.get_block_idx() == last_block_idx) {
-                ++_iter;
-            }
             //dump_normal(last_block_idx);
             _relation->load_block_to_mem(last_block_idx, load_idx);
             TinyBlock block = HwMgr::ins()->get_mem_block(load_idx);
+            // remove front
+            for (size_t i = 0; i < first_tuple_idx; ++i) {
+                block.null_tuple(i);
+            }
+
+            while (!is_iter_end() && _iter.get_block_idx() == last_block_idx) {
+                ++_iter;
+            }
+
+            // remove back
+            if (_iter.get_block_idx() == last_block_idx) {
+                const size_t end_tuple_idx = _iter.get_tuple_idx();
+                for (size_t i = end_tuple_idx; i < block.size(); ++i) {
+                    block.null_tuple(i);
+                }
+            }
+
             block.remove_null_tuple();
             //block.dump();
             for (size_t i = 0; i < block.size(); ++i) {
                 ++_m_iter;
             }
+
             //dump_normal(_m_iter);
         }
     }
 
     _m_iter_end = _m_iter;
     _m_iter = m_begin();
-    //dump_normal(_m_iter);
-    //dump_normal(_m_iter_end);
-    //dump_normal(_iter);
-    //_m_iter = m_begin();
-    //move_to_non_null();
-
-
-    //TinyTuple res = _iter.load_to_mem(_mem_idx); 
-
-    //++_iter;
-    //return res;
 }
 
 void RelScanner::add_mem_into(TinyRelation& new_relation) const
@@ -1155,9 +1162,12 @@ RelSorter::~RelSorter()
     }
 }
 
-TinyTuple RelSorter::get_next()
+bool RelSorter::sort()
 {
-    string new_table_name = "partial_order_by " + _relation->get_name();
+    assert(_sub_list.empty());
+    assert(_sorted_relation == NULL);
+
+    string new_table_name = "tmp " + _relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
         new_table_name, _relation->get_tiny_schema());
     
@@ -1170,13 +1180,10 @@ TinyTuple RelSorter::get_next()
         scanner.load_to_mem();
         scanner.sort(_attr);
         scanner.add_mem_into(*new_relation);
-        RelIter it_end = new_relation->end();
         //scanner.dump();
-        //HwMgr::ins()->dump_memory();
-        //new_relation->dump();
-        //dump_normal(it);
-        //dump_normal(it_end);
+        //cout << endl;
 
+        RelIter it_end = new_relation->end();
         _sub_list.push_back(make_pair(it, it_end));
         it = it_end;
     }
@@ -1187,6 +1194,12 @@ TinyTuple RelSorter::get_next()
     //scanner.dump();
     //HwMgr::ins()->dump_memory();
     //_relation->clear();
+    //if (_mem_size >= _sub_list.size()) {
+
+    //}
+    //_relation->dump();
+    //new_relation->dump();
+    //dump_pretty(_sub_list);
     
     _sorted_relation = new_relation;
 
@@ -1205,13 +1218,14 @@ TinyTuple RelSorter::get_next()
     //_relation->dump();
 
 
-    return _relation->create_null_tuple();
+    //return _relation->create_null_tuple();
+    return true;
 }
 
 TinyTuple RelSorter::get_max()
 {
-    assert(_mem_size > _sub_list.size());
     assert(_sorted_relation != NULL);
+
 
     //vector<RelScanner> scanner_list;
     //vector<size_t> scanner
@@ -1220,7 +1234,7 @@ TinyTuple RelSorter::get_max()
     if (_scanner_list == NULL) {
         _scanner_list = new vector<RelScanner>();
         for (size_t i = 0; i < _sub_list.size(); ++i) {
-            size_t mem_idx = _base_idx + 1 + i;
+            size_t mem_idx = _base_idx + i;
             const RelIter& it = _sub_list[i].first;
             const RelIter& it_end = _sub_list[i].second;
 
@@ -1419,7 +1433,7 @@ string TinyRelation::get_base_name() const
     return toks.back();
 }
 
-string TinyRelation::get_attr_search_name(const ColumnName& column_name)
+string TinyRelation::get_attr_search_name(const ColumnName& column_name) const
 {
     string res = column_name;
     string table = column_name.get_table();
@@ -1535,6 +1549,13 @@ pair<size_t, size_t> TinyRelation::get_idx_by_pos(size_t pos) const
 bool TinyRelation::is_null(size_t pos) const
 {
     return is_contain(_space, pos);
+}
+
+bool TinyRelation::is_attr_exist(const string& name) const
+{
+    string search_name = get_attr_search_name(name);
+    bool res = get_tiny_schema().is_field_name_exist(search_name);
+    return res;
 }
 
 TinyRelation::iterator TinyRelation::begin()

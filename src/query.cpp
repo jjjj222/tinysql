@@ -1117,31 +1117,19 @@ bool OrderByNode::calculate_result()
     if (relation == NULL)
         return false;
 
+    if (!relation->is_attr_exist(_name)) {
+        error_msg_not_exist("attribute", _name);
+        return false;
+    }
     //string new_table_name = "order_by " + relation->get_name();
     //TinyRelation* new_relation = HwMgr::ins()->create_relation(
     //    new_table_name, relation->get_tiny_schema());
 
-    RelSorter sorter(relation, 1, 4);
+    RelSorter sorter(relation, 1, 3); // TODO
     sorter.set_attr(_name);
-    sorter.get_next();
-    //relation->dump();
-    //RelScanner scanner(relation, 1, 3);
-    //scanner.load_to_mem();
-    //scanner.sort(_name);
-    //scanner.dump();
-    //HwMgr::ins()->dump_memory();
-    //while(!scanner.is_end()) {
-    //    TinyTuple tuple = scanner.get_next();
-    //    if (cond_mgr.is_tuple_match(tuple)) {
-    //        new_relation->push_back(tuple);
-    //    }
-    //}
+    sorter.sort();
 
-    //if (relation->is_with_prefix()) {
-    //    new_relation->set_with_prefix();
-    //}
-    set_real_table(relation->get_name());
-    //set_tmp_table();
+    set_real_table(relation->get_name()); // TODO: remove
 
     return true;
 }

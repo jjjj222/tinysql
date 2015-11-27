@@ -11,11 +11,11 @@ INSERT INTO course (sid, project, exam, grade) VALUES (4, 99, 100, "F")
 INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
 INSERT INTO course (sid, project, exam, grade) VALUES (1, 99, 10, "A")
 INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
-INSERT INTO course (sid, project, exam, grade) VALUES (5, 99, 100, "F")
+INSERT INTO course (sid, project, exam, grade) VALUES (10, 99, 100, "F")
 
 DELETE FROM course WHERE grade = "B"
-SELECT * FROM course
-SELECT * FROM course ORDER BY grade
+#SELECT * FROM course
+SELECT * FROM course ORDER BY sid
 
 #DELETE FROM course WHERE grade > "B"
 #DELETE FROM course WHERE (grade * 3) = "E"
