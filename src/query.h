@@ -283,6 +283,7 @@ class DistinctNode : public QueryNode
 {
     public:
         virtual NodeType get_type() const { return DISTINCT; }
+        virtual bool calculate_result();
 };
 
 class OrderByNode : public QueryNode

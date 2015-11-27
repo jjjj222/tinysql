@@ -1096,6 +1096,72 @@ void QueryNode::dump_tree(const string& indent, bool is_last) const
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
+bool DistinctNode::calculate_result()
+{
+    if (_table_info != NULL)
+        return true;
+
+    const vector<QueryNode*>& childs = get_childs();
+    assert(childs.size() == 1);
+
+    QueryNode* child = childs[0];
+    assert(child != NULL);
+
+    TinyRelation* relation = child->get_or_create_relation();
+    if (relation == NULL)
+        return false;
+
+    //if (child->get_type() == ORDER_BY) {
+    //    cout << "order by" << endl;
+    //} else {
+    //    cout << "not order by" << endl;
+    //}
+
+    size_t total_size = HwMgr::ins()->get_mem_size() - 1;
+    size_t base_index = 1;
+    size_t mem_size = total_size;
+    //RelSorter sorter(relation, 1, 3); // TODO
+    RelSorter sorter(relation, base_index, mem_size); // TODO
+    //sorter.set_attr(_name);
+    sorter.sort();
+
+    //set_real_table(relation->get_name()); // TODO: remove
+    string new_table_name = "distinct " + relation->get_name();
+    TinyRelation* new_relation = HwMgr::ins()->create_relation(
+        new_table_name, relation->get_tiny_schema());
+
+    RelScanner scanner(relation, 1, 1);
+    TinyTuple previous_tuple = new_relation->create_null_tuple();
+    while(!scanner.is_end()) {
+        TinyTuple tuple = scanner.get_next();
+        assert(!tuple.is_null());
+
+        if (previous_tuple.is_null()) {
+            previous_tuple = tuple;
+            continue;
+        }
+
+        if (tuple == previous_tuple) {
+            continue;
+        }
+
+        new_relation->push_back(previous_tuple);
+        previous_tuple = tuple;
+    }
+    new_relation->push_back(previous_tuple);
+
+    if (relation->is_with_prefix()) {
+        new_relation->set_with_prefix();
+    }
+    set_real_table(new_table_name);
+    set_tmp_table();
+
+    return true;
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
 OrderByNode::OrderByNode(const string& name)
 : _name(name)
 {
@@ -1125,8 +1191,11 @@ bool OrderByNode::calculate_result()
     //TinyRelation* new_relation = HwMgr::ins()->create_relation(
     //    new_table_name, relation->get_tiny_schema());
 
+    size_t total_size = HwMgr::ins()->get_mem_size() - 1;
+    size_t base_index = 1;
+    size_t mem_size = total_size;
     //RelSorter sorter(relation, 1, 3); // TODO
-    RelSorter sorter(relation, 1, 2); // TODO
+    RelSorter sorter(relation, base_index, mem_size); // TODO
     sorter.set_attr(_name);
     sorter.sort();
 

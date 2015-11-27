@@ -510,15 +510,23 @@ bool TinyTuple::is_less_than(const TinyTuple& rhs) const
     return res;
 }
 
-bool TinyTuple::is_less_than_by_attr(const TinyTuple& rhs, const string& attr) const
+bool TinyTuple::is_equal_to(const TinyTuple& rhs) const
 {
-    DataValue value = get_value(attr);
-    DataValue rhs_value = rhs.get_value(attr);
+    bool res = get_value_list() == rhs.get_value_list();;
+    return res;
+}
 
-    if (value < rhs_value) {
-        return true;
-    } else if (value > rhs_value) {
-        return false;
+bool TinyTuple::is_less_than_by_attr(const TinyTuple& rhs, const vector<string>& attr_list) const
+{
+    for (const string& attr : attr_list) {
+        DataValue value = get_value(attr);
+        DataValue rhs_value = rhs.get_value(attr);
+
+        if (value < rhs_value) {
+            return true;
+        } else if (value > rhs_value) {
+            return false;
+        }
     }
 
     return is_less_than(rhs);
@@ -943,9 +951,9 @@ TinyTuple RelScanner::peep_next() // TODO
     return res;
 }
 
-bool RelScanner::sort(const string& name)
+bool RelScanner::sort(const vector<string>& attr_list)
 {
-    assert(!name.empty());
+    //assert(!name.empty());
 
     vector<TinyTuple> tuple_list;
     for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
@@ -954,11 +962,18 @@ bool RelScanner::sort(const string& name)
 
     //dump_pretty(tuple_list);
 
-    string search_name = _relation->get_attr_search_name(name);
+    //vector<string> search_name_list;
+    //for (const string& attr : attr_list) {
+    //    string search_name = _relation->get_attr_search_name(attr);
+    //    search_name_list.push_back(search_name);
+    //}
+    vector<string> search_name_list = _relation->get_attr_search_name_list(attr_list);
+
     std::sort(tuple_list.begin(), tuple_list.end(),
         [&](const TinyTuple& a, const TinyTuple& b) -> bool
     { 
-        return a.is_less_than_by_attr(b, search_name);
+        //return a.is_less_than_by_attr(b, search_name);
+        return a.is_less_than_by_attr(b, search_name_list);
 
         //DataValue a_value = a.get_value(search_name);
         //DataValue b_value = b.get_value(search_name);
@@ -1179,7 +1194,7 @@ bool RelSorter::sort()
     vector<pair<RelIter, RelIter>> sub_list;
     while (!scanner.is_iter_end()) {
         scanner.load_to_mem();
-        scanner.sort(_attr);
+        scanner.sort(_attr_list);
         scanner.add_mem_into(*new_relation);
         //scanner.dump();
         //cout << endl;
@@ -1321,7 +1336,8 @@ TinyTuple RelSorter::get_max(vector<RelScanner>& scanner_list)
     //TinyTuple res = _sorted_relation->create_null_tuple();
     //string search_name = r.get_attr_search_name(_attr);
     //TinyTuple res = r.create_null_tuple();
-    string search_name = _relation->get_attr_search_name(_attr);
+    vector<string> search_name_list = _relation->get_attr_search_name_list(_attr_list);
+    //string search_name = _relation->get_attr_search_name(_attr);
     TinyTuple res = _relation->create_null_tuple();
     RelScanner* min_scanner = NULL;
     //for (auto& scanner : *_scanner_list) {
@@ -1333,7 +1349,8 @@ TinyTuple RelSorter::get_max(vector<RelScanner>& scanner_list)
         if (res.is_null()) {
             res = tmp;
             min_scanner = &scanner;
-        } else if (tmp.is_less_than_by_attr(res, search_name)) {
+        //} else if (tmp.is_less_than_by_attr(res, search_name)) {
+        } else if (tmp.is_less_than_by_attr(res, search_name_list)) {
             res = tmp;
             min_scanner = &scanner;
         }
@@ -1533,39 +1550,22 @@ string TinyRelation::get_base_name() const
 string TinyRelation::get_attr_search_name(const ColumnName& column_name) const
 {
     string res = column_name;
-    string table = column_name.get_table();
 
-    //if (column_name.get_table().empty()) {
-    ////if (table.empty()) {
-    //    res = column_name;
-    //} else { // !table.empty()
+    string table = column_name.get_table();
     if (!table.empty() && !is_with_prefix() && table == get_base_name()) {
         res = column_name.get_column();
     }
-        //if (is_with_prefix()) {
-        //    //field_name = table + "." + column;
-        //    field_name = column_name;
-        //} else {
-        //    if (table != get_base_name()) {
-        //    //    error_msg_not_exist("attribute", column_name);
-        //    //    return false;
-        //        res = column_name;
-        //    } else {
-        //        res = column;
-        //    }
-        //}
-    //}
-    ////if (!table.empty() && _tiny_relation->get_name() != table) {
-    //if (is_with_prefix()) {
-    //    res = column_name;
-    //} else {
-    //    if (!table.empty() && table != _tiny_relation->get_base_name()) {
-    //        return false;
-    //    }
 
-    //    res = column_name.get_column();
-    //}
+    return res;
+}
 
+vector<string> TinyRelation::get_attr_search_name_list(const vector<string>& attr_list) const
+{
+    vector<string> res;
+    for (const string& attr : attr_list) {
+        string search_name = get_attr_search_name(attr);
+        res.push_back(search_name);
+    }
     return res;
 }
 

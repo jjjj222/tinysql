@@ -81,8 +81,10 @@ class TinyTuple
         operator const Tuple& () const { return *_tuple; }
         TinyTuple& operator=(const TinyTuple& rhs) { assign(rhs); return *this; }
         //operator const vector<>& () const { return *_tuple; }
+        bool operator==(const TinyTuple& rhs) const { return is_equal_to(rhs); }
         bool operator<(const TinyTuple& rhs) const { return is_less_than(rhs); }
-        bool is_less_than_by_attr(const TinyTuple&, const string&) const;
+        //bool is_less_than_by_attr(const TinyTuple&, const string&) const;
+        bool is_less_than_by_attr(const TinyTuple&, const vector<string>&) const;
 
         void init();
         void set_null();
@@ -113,6 +115,7 @@ class TinyTuple
 
     private:
         void assign(const TinyTuple&);
+        bool is_equal_to(const TinyTuple&) const;
         bool is_less_than(const TinyTuple&) const;
 
         bool set_str_value(const string&, const string&);
@@ -250,7 +253,8 @@ class RelScanner
 
         TinyTuple get_next();
         TinyTuple peep_next();
-        bool sort(const string&);
+        //bool sort(const string&);
+        bool sort(const vector<string>&);
         void load_to_mem();
         void add_mem_into(TinyRelation&) const;
 
@@ -293,7 +297,8 @@ class RelSorter
         RelSorter(TinyRelation*, size_t, size_t);
         ~RelSorter();
 
-        void set_attr(const string& attr) { _attr = attr; }
+        //void set_attr(const string& attr) { _attr = attr; }
+        void set_attr(const string& attr) { _attr_list.push_back(attr); }
 
         //TinyTuple get_next();
         bool sort();
@@ -310,7 +315,8 @@ class RelSorter
         TinyRelation*   _relation;
         size_t          _base_idx;
         size_t          _mem_size;
-        string          _attr;
+        //string          _attr;
+        vector<string>  _attr_list;
         //TinyRelation*   _sorted_relation;
         //vector<pair<RelIter, RelIter>> _sub_list;
         //vector<RelScanner>*  _scanner_list;
@@ -349,6 +355,7 @@ class TinyRelation
         string get_name() const;
         string get_base_name() const;
         string get_attr_search_name(const ColumnName&) const;
+        vector<string> get_attr_search_name_list(const vector<string>&) const;
         TinySchema get_tiny_schema() const;
         vector<DataType> get_type_list() const;
         vector<string> get_attr_list() const;
