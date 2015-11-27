@@ -843,10 +843,51 @@ bool QueryMgr::select_from(tree_node_t* node)
         return false;
 
     dump_pretty(_select_root);
+    QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
+    dump_pretty(optimized_tree);
+
+
     //return true;
     bool res = _select_root->print_result();
 
     return res;
+}
+
+QueryNode* QueryMgr::optimize_select_tree(QueryNode* node)
+{
+    assert(node != NULL);
+
+    if (!node->has_node(QueryNode::WHERE)) {
+        if (node->has_node(QueryNode::CROSS_PRODUCT)) {
+            //cout << "cross" << endl;
+            QueryNode* cross_node = node->get_node(QueryNode::CROSS_PRODUCT);
+            assert(cross_node != NULL);
+
+            optimize_cross_product(node);
+        }
+
+        return node;
+    } else {
+
+    }
+
+    QueryNode* current_node = node;
+    if (current_node->get_type() == QueryNode::DISTINCT) {
+        cout << "yaya" << endl;
+    }
+    //cout << "yaya" << endl;
+
+
+
+    return NULL;
+}
+
+void QueryMgr::optimize_cross_product(QueryNode* node)
+{
+    assert(node != NULL);
+    assert(node->get_type() == QueryNode::CROSS_PRODUCT);
+
+    //if 
 }
 
 bool QueryMgr::build_select_tree(tree_node_t* node)
@@ -1120,6 +1161,45 @@ TinyRelation* QueryNode::get_or_create_relation()
     assert(res != NULL);
     return res;
 }
+
+bool QueryNode::has_node(NodeType type) const
+{
+    if (get_type() == type)
+        return true;
+
+    for (const auto& child_ptr : _childs) {
+        if (child_ptr->has_node(type))
+            return true;
+    }
+
+    return false;
+}
+
+QueryNode* QueryNode::get_node(NodeType type)
+{
+    if (get_type() == type)
+        return this;
+
+    for (const auto& child_ptr : _childs) {
+        QueryNode* tmp = child_ptr->get_node(type);
+        if (tmp != NULL)
+            return tmp;
+    }
+
+    return NULL;
+}
+//bool QueryNode::has_cross_product() const
+//{
+//    if (get_type() == CROSS_PRODUCT)
+//        return true;
+//
+//
+//    return false;
+//}
+//
+//bool QueryNode::has_where() const
+//{
+//}
 
 #define NODE_TYPE(name) case name: return #name
 string QueryNode::get_type_str(NodeType t) const

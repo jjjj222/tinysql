@@ -263,6 +263,10 @@ class QueryNode
         TableInfo* get_table_info() const { return _table_info; }
         virtual NodeType get_type() const { return BASE_NODE; };
 
+        bool has_node(NodeType) const;
+        QueryNode* get_node(NodeType);
+        //bool has_where() const;
+
         // debug
         virtual void dump() const;
         virtual string dump_str() const;
@@ -375,6 +379,9 @@ class QueryMgr
         QueryNode* build_project(const vector<string>&);
         QueryNode* build_order_by(const string&);
         QueryNode* build_distinct();
+
+        QueryNode* optimize_select_tree(QueryNode*);
+        void optimize_cross_product(QueryNode*);
 
     private:
         vector<pair<string, DataType>> get_attribute_type_list(tree_node_t*);
