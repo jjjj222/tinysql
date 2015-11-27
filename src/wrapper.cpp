@@ -110,11 +110,22 @@ TinySchema::TinySchema(const TinySchema& rhs)
     assign(rhs);    
 }
 
+TinySchema::TinySchema(TinySchema&& rhs)
+: _schema(NULL)
+{
+    //cout << "move TinySchema" << endl;
+    swap(_schema, rhs._schema);
+    //delete_not_null(_schema);
+    //_schema = rhs._schema;
+    //rhs._schema = NULL;
+}
+
 TinySchema::~TinySchema()
 {
-    assert(_schema != NULL);
+    //assert(_schema != NULL);
 
-    delete _schema;
+    delete_not_null(_schema);
+    //delete _schema;
 }
 
 DataType TinySchema::get_data_type(const string& field_name) const
@@ -293,10 +304,21 @@ TinyTuple::TinyTuple(const TinyTuple& rhs)
     assign(rhs);
 }
 
+TinyTuple::TinyTuple(TinyTuple&& rhs)
+: _tuple(NULL)
+{
+    //cout << "move TinyTuple" << endl;
+    swap(_tuple, rhs._tuple);
+    //delete_not_null(_tuple);
+    //_tuple = rhs._tuple;
+    //rhs._tuple == NULL;
+}
+
 TinyTuple::~TinyTuple()
 {
-    assert(_tuple != NULL);
-    delete _tuple;
+    //assert(_tuple != NULL);
+    delete_not_null(_tuple);
+    //delete _tuple;
 }
 
 bool TinyTuple::set_raw_value(const string& name, const string& raw_value)

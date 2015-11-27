@@ -31,6 +31,7 @@ class TinySchema
         TinySchema(const Schema&);
         TinySchema(const vector<pair<string, DataType>>&);
         TinySchema(const TinySchema&);
+        TinySchema(TinySchema&&);
         ~TinySchema();
 
         bool operator==(const TinySchema& rhs) const { return is_equal_to(rhs); }
@@ -75,6 +76,7 @@ class TinyTuple
         //TinyTuple(TinyRelation*);
         TinyTuple(const Tuple&);
         TinyTuple(const TinyTuple&);
+        TinyTuple(TinyTuple&&);
         ~TinyTuple();
 
 
