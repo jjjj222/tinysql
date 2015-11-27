@@ -198,6 +198,7 @@ class ConditionMgr
 {
     public:
         ConditionMgr(tree_node_t*, TinyRelation* relation);
+        //ConditionMgr(tree_node_t*); // debug only
         ~ConditionMgr();
 
         bool is_error() const { return _error; }
@@ -262,17 +263,21 @@ class QueryNode
         TableInfo* get_table_info() const { return _table_info; }
         virtual NodeType get_type() const { return BASE_NODE; };
 
-    public:
+        // debug
         virtual void dump() const;
         virtual string dump_str() const;
+        virtual void dump_tree(const string& indent, bool is_last) const;
+
 
     private:
         string get_type_str(NodeType) const;
 
-        void dump_tree(const string& indent, bool is_last) const;
 
     protected:
         const vector<QueryNode*>& get_childs() const { return _childs; }
+
+
+    protected:
         TableInfo*          _table_info;
 
     private:
@@ -284,6 +289,7 @@ class DistinctNode : public QueryNode
     public:
         virtual NodeType get_type() const { return DISTINCT; }
         virtual bool calculate_result();
+        string dump_str() const;
 };
 
 class OrderByNode : public QueryNode
@@ -293,7 +299,6 @@ class OrderByNode : public QueryNode
 
         virtual NodeType get_type() const { return ORDER_BY; }
         virtual bool calculate_result();
-        
 
         string dump_str() const;
 
@@ -309,6 +314,8 @@ class ProjectNode : public QueryNode
         virtual NodeType get_type() const { return PROJECT; }
         virtual bool calculate_result();
 
+        string dump_str() const;
+
     private:
         vector<string> _attr_list;
 };
@@ -321,6 +328,8 @@ class WhereNode : public QueryNode
 
         //virtual void print_result();
         virtual bool calculate_result();
+        string dump_str() const;
+        void dump_tree(const string& indent, bool is_last) const;
     private:
         tree_node_t* _where_tree;
 };
@@ -330,8 +339,9 @@ class CrossProductNode : public QueryNode
     public:
         virtual NodeType get_type() const { return CROSS_PRODUCT; }
 
-        //virtual void print_result();
         virtual bool calculate_result();
+
+        string dump_str() const;
     private:
 };
 

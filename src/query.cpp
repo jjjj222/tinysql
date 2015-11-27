@@ -842,7 +842,7 @@ bool QueryMgr::select_from(tree_node_t* node)
     if (_select_root == NULL)
         return false;
 
-    //dump_pretty(_select_root);
+    dump_pretty(_select_root);
     //return true;
     bool res = _select_root->print_result();
 
@@ -1138,17 +1138,17 @@ string QueryNode::get_type_str(NodeType t) const
 
 void QueryNode::dump() const
 {
-    //cout << dump_str() << endl;
     dump_tree("", true);
 }
 
 string QueryNode::dump_str() const
 {
-    string tmp = "{";
+    //string tmp = "{";
+    string tmp;
     tmp += get_type_str(get_type());
     tmp += ": ";
     tmp += jjjj222::dump_str(_table_info);
-    tmp += "}";
+    //tmp += "}";
     return tmp;
 }
 
@@ -1230,6 +1230,11 @@ bool DistinctNode::calculate_result()
     return true;
 }
 
+string DistinctNode::dump_str() const
+{
+    return "DISTINCT";
+}
+
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -1277,8 +1282,7 @@ bool OrderByNode::calculate_result()
 
 string OrderByNode::dump_str() const
 {
-    string res = QueryNode::dump_str();
-    res += " ";
+    string res = "ORDER_BY: ";
     res += _name;
     return res;
 }
@@ -1357,6 +1361,13 @@ bool ProjectNode::calculate_result()
     return true;
 }
 
+string ProjectNode::dump_str() const
+{
+    string res = "PROJECTION: ";
+    res += tiny_dump_str(_attr_list);
+    return res;
+}
+
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -1416,7 +1427,25 @@ bool WhereNode::calculate_result()
     set_tmp_table();
     return true;
 }
+string WhereNode::dump_str() const
+{
+    return "WHERE";
+}
 
+void WhereNode::dump_tree(const string& indent, bool is_last) const
+{
+    const string current_indent = indent + (is_last ? " `- " : " |- ");
+    cout << current_indent << dump_str() << endl;
+
+    const string next_indent = indent + (is_last ? "    " : " |  ");
+    dump_tree_node_indent(_where_tree, next_indent.c_str());
+
+    const vector<QueryNode*>& childs = get_childs();
+    for (size_t i = 0; i < childs.size(); ++i) {
+        const QueryNode* node_ptr = childs[i];
+        node_ptr->dump_tree(next_indent, i == childs.size() - 1);
+    }
+}
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -1526,3 +1555,7 @@ bool CrossProductNode::calculate_result()
     return true;
 }
 
+string CrossProductNode::dump_str() const
+{
+    return "CROSS_PRODUCT";
+}

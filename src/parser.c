@@ -130,7 +130,6 @@ void free_parse_tree(tree_node_t* node)
 void dump_tree_node_rec(const tree_node_t* node, const char* indent, bool is_last)
 {
     const char* current_indent = is_last ? " `- " : " |- ";
-    //printf("%s\n", indent);
     printf("%s%s%s%s%s\n",
         indent,
         current_indent,
@@ -158,6 +157,11 @@ void dump_tree_node_rec(const tree_node_t* node, const char* indent, bool is_las
 void dump_tree_node(const tree_node_t* node)
 {
     dump_tree_node_rec(node, "", true);
+}
+
+void dump_tree_node_indent(const tree_node_t* node, const char* indent)
+{
+    dump_tree_node_rec(node, indent, false);
 }
 
 void add_to_query_list(tree_node_t* node)
@@ -411,16 +415,16 @@ tree_node_t* parse_sql_file(const char* file_name)
         yyin = file;
         YY_BUFFER_STATE state = yy_create_buffer(yyin, YY_BUF_SIZE);
         yy_switch_to_buffer(state);
-        //cout << "I can't open file!" << endl;
+
         yyparse();
         fclose (file);
         yy_delete_buffer(state);
-        //yy_delete_buffer(YY_CURRENT_BUFFER);
+
         yyin = stdin;
     } else {
         printf("error: can't open file: %s\n", file_name);
     }
-    // set lex to read from it instead of defaulting to STDIN:
+
     return query_list;
 }
 
@@ -434,25 +438,13 @@ tree_node_t* parse_sql_string(const char* sql_string)
     tmp[len + 0] = '\n';
     tmp[len + 1] = '\0';
     tmp[len + 2] = '\0';
-    //printf("%s\n", sql_string);
 
-    //char* tstr = new_str(sql_string);
-    //printf("%s\n", tstr);
-
-    //YY_BUFFER_STATE state = yy_scan_string(tmp);
-    //yy_switch_to_buffer
-    //YY_BUFFER_STATE old_state = YY_CURRENT_BUFFER;
     YY_BUFFER_STATE state = yy_scan_buffer(tmp, sizeof(char) * (len + 3));
-    //YY_BUFFER_STATE state = yy_scan_buffer(tmp, sizeof(char) * (len + 3));
     yyparse();
 
     yy_delete_buffer(state);
-    //yy_delete_buffer(state);
-    //yypop_buffer_state();
-    //yy_switch_to_buffer()
-
     free((void*)tmp);
-    //return NULL;
+
     return query_list;
 }
 
@@ -476,7 +468,6 @@ void parser_reset()
     free_tree_node_list(node_list);
     node_list = NULL;
 
-    //free_parse_tree(query_list);
     query_list = NULL;
     query_list_last = NULL;
 }
@@ -521,11 +512,6 @@ void dump_str_list(str_list_t* list)
         tmp = tmp->next;
     }
 }
-
-//------------------------------------------------------------------------------
-//   error
-//------------------------------------------------------------------------------
-
 
 //------------------------------------------------------------------------------
 //   debug

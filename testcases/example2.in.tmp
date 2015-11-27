@@ -3,11 +3,11 @@ INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100
 #SELECT * FROM course
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (2, 0, 100, 100, "E")
 #SELECT * FROM course
-INSERT INTO course (sid, grade, exam, project, homework) VALUES (3, "E", 100, 100, 100)
+INSERT INTO course (sid, grade, exam, project, homework) VALUES (3, "E", 100, 100, 100) #QQ
 #INSERT INTO course (sid, exam, project, homework) VALUES (3, 100, 100, 100)
 SELECT * FROM course
 INSERT INTO course (sid, homework, project, exam, grade) SELECT * FROM course
-SELECT * FROM course
+SELECT * FROM course #QQQQQQ
 
 
 #CREATE TABLE course (sid INT, project INT, exam INT, grade STR20)

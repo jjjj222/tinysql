@@ -7,7 +7,6 @@
 //#define DEBUG_YACC
 //#define DEBUG_LEX
 
-
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -53,8 +52,6 @@ extern "C" {
 //------------------------------------------------------------------------------
 //   parser
 //------------------------------------------------------------------------------
-//void sql_parser();
-
 tree_node_t* parse_sql_file(const char*);
 tree_node_t* parse_sql_string(const char*);
 
@@ -104,6 +101,7 @@ tree_node_t* new_tree_node_3(int type, tree_node_t*, tree_node_t*, tree_node_t*)
 tree_node_t* new_tree_node_n(int type, int nops, ...);
 void free_parse_tree(tree_node_t*);
 void dump_tree_node(const tree_node_t*);
+void dump_tree_node_indent(const tree_node_t* node, const char* indent);
 
 void add_to_query_list(tree_node_t*);
 void dump_query_list();
@@ -126,11 +124,6 @@ char* new_str(const char*);
 str_list_t* new_str_list(const char*);
 void free_str_list(str_list_t*);
 void dump_str_list(str_list_t*);
-
-//------------------------------------------------------------------------------
-//   error
-//------------------------------------------------------------------------------
-//void error_sql_parse(
 
 //------------------------------------------------------------------------------
 //   debug
