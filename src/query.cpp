@@ -1125,7 +1125,8 @@ bool OrderByNode::calculate_result()
     //TinyRelation* new_relation = HwMgr::ins()->create_relation(
     //    new_table_name, relation->get_tiny_schema());
 
-    RelSorter sorter(relation, 1, 3); // TODO
+    //RelSorter sorter(relation, 1, 3); // TODO
+    RelSorter sorter(relation, 1, 2); // TODO
     sorter.set_attr(_name);
     sorter.sort();
 

@@ -1145,8 +1145,8 @@ RelSorter::RelSorter(TinyRelation* r, size_t base_idx, size_t mem_size)
 : _relation(r)
 , _base_idx(base_idx)
 , _mem_size(mem_size)
-, _sorted_relation(NULL)
-, _scanner_list(NULL)
+//, _sorted_relation(NULL)
+//, _scanner_list(NULL)
 {
     assert(_relation != NULL);
     assert(_base_idx >= 0 && _base_idx < HwMgr::ins()->get_mem_size());
@@ -1156,16 +1156,16 @@ RelSorter::RelSorter(TinyRelation* r, size_t base_idx, size_t mem_size)
 
 RelSorter::~RelSorter()
 {
-    delete_not_null(_scanner_list);
-    if (_sorted_relation != NULL) {
-        HwMgr::ins()->drop_table(_sorted_relation->get_name());
-    }
+    //delete_not_null(_scanner_list);
+    //if (_sorted_relation != NULL) {
+    //    HwMgr::ins()->drop_table(_sorted_relation->get_name());
+    //}
 }
 
 bool RelSorter::sort()
 {
-    assert(_sub_list.empty());
-    assert(_sorted_relation == NULL);
+    //assert(_sub_list.empty());
+    //assert(_sorted_relation == NULL);
 
     string new_table_name = "tmp " + _relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
@@ -1176,6 +1176,7 @@ bool RelSorter::sort()
     //RelIter it = new_relation->end();
     RelScanner scanner(_relation, _base_idx, _mem_size);
     RelIter it = new_relation->end();
+    vector<pair<RelIter, RelIter>> sub_list;
     while (!scanner.is_iter_end()) {
         scanner.load_to_mem();
         scanner.sort(_attr);
@@ -1184,7 +1185,7 @@ bool RelSorter::sort()
         //cout << endl;
 
         RelIter it_end = new_relation->end();
-        _sub_list.push_back(make_pair(it, it_end));
+        sub_list.push_back(make_pair(it, it_end));
         it = it_end;
     }
     //new_relation->dump();
@@ -1194,63 +1195,137 @@ bool RelSorter::sort()
     //scanner.dump();
     //HwMgr::ins()->dump_memory();
     //_relation->clear();
-    //if (_mem_size >= _sub_list.size()) {
-
+    //if (_mem_size < sub_list.size()) {
+    //    cout << "error" << endl;
     //}
+
+    while (_mem_size < sub_list.size()) {
+        new_relation = reduce_sub_list(new_relation, sub_list);
+    }
+
     //_relation->dump();
     //new_relation->dump();
-    //dump_pretty(_sub_list);
+    //dump_pretty(sub_list);
     
-    _sorted_relation = new_relation;
+    //_sorted_relation = new_relation;
 
-    _relation->clear();
+    //assert(_scanner_list == NULL);
+    //if (_scanner_list == NULL) {
+        //scanner_list = new vector<RelScanner>();
+
+
+
+
+    vector<RelScanner> scanner_list = get_scanner_list(new_relation, sub_list);
+    //vector<RelScanner> scanner_list;
+    //for (size_t i = 0; i < sub_list.size(); ++i) {
+    //    size_t mem_idx = _base_idx + i;
+    //    const RelIter& it = sub_list[i].first;
+    //    const RelIter& it_end = sub_list[i].second;
+
+    //    //scanner_list.push_back( RelScanner(_sorted_relation, mem_idx, 1) );
+    //    scanner_list.push_back( RelScanner(new_relation, mem_idx, 1) );
+    //    scanner_list.back().set_begin(it);
+    //    scanner_list.back().set_end(it_end);
+
+    //    //_scanner_list->back().dump();
+    //    //cout << endl;
+    //}
+    //}
+
     //_relation->dump();
     //_sorted_relation->dump();
-    TinyTuple tmp = get_max();
+    //TinyTuple tmp = get_max(*_sorted_relation, scanner_list);
+    _relation->clear();
+    TinyTuple tmp = get_max(scanner_list);
     while (!tmp.is_null()) {
         //dump_normal(tmp);
         _relation->push_back(tmp);
-        tmp = get_max();
+        //tmp = get_max(*_sorted_relation, scanner_list);
+        tmp = get_max(scanner_list);
     }
 
     //_relation->dump();
     //_relation->clear();
     //_relation->dump();
 
+    HwMgr::ins()->drop_table(new_relation->get_name());
 
     //return _relation->create_null_tuple();
     return true;
 }
 
-TinyTuple RelSorter::get_max()
+TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)
 {
-    assert(_sorted_relation != NULL);
+    string new_table_name = "tmp " + r->get_name();
+    TinyRelation* new_relation = HwMgr::ins()->create_relation(
+        new_table_name, r->get_tiny_schema());
 
+    vector<pair<RelIter, RelIter>> new_sub_list;
+
+    //SubListType tmp_sub_list;
+    //for (size_t i = 0; i < _mem_size(); ++i) {
+    //    tmp_sub_list.push_back
+    //}
+    vector<SubListType> sub_list_split = vector_split(sub_list, _mem_size);
+    //dump_pretty(sub_list_split);
+
+    //for (size_t i = 0; i < sub_list_split.size(); ++i) {
+    RelIter it = new_relation->end();
+    for (const auto& tmp_sub_list : sub_list_split) {
+        vector<RelScanner> scanner_list = get_scanner_list(r, tmp_sub_list);
+
+        TinyTuple tmp = get_max(scanner_list);
+        while (!tmp.is_null()) {
+            new_relation->push_back(tmp);
+            tmp = get_max(scanner_list);
+        }
+
+        RelIter it_end = new_relation->end();
+        new_sub_list.push_back(make_pair(it, it_end));
+        it = it_end;
+    }
+    //vector<RelScanner> scanner_list;
+    //for (size_t i = 0; i < tmp_sub_list.size(); ++i) {
+    //    size_t mem_idx = _base_idx + i;
+    //    const RelIter& it = tmp_sub_list[i].first;
+    //    const RelIter& it_end = tmp_sub_list[i].second;
+
+    //    scanner_list.push_back( RelScanner(new_relation, mem_idx, 1) );
+    //    scanner_list.back().set_begin(it);
+    //    scanner_list.back().set_end(it_end);
+    //}
+
+    //TinyTuple tmp = get_max(scanner_list);
+    //while (!tmp.is_null()) {
+    //    relation->push_back(tmp);
+    //    tmp = get_max(scanner_list);
+    //}
+
+    HwMgr::ins()->drop_table(r->get_name());
+    sub_list = new_sub_list;
+    return new_relation;
+}
+
+TinyTuple RelSorter::get_max(vector<RelScanner>& scanner_list)
+{
+    assert(scanner_list.size() <= _mem_size);
+    //assert(_sorted_relation != NULL);
+    //assert (_mem_size >= _sub_list.size());
 
     //vector<RelScanner> scanner_list;
     //vector<size_t> scanner
     //_sorted_relation->dump();
     //size_t max_pos = 0;
-    if (_scanner_list == NULL) {
-        _scanner_list = new vector<RelScanner>();
-        for (size_t i = 0; i < _sub_list.size(); ++i) {
-            size_t mem_idx = _base_idx + i;
-            const RelIter& it = _sub_list[i].first;
-            const RelIter& it_end = _sub_list[i].second;
-
-            _scanner_list->push_back( RelScanner(_sorted_relation, mem_idx, 1) );
-            _scanner_list->back().set_begin(it);
-            _scanner_list->back().set_end(it_end);
-
-            //_scanner_list->back().dump();
-            //cout << endl;
-        }
-    }
-
-    string search_name = _sorted_relation->get_attr_search_name(_attr);
-    TinyTuple res = _sorted_relation->create_null_tuple();
+    //string search_name = _sorted_relation->get_attr_search_name(_attr);
+    //TinyTuple res = _sorted_relation->create_null_tuple();
+    //string search_name = r.get_attr_search_name(_attr);
+    //TinyTuple res = r.create_null_tuple();
+    string search_name = _relation->get_attr_search_name(_attr);
+    TinyTuple res = _relation->create_null_tuple();
     RelScanner* min_scanner = NULL;
-    for (auto& scanner : *_scanner_list) {
+    //for (auto& scanner : *_scanner_list) {
+    for (auto& scanner : scanner_list) {
         TinyTuple tmp = scanner.peep_next();
         if (tmp.is_null())
             continue;
@@ -1272,6 +1347,28 @@ TinyTuple RelSorter::get_max()
 
     return res;
     //return min_scanner->get_next();;
+}
+
+vector<RelScanner> RelSorter::get_scanner_list(TinyRelation* r, const SubListType& sub_list) const
+{
+    assert(sub_list.size() <= _mem_size);
+
+    vector<RelScanner> res;
+    for (size_t i = 0; i < sub_list.size(); ++i) {
+        size_t mem_idx = _base_idx + i;
+        const RelIter& it = sub_list[i].first;
+        const RelIter& it_end = sub_list[i].second;
+
+        //scanner_list.push_back( RelScanner(_sorted_relation, mem_idx, 1) );
+        res.push_back( RelScanner(r, mem_idx, 1) );
+        res.back().set_begin(it);
+        res.back().set_end(it_end);
+
+        //_scanner_list->back().dump();
+        //cout << endl;
+    }
+
+    return res;
 }
 
 //------------------------------------------------------------------------------

@@ -287,6 +287,9 @@ class RelScanner
 class RelSorter
 {
     public:
+        typedef vector<pair<RelIter, RelIter>> SubListType;
+
+    public:
         RelSorter(TinyRelation*, size_t, size_t);
         ~RelSorter();
 
@@ -296,18 +299,21 @@ class RelSorter
         bool sort();
 
     private:
-        TinyTuple get_max();
+        TinyTuple get_max(vector<RelScanner>&);
 
+        //TinyRelation* reduce_sub_list(TinyRelation*, vector<pair<RelIter, RelIter>>&);
+        TinyRelation* reduce_sub_list(TinyRelation*, SubListType&);
         //void set_scanner_list;
+        vector<RelScanner> get_scanner_list(TinyRelation*, const SubListType&) const;
 
     private:
         TinyRelation*   _relation;
         size_t          _base_idx;
         size_t          _mem_size;
         string          _attr;
-        TinyRelation*   _sorted_relation;
-        vector<pair<RelIter, RelIter>> _sub_list;
-        vector<RelScanner>*  _scanner_list;
+        //TinyRelation*   _sorted_relation;
+        //vector<pair<RelIter, RelIter>> _sub_list;
+        //vector<RelScanner>*  _scanner_list;
 };
 
 //------------------------------------------------------------------------------
