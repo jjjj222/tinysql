@@ -1,10 +1,11 @@
 EXEC_NAME = tinysql
-CXX_SRCS = main.cpp cmd.cpp dbMgr.cpp query.cpp select.cpp test.cpp obj_util.cpp wrapper.cpp tiny_util.cpp
+CXX_SRCS = main.cpp cmd.cpp dbMgr.cpp query.cpp test.cpp obj_util.cpp wrapper.cpp tiny_util.cpp
 C_SRCS = parser.c
 LEX_SRC = sql.l
 YACC_SRC = sql.y
 
-DB_MGR_OBJ = db_mgr/StorageManager.o
+DB_API_DIR = db_sim_api
+DB_MGR_OBJ = $(DB_API_DIR)/StorageManager.o
 
 BIN_FOLDER = bin
 SRC_FOLDER = src
@@ -31,7 +32,9 @@ OBJS = $(addprefix $(OBJ_FOLDER)/, $(addsuffix .o, $(basename $(CXX_SRCS))))
 DEPS = $(addprefix $(DEP_FOLDER)/, $(addsuffix .d, $(basename $(CXX_SRCS))))
 
 LIBS = -ly -ll -lreadline
-FLAGS = -gdwarf-2 -g3 -Wall -Iinclude
+INCLUDES = -Iinclude -I$(DB_API_DIR)
+FLAGS = -gdwarf-2 -g3 -Wall $(INCLUDES)
+#FLAGS = -O2 -Iinclude
 CXXFLAGS = $(FLAGS) --std=c++11
 #CXXFLAGS = $(FLAGS)
 #CFLAGS = $(FLAGS) -std=c99
@@ -81,7 +84,7 @@ src/y.tab.c src/y.tab.h: src/sql.y src/parser.h
 
 
 $(DB_MGR_OBJ):
-	cd db_mgr; make
+	cd $(DB_API_DIR); make
 
 
 .PHONY:
@@ -91,18 +94,7 @@ ctags:
 .PHONY: run
 run:
 	@./$(EXEC) testcases/example.do
-	@#./$(EXEC) testcases/example.in
-	@#./$(EXEC) < testcases/example.in
 
-#.PHONY: run
-#run: testcases/*.in
-#	@for FILE in $^; do \
-#		base=`basename $$FILE .in`; \
-#		echo ">>> $$base:"; \
-#		./a.out < $$FILE; \
-#	done
-#
-#
 .PHONY: test
 test: testcases/*.in
 	@cp ./$(EXEC) ./$(EXEC_TEST)
@@ -131,5 +123,5 @@ clean:
 	rm -f $(SRC_FOLDER)/lex.yy.h
 	rm -f $(SRC_FOLDER)/y.tab.c
 	rm -f $(SRC_FOLDER)/y.tab.h
-	cd db_mgr; make clean
+	cd $(DB_API_DIR); make clean
 

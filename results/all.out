@@ -36,6 +36,26 @@ testcases/all.in:8> SELECT * FROM course
 +-----+----------+---------+------+-------+
 3 rows in set
 
+testcases/all.in:9> INSERT INTO course (sid, homework, project, exam, grade) SELECT * FROM course
+
+testcases/all.in:10> SELECT * FROM course
++-----+----------+---------+------+-------+
+| sid | homework | project | exam | grade |
++-----+----------+---------+------+-------+
+|   1 |       99 |     100 |  100 | A     |
++-----+----------+---------+------+-------+
+|   2 |        0 |     100 |  100 | E     |
++-----+----------+---------+------+-------+
+|   3 |      100 |     100 |  100 | E     |
++-----+----------+---------+------+-------+
+|   1 |       99 |     100 |  100 | A     |
++-----+----------+---------+------+-------+
+|   2 |        0 |     100 |  100 | E     |
++-----+----------+---------+------+-------+
+|   3 |      100 |     100 |  100 | E     |
++-----+----------+---------+------+-------+
+6 rows in set
+
 testcases/all.in:11> DELETE FROM course WHERE grade = "E"
 
 testcases/all.in:12> SELECT * FROM course
@@ -44,7 +64,9 @@ testcases/all.in:12> SELECT * FROM course
 +-----+----------+---------+------+-------+
 |   1 |       99 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-1 row in set
+|   1 |       99 |     100 |  100 | A     |
++-----+----------+---------+------+-------+
+2 rows in set
 
 testcases/all.in:13> INSERT INTO course (sid, homework, project, exam, grade) VALUES (4, 99, 100, 100, "B")
 
@@ -54,9 +76,11 @@ testcases/all.in:14> SELECT * FROM course
 +-----+----------+---------+------+-------+
 |   1 |       99 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
+|   1 |       99 |     100 |  100 | A     |
++-----+----------+---------+------+-------+
 |   4 |       99 |     100 |  100 | B     |
 +-----+----------+---------+------+-------+
-2 rows in set
+3 rows in set
 
 testcases/all.in:15> DELETE FROM course
 

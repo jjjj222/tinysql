@@ -14,31 +14,31 @@ class TinyTuple;
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-class TableInfo
-{
-    public:
-        TableInfo(const string&);
-        ~TableInfo();
-
-        //
-        void set_is_tmp() { _is_tmp = true; }
-        //void set_is_in_disk() { _is_in_disk = true; }
-
-        //
-        const string& get_name() const { return _name; }
-
-        //
-        void print_table() const;
-
-        //
-        void dump() const;
-        string dump_str() const;
-
-    private:
-        string  _name;
-        //bool    _is_in_disk;
-        bool    _is_tmp;
-};
+//class TableInfo
+//{
+//    public:
+//        TableInfo(const string&);
+//        ~TableInfo();
+//
+//        //
+//        void set_is_tmp() { _is_tmp = true; }
+//        //void set_is_in_disk() { _is_in_disk = true; }
+//
+//        //
+//        const string& get_name() const { return _name; }
+//
+//        //
+//        void print_table() const;
+//
+//        //
+//        void dump() const;
+//        string dump_str() const;
+//
+//    private:
+//        string  _name;
+//        //bool    _is_in_disk;
+//        bool    _is_tmp;
+//};
 
 //------------------------------------------------------------------------------
 //   
@@ -236,9 +236,13 @@ class ConditionMgr
 class QueryNode
 {
     public:
+        friend class QueryMgr;
+
+    public:
         enum NodeType {
             DISTINCT,
             CROSS_PRODUCT,
+            NATURAL_JOIN,
             WHERE,
             PROJECT,
             ORDER_BY,
@@ -268,6 +272,7 @@ class QueryNode
 
         bool has_node(NodeType) const;
         QueryNode* get_node(NodeType);
+        string get_base_name() const;
         //bool has_where() const;
 
         // debug
@@ -287,9 +292,7 @@ class QueryNode
     protected:
         TinyRelation*       _relation;
         bool                _delete_relation;
-        //TableInfo*          _table_info;
-
-    private:
+        QueryNode*          _parent;
         vector<QueryNode*>  _childs;
 };
 
@@ -335,6 +338,8 @@ class WhereNode : public QueryNode
         WhereNode(tree_node_t* node);
         virtual NodeType get_type() const { return WHERE; }
 
+        vector<tree_node_t*> split_and_equal() const;
+
         //virtual void print_result();
         virtual bool calculate_result();
         string dump_str() const;
@@ -351,7 +356,22 @@ class CrossProductNode : public QueryNode
         virtual bool calculate_result();
 
         string dump_str() const;
+
+        void split();
+        //void convert_to_natural(const vector<string>&);
+};
+
+class NaturalJoinNode : public QueryNode
+{
+    public:
+        NaturalJoinNode(const vector<string>&);
+        virtual NodeType get_type() const { return NATURAL_JOIN; }
+
+        virtual bool calculate_result();
+
+        string dump_str() const;
     private:
+        vector<string>  _attr_list;
 };
 
 //------------------------------------------------------------------------------
@@ -385,8 +405,12 @@ class QueryMgr
         QueryNode* build_order_by(const string&);
         QueryNode* build_distinct();
 
-        QueryNode* optimize_select_tree(QueryNode*);
+        void optimize_select_tree();
         void optimize_cross_product(QueryNode*);
+        void optimize_where_with_cross_product(QueryNode*);
+        void create_natural_join(const vector<string>&);
+        //void convert_to_natural(QueryNode*);
+        //vector<tree_node_t*> separate_where_node_by_and(tree_node_t*);
 
     private:
         vector<pair<string, DataType>> get_attribute_type_list(tree_node_t*);

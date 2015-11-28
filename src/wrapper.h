@@ -162,26 +162,29 @@ class TinyBlock
 };
 
 //------------------------------------------------------------------------------
-//   
+//   MemIter
 //------------------------------------------------------------------------------
 class MemIter
 {
     public:
         MemIter(const TinyRelation*, size_t);
+
+        // operator
         MemIter& operator++() { ++_pos; return *this; }
         MemIter operator++(int) { MemIter tmp(*this); ++tmp; return tmp; }
         bool operator==(const MemIter& rhs) const { return is_equal_to(rhs); }
         bool operator!=(const MemIter& rhs) const { return !is_equal_to(rhs); }
 
-        void set_tuple(const TinyTuple&);
-        TinyTuple get_tuple() const;
-        //void clear_block();
-        //void push_back(const TinyTuple&);
-
+        // get
         size_t get_block_idx() const;
         size_t get_tuple_idx() const;
 
+        void set_tuple(const TinyTuple&);
+        TinyTuple get_tuple() const;
+
+        // debug
         string dump_str() const;
+
     private:
         bool is_equal_to(const MemIter&) const;
 
@@ -191,20 +194,21 @@ class MemIter
 };
 
 //------------------------------------------------------------------------------
-//   
+//   RelIter
 //------------------------------------------------------------------------------
 class RelIter
 {
     public:
-        //RelIter(TinyRelation*);
-        //RelIter(TinyRelation*, size_t);
         RelIter(const TinyRelation*);
         RelIter(const TinyRelation*, size_t);
+
+        // operator
         RelIter& operator++() { ++_pos; return *this; }
         RelIter operator++(int) { RelIter tmp(*this); ++tmp; return tmp; }
         bool operator==(const RelIter& rhs) const { return is_equal_to(rhs); }
         bool operator!=(const RelIter& rhs) const { return !is_equal_to(rhs); }
-        //TinyTuple operator*() const { return get_tuple(); }
+
+        // get
         size_t get_block_idx() const;
         size_t get_tuple_idx() const;
 
@@ -212,21 +216,18 @@ class RelIter
         TinyTuple load_to_mem(size_t) const;
         TinyTuple get_from_mem(size_t) const;
 
-        //bool is_end() const;
+        // is
         bool is_null() const;
 
+        // debug
         string dump_str() const;
 
     private:
-        //void inc();
         bool is_equal_to(const RelIter&) const;
-        //TinyTuple get_tuple() const;
 
     private:
-        const TinyRelation*   _relation;
-        size_t          _pos;
-        //size_t          _block;
-        //size_t          _mem_idx;
+        const TinyRelation*     _relation;
+        size_t                  _pos;
 };
 
 //------------------------------------------------------------------------------
@@ -267,6 +268,7 @@ class RelScanner
         bool is_end() const;
 
         void dump() const;
+        string dump_str() const;
 
     private:
         void clear_mem();

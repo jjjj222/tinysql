@@ -1179,6 +1179,16 @@ size_t RelScanner::get_last_mem_block() const
     return _base_idx + _mem_size - 1;
 }
 
+string RelScanner::dump_str() const
+{
+    string res = _relation->get_name();
+    res += ": ";
+    res += _m_iter.dump_str() + "/" + _m_iter_end.dump_str();
+    res += " - ";
+    res += _iter.dump_str() + "/" + _iter_end.dump_str();
+    return res;
+}
+
 void RelScanner::dump() const
 {
     dump_normal(_base_idx);
