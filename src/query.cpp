@@ -26,6 +26,8 @@ using namespace jjjj222;
 #include "parser.h"
 #include "tiny_util.h"
 
+//#define ENABLE_OPTIMIZE
+
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -819,9 +821,11 @@ bool QueryMgr::select_from(tree_node_t* node)
     if (_select_root == NULL)
         return false;
 
+#ifdef ENABLE_OPTIMIZE
     dump_pretty(_select_root);
     optimize_select_tree();
     dump_pretty(_select_root);
+#endif
     //QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
     //QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
     //dump_pretty(optimized_tree);
@@ -1864,13 +1868,11 @@ bool NaturalJoinNode::calculate_result()
     RelSorter sorter_l(relation_l, base_index, mem_size);
     sorter_l.sort(attr_l);
 
-    size_t l_index = 1;
-    size_t l_size = 1;
-    size_t s_index = l_index + l_size;
-    size_t s_size = total_size - l_size;;
-    //cout << relation_s->
-    //relation_s->dump();
-    //relation_l->dump();
+    //size_t l_index = 1;
+    //size_t l_size = 1;
+    //size_t s_index = l_index + l_size;
+    //size_t s_size = total_size - l_size;;
+    dump_normal(is_swap);
 
 
     //RelScanner scanner_s(relation_s, s_index, s_size);

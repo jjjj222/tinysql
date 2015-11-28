@@ -57,6 +57,7 @@ class ColumnName
 class DataValue {
     public:
         DataValue();
+        DataValue(const DataType&);
         DataValue(const string&);
         DataValue(int);
 

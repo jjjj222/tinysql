@@ -10,5 +10,6 @@ enum DataType {
     TINY_UNKNOWN
 };
 
+string tiny_dump_str(const DataType&);
 
 #endif

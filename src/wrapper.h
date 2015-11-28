@@ -34,23 +34,22 @@ class TinySchema
         TinySchema(TinySchema&&);
         ~TinySchema();
 
+        // operator
+        operator const Schema& () const { return *_schema; }
         bool operator==(const TinySchema& rhs) const { return is_equal_to(rhs); }
         TinySchema& operator=(const TinySchema& rhs) { assign(rhs); return *this; }
-        operator const Schema& () const { return *_schema; }
 
+        // get
         vector<string> get_attr_list() const;
-        vector<pair<string, FIELD_TYPE>> get_name_type_list() const;
-        vector<pair<string, DataType>> get_attr_type_list() const;
         vector<DataType> get_type_list() const;
+        vector<pair<string, DataType>> get_attr_type_list() const;
         DataType get_data_type(const string&) const;
         
-
         size_t size() const;
         size_t tuple_per_block() const;
 
+        // is
         bool is_field_name_exist(const string&) const;
-        //bool is_field_name_exist(const string&, const string&) const;
-        //size_t count_field_name(const string&, const string&) const;
 
         // debug
         void dump() const;
@@ -60,34 +59,29 @@ class TinySchema
         void assign(const TinySchema&);
         bool is_equal_to(const TinySchema& rhs) const;
 
-        //bool is_field_name_exist(const string&) const;
-
-
     private:
         Schema* _schema;
 };
 
 //------------------------------------------------------------------------------
-//   
+//   TinyTuple
 //------------------------------------------------------------------------------
 class TinyTuple
 {
     public:
-        //TinyTuple(TinyRelation*);
         TinyTuple(const Tuple&);
         TinyTuple(const TinyTuple&);
         TinyTuple(TinyTuple&&);
         ~TinyTuple();
 
-
+        // operator
         operator const Tuple& () const { return *_tuple; }
         TinyTuple& operator=(const TinyTuple& rhs) { assign(rhs); return *this; }
-        //operator const vector<>& () const { return *_tuple; }
         bool operator==(const TinyTuple& rhs) const { return is_equal_to(rhs); }
         bool operator<(const TinyTuple& rhs) const { return is_less_than(rhs); }
-        //bool is_less_than_by_attr(const TinyTuple&, const string&) const;
         bool is_less_than_by_attr(const TinyTuple&, const vector<string>&) const;
 
+        // set
         void init();
         void set_null();
         bool set_raw_value(const string&, const string&);
@@ -95,15 +89,18 @@ class TinyTuple
         void set_value(size_t, const DataValue&);
         void set_value(const TinyTuple&, const TinyTuple&);
 
+        // get
         size_t size() const;
         TinySchema get_tiny_schema() const;
         DataType get_data_type(const string&) const;
-        DataValue get_value(const string&) const;
+        DataValue get_value(const string&) const; // TODO: get_data_value
 
-        vector<DataValue> get_value_list() const;
-        //string get_value_str(const string&) const;
         vector<string> get_attr_list() const;
-        vector<string> str_list() const;
+        vector<DataType> get_type_list() const;
+        vector<pair<string, DataType>> get_attr_type_list() const;
+        vector<DataValue> get_value_list() const; // TODO: use get_value(size_t i)
+        //string get_value_str(const string&) const;
+        vector<string> get_str_list() const; //TODO: use get_value_list
         //const string& get_str_value(const string&) const;
         //int get_int_value(const string&) const;
 
@@ -112,8 +109,8 @@ class TinyTuple
 
         // debug
         void dump() const;
-        string dump_str() const;
-        vector<string> dump_str_list() const;
+        string dump_str() const; // TODO
+        vector<string> dump_str_list() const; // TODO: remove
 
     private:
         void assign(const TinyTuple&);
@@ -128,7 +125,7 @@ class TinyTuple
 };
 
 //------------------------------------------------------------------------------
-//   
+//   TinyBlock
 //------------------------------------------------------------------------------
 class TinyBlock
 {

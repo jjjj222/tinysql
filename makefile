@@ -103,10 +103,12 @@ test: testcases/*.in
 		out_file="testcases/$$base.out"; \
 		res_file="results/$$base.res"; \
 		diff_file="results/$$base.diff"; \
+		echo ">>> start $$base:"; \
 		./$(EXEC_TEST) $$FILE > $$res_file; \
 		diff $$out_file $$res_file > $$diff_file; \
-		echo ">>> $$base:"; \
+		echo ">>> diff $$base:"; \
 		cat $$diff_file; \
+		echo ">>> finish $$base:"; \
 	done
 
 .PHONY: valgrind

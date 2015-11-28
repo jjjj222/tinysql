@@ -34,7 +34,6 @@ bool cmd_is_not_comment(const string& line)
     return res;
 }
 
-//int cmd_process(const char* buf)
 CmdState cmd_process(const char* buf)
 {
     //printf("[%s]\n",buf);
@@ -58,7 +57,6 @@ CmdState cmd_process(const char* buf)
             cmd_missing_error("command");
             state =  CMD_ERROR;
         } else if (tokens[1] == "tables"){
-            //cout << "TODO: show tables" << endl;
             HwMgr::ins()->dump_relations();
         } else {
             cmd_unknown_error("command", tokens[1]);
@@ -71,7 +69,6 @@ CmdState cmd_process(const char* buf)
         } else if (tokens[1] == "memory"){
             HwMgr::ins()->dump_memory();
         } else if (tokens[1] == "relation"){
-            //HwMgr::ins()->dump_memory();
             if (tokens.size() < 3) {
                 cmd_missing_error("relation name");
                 state =  CMD_ERROR;
@@ -83,11 +80,6 @@ CmdState cmd_process(const char* buf)
             state =  CMD_ERROR;
         }
     } else {
-        //SqlParser parser;
-        //parser.parse_string(buf);
-        //parser.dump();
-        //if (parser.is_error())
-        //    state = CMD_ERROR;
         QueryMgr query_mgr;
         if (!query_mgr.exec_query(buf))
             state = CMD_ERROR;
@@ -97,7 +89,6 @@ CmdState cmd_process(const char* buf)
         cout << endl;
     }
 
-    //cout << endl;
     return state;
 }
 
@@ -155,9 +146,6 @@ CmdState cmd_readfile(const char* file_name)
 //bool cmd_match_2(const vector<string>&, const string&, const string&);
 
 //------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
 //   error
 //------------------------------------------------------------------------------
 void cmd_unknown_error(const string& type, const string& str)
@@ -189,8 +177,3 @@ void cmd_error_file_lineno(const string& str)
         str
     );
 }
-
-//void cmd_error(const string& str)
-//{
-//    cerr << "Error: " << str << " !!" << endl;
-//}

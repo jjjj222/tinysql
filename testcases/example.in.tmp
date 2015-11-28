@@ -1,5 +1,5 @@
 CREATE TABLE course (sid INT, homework INT, project INT, exam INT, grade STR20)
-#INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, 100, NULL)
+#INSERT INTO course (sid, homework, project, exam, grade) VALUES (1, 99, 100, "A", "A")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (17, 99, 100, 100, "A")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (17, 99, 100, 100, "A")
 INSERT INTO course (sid, homework, project, exam, grade) VALUES (4, 98, 100, 10, "A")

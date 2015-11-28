@@ -28,25 +28,25 @@ using namespace jjjj222;
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-string dump_field_type_str(const FIELD_TYPE&);
-string dump_tiny_type_str(const DataType&);
+//string dump_field_type_str(const FIELD_TYPE&);
+//string dump_tiny_type_str(const DataType&);
 DataType field_to_data_type(const FIELD_TYPE&);
 FIELD_TYPE tiny_to_field_type(const DataType&);
 
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-string dump_field_type_str(const FIELD_TYPE& type)
-{
-    if (type == INT) {
-        return "INT";
-    }
+//string dump_field_type_str(const FIELD_TYPE& type)
+//{
+//    if (type == INT) {
+//        return "INT";
+//    }
+//
+//    assert(type == STR20);
+//    return "STR20";
+//}
 
-    assert(type == STR20);
-    return "STR20";
-}
-
-string dump_tiny_type_str(const DataType& type)
+string tiny_dump_str(const DataType& type)
 {
     switch (type) {
         case TINY_INT:
@@ -57,8 +57,21 @@ string dump_tiny_type_str(const DataType& type)
             return "UNKNOWN";
     }
 
-    return "UNKNOWN";
+    return "ERROR";
 }
+//string dump_tiny_type_str(const DataType& type)
+//{
+//    switch (type) {
+//        case TINY_INT:
+//            return "INT";
+//        case TINY_STR20:
+//            return "STR20";
+//        case TINY_UNKNOWN:
+//            return "UNKNOWN";
+//    }
+//
+//    return "UNKNOWN";
+//}
 
 DataType field_to_data_type(const FIELD_TYPE& type)
 {
@@ -90,7 +103,6 @@ TinySchema::TinySchema(const vector<pair<string, DataType>>& attribute_type_list
     vector<string> field_names;
     vector<FIELD_TYPE> field_types;
     for (const auto& name_type : attribute_type_list) {
-        //dump_normal(name_type);
         field_names.push_back(name_type.first);
         field_types.push_back(tiny_to_field_type(name_type.second));
     }
@@ -113,29 +125,22 @@ TinySchema::TinySchema(const TinySchema& rhs)
 TinySchema::TinySchema(TinySchema&& rhs)
 : _schema(NULL)
 {
-    //cout << "move TinySchema" << endl;
     swap(_schema, rhs._schema);
-    //delete_not_null(_schema);
-    //_schema = rhs._schema;
-    //rhs._schema = NULL;
 }
 
 TinySchema::~TinySchema()
 {
-    //assert(_schema != NULL);
-
     delete_not_null(_schema);
-    //delete _schema;
 }
 
 DataType TinySchema::get_data_type(const string& field_name) const
 {
-    vector<pair<string, FIELD_TYPE>> name_type_list = get_name_type_list();
+    vector<pair<string, DataType>> name_type_list = get_attr_type_list();
 
     for (const auto& name_type : name_type_list) {
         const string& name = name_type.first;
         if (name == field_name)
-            return field_to_data_type(name_type.second);
+            return name_type.second;
     }
     return TINY_UNKNOWN;
 }
@@ -143,34 +148,6 @@ DataType TinySchema::get_data_type(const string& field_name) const
 vector<string> TinySchema::get_attr_list() const
 {
     return _schema->getFieldNames();
-}
-
-vector<pair<string, FIELD_TYPE>> TinySchema::get_name_type_list() const
-{
-    vector<string> names = _schema->getFieldNames();
-    vector<FIELD_TYPE> types = _schema->getFieldTypes();
-    assert(names.size() == types.size());
-
-    vector<pair<string, FIELD_TYPE>> tmp;
-    for (size_t i = 0; i < names.size(); ++i) {
-        tmp.push_back(make_pair(names[i], types[i]));
-    }
-
-    return tmp;
-}
-
-vector<pair<string, DataType>> TinySchema::get_attr_type_list() const
-{
-    vector<string> names = _schema->getFieldNames();
-    vector<FIELD_TYPE> types = _schema->getFieldTypes();
-    assert(names.size() == types.size());
-
-    vector<pair<string, DataType>> res;
-    for (size_t i = 0; i < names.size(); ++i) {
-        res.push_back(make_pair(names[i], field_to_data_type(types[i])));
-    }
-
-    return res;
 }
 
 vector<DataType> TinySchema::get_type_list() const
@@ -181,6 +158,24 @@ vector<DataType> TinySchema::get_type_list() const
         tmp.push_back(field_to_data_type(type));
     }
     return tmp;
+}
+
+vector<pair<string, DataType>> TinySchema::get_attr_type_list() const
+{
+    //vector<string> names = _schema->getFieldNames();
+    vector<string> names = get_attr_list();
+    //vector<FIELD_TYPE> types = _schema->getFieldTypes();
+    vector<DataType> types = get_type_list();
+    assert(names.size() == types.size());
+
+    //vector<pair<string, DataType>> res;
+    //for (size_t i = 0; i < names.size(); ++i) {
+    //    //res.push_back(make_pair(names[i], field_to_data_type(types[i])));
+    //    res.push_back(make_pair(names[i], types[i]));
+    //}
+
+    vector<pair<string, DataType>> res = vector_make_pair(names, types);
+    return res;
 }
 
 size_t TinySchema::size() const
@@ -210,20 +205,6 @@ bool TinySchema::is_field_name_exist(const string& name) const
     return res;
 }
 
-//size_t TinySchema::count_field_name(const string& table, const string& column) const
-//{
-//    vector<string> attr_list = get_attr_list();
-//    for (const auto& attr : attr_list) {
-//        pair<string, string> table_name = get_column_name_value(attr);
-//        //dump_normal(table_name);        
-//    }
-//    
-//    
-//    //bool res = is_contain(attr_list, table_name);
-//    //return res;
-//    return 0;
-//}
-
 void TinySchema::assign(const TinySchema& rhs)
 {
     delete_not_null(_schema);
@@ -238,45 +219,31 @@ bool TinySchema::is_equal_to(const TinySchema& rhs) const
 void TinySchema::dump() const
 {
     cout << dump_str() << endl;
-    //cout << schema << endl;
-    
-//    //vector<string> field_names;
-//    //vector<enum FIELD_TYPE> field_types;
-//    //vector<FIELD_TYPE> field_types;
-//
-//    //cout << "The schema has " << schema.getNumOfFields() << " fields" << endl;
-//    //cout << "The schema allows " << schema.getTuplesPerBlock() << " tuples per block" << endl;
-//    //cout << "The schema has field names: " << endl;
-//    //vector<string> field_names=schema.getFieldNames();
-//    //copy(field_names.begin(),field_names.end(),ostream_iterator<string,char>(cout," "));
-//    //cout << endl;
-//    //cout << "The schema has field types: " << endl;
-//    //vector<FIELD_TYPE> field_types=schema.getFieldTypes();
-//    //for (int i=0;i<schema.getNumOfFields();i++) {
-//    //  cout << (field_types[i]==0?"INT":"STR20") << "\t";
-//    //}
-//    //cout << endl;  
-//    //cout << "The first field is of name " << schema.getFieldName(0) << endl;
-//    //cout << "The second field is of type " << (schema.getFieldType(1)==0?"INT":"STR20") << endl;
-//    //cout << "The field f3 is of type " << (schema.getFieldType("f3")==0?"INT":"STR20") << endl;
-//    //cout << "The field f4 is at offset " << schema.getFieldOffset("f4") << endl << endl;
 }
 
 string TinySchema::dump_str() const
 {
-    vector<string> names = _schema->getFieldNames();
-    vector<FIELD_TYPE> types = _schema->getFieldTypes();
-    assert(names.size() == types.size());
+    //vector<string> names = _schema->getFieldNames();
+    //vector<FIELD_TYPE> types = _schema->getFieldTypes();
+    //assert(names.size() == types.size());
+    vector<pair<string, DataType>> attr_type_list = get_attr_type_list();
 
     string tmp;
     tmp += "(";
-    for (size_t i = 0; i < names.size(); ++i) {
+    for (size_t i = 0; i < attr_type_list.size(); ++i) {
         if (i != 0) {
             tmp += ", ";
         }
-        tmp += names[i];
+        tmp += attr_type_list[i].first;
         tmp += " ";
-        tmp += dump_field_type_str(types[i]);
+        DataType type = attr_type_list[i].second;
+        tmp += tiny_dump_str(type);
+//    if (type == INT) {
+//        return "INT";
+//    }
+//
+//    assert(type == STR20);
+//    return "STR20";
     }
     tmp += ")";
 
@@ -286,12 +253,6 @@ string TinySchema::dump_str() const
 //------------------------------------------------------------------------------
 //   TinyTuple
 //------------------------------------------------------------------------------
-//TinyTuple::TinyTuple(TinyRelation* r)
-//: _tuple(NULL)
-//{
-//    _tuple = new Tuple(r->create_null_tuple());
-//}
-
 TinyTuple::TinyTuple(const Tuple& tuple)
 : _tuple(NULL)
 {
@@ -307,26 +268,18 @@ TinyTuple::TinyTuple(const TinyTuple& rhs)
 TinyTuple::TinyTuple(TinyTuple&& rhs)
 : _tuple(NULL)
 {
-    //cout << "move TinyTuple" << endl;
     swap(_tuple, rhs._tuple);
-    //delete_not_null(_tuple);
-    //_tuple = rhs._tuple;
-    //rhs._tuple == NULL;
 }
 
 TinyTuple::~TinyTuple()
 {
-    //assert(_tuple != NULL);
     delete_not_null(_tuple);
-    //delete _tuple;
 }
 
 bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
 {
-    //assert(raw_value != "NULL"); // NULL has been removed from spec
     if (raw_value == "NULL") {
-        //error_msg
-        error_msg("do not support 'NULL' now");
+        error_msg("does not support 'NULL' now");
         return false;
     }
 
@@ -334,11 +287,15 @@ bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
 
     bool res = false;
     if (raw_value[0] == '\"') {
-        //res = set_str_value(name, raw_value.substr(1, raw_value.size() - 2));
+        if (data_type == TINY_INT) {
+            error_msg("\'" + name + "\' should be INT");
+            return false;
+        }
         res = set_str_value(name, get_literal_value(raw_value));
     } else {
         if (data_type != TINY_INT) {
-            error_msg("\'" + name + "\' should be INT");
+            assert(data_type == TINY_STR20);
+            error_msg("\'" + name + "\' should be STR20");
             return false;
         }
         res = set_int_value(name, str_to<int>(raw_value));
@@ -378,7 +335,6 @@ void TinyTuple::set_value(const TinyTuple& t1, const TinyTuple& t2)
     vector<DataValue> tmp;
     add_into(tmp, t1.get_value_list());
     add_into(tmp, t2.get_value_list());
-    //dump_normal(v1);
      
     for (size_t i = 0; i < tmp.size(); ++i) {
         set_value(i, tmp[i]);
@@ -399,24 +355,29 @@ bool TinyTuple::set_int_value(const string& name, int value)
 
 void TinyTuple::init()
 {
-    vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
-
-    for (const auto& name_type : name_type_list) {
-        const string& name = name_type.first;
-        const FIELD_TYPE& type = name_type.second;
-        bool res = false;
-        if (type == INT) {
-            res = _tuple->setField(name, 0);
-        } else {
-            assert(type == STR20);
-            res = _tuple->setField(name, "");
-        }
-        assert(res);
-  //union Field getField(int offset) const; // returns INT_MIN if out of bound
-  //union Field getField(string field_name) const; // returns INT_MIN if the name is not found
-  //bool setField(string field_name, int i); // returns false if the type is wrong or the name is not found
-
+    vector<DataType> type_list = get_type_list();
+    for (size_t i = 0; i < type_list.size(); ++i) {
+        set_value(i, DataValue(type_list[i]));
     }
+
+    ////vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
+    ////vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
+    //vector<pair<string, DataType>> name_type_list = get_attr_type_list();
+    //for (const auto& name_type : name_type_list) {
+    //    const string& name = name_type.first;
+    //    //const FIELD_TYPE& type = name_type.second;
+    //    const DataType& type = name_type.second;
+    //    bool res = false;
+    //    //if (type == INT) {
+    //    if (type == TINY_INT) {
+    //        res = _tuple->setField(name, 0);
+    //    } else {
+    //        //assert(type == STR20);
+    //        assert(type == TINY_STR20);
+    //        res = _tuple->setField(name, "");
+    //    }
+    //    assert(res);
+    //}
 }
 
 void TinyTuple::set_null()
@@ -441,21 +402,21 @@ DataType TinyTuple::get_data_type(const string& name) const
 
 DataValue TinyTuple::get_value(const string& column_name) const
 {
-    //pair<string, string> get_
     ColumnName cn(column_name);
 
-    vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
-
+    vector<pair<string, DataType>> name_type_list = get_attr_type_list();
     for (const auto& name_type : name_type_list) {
         const auto& name = name_type.first;
         const auto& type = name_type.second;
 
         if (name == cn.get_column() || name == cn.get_column_name()) {
             Field value = _tuple->getField(name);
-            if (type == INT) {
+            //if (type == INT) {
+            if (type == TINY_INT) {
                 return DataValue(value.integer);
             } else {
-                assert(type == STR20);
+                //assert(type == STR20);
+                assert(type == TINY_STR20);
 
                 return DataValue(*(value.str));
             }
@@ -465,9 +426,25 @@ DataValue TinyTuple::get_value(const string& column_name) const
     return DataValue();
 }
 
+vector<pair<string, DataType>> TinyTuple::get_attr_type_list() const
+{
+    return get_tiny_schema().get_attr_type_list();
+}
+
+vector<string> TinyTuple::get_attr_list() const
+{
+    return get_tiny_schema().get_attr_list();
+}
+
+vector<DataType> TinyTuple::get_type_list() const
+{
+    return get_tiny_schema().get_type_list();
+}
+
 vector<DataValue> TinyTuple::get_value_list() const
 {
-    vector<DataType> type_list = get_tiny_schema().get_type_list();
+    //vector<DataType> type_list = get_tiny_schema().get_type_list();
+    vector<DataType> type_list = get_type_list();
 
     vector<DataValue> res;
     for (size_t i = 0; i < type_list.size(); ++i) {
@@ -485,43 +462,32 @@ vector<DataValue> TinyTuple::get_value_list() const
     return res;
 }
 
-//string TinyTuple::get_value_str(const string& name) const
-//{
-//    //DataType data_type = get_tiny_schema().get_data_type(name);
-//    //Field value = _tuple->getField(name);
-//
-//    //if (type == TINY_INT) {
-//    //    return jjjj222::dump_str(value.integer);
-//    //} else {
-//    //    assert(type == TINY_STR20);
-//    //    return *(value.str);
-//    //}
-//
-//    return "<ERROR>";
-//}
-
-vector<string> TinyTuple::get_attr_list() const
+vector<string> TinyTuple::get_str_list() const
 {
-    return get_tiny_schema().get_attr_list();
-}
-
-vector<string> TinyTuple::str_list() const
-{
-    vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
-    vector<string> str_list;
-    for (size_t i = 0; i < name_type_list.size(); ++i) {
-        const auto& name = name_type_list[i].first;
-        const auto& type = name_type_list[i].second;
-        Field value = _tuple->getField(name);
-        if (type == INT) {
-            str_list.push_back(jjjj222::dump_str(value.integer));
-        } else {
-            assert(type == STR20);
-            str_list.push_back( *(value.str) );
-        }
+    vector<DataValue> value_list = get_value_list();
+    vector<string> res;
+    for (const auto& value : value_list) {
+        res.push_back(value.dump_str());
     }
+    return res;
+    ////vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
+    //vector<pair<string, DataType>> name_type_list = get_attr_type_list();
+    //vector<string> str_list;
+    //for (size_t i = 0; i < name_type_list.size(); ++i) {
+    //    const auto& name = name_type_list[i].first;
+    //    const auto& type = name_type_list[i].second;
+    //    Field value = _tuple->getField(name);
+    //    //if (type == INT) {
+    //    if (type == TINY_INT) {
+    //        str_list.push_back(jjjj222::dump_str(value.integer));
+    //    } else {
+    //        //assert(type == STR20);
+    //        assert(type == TINY_STR20);
+    //        str_list.push_back( *(value.str) );
+    //    }
+    //}
 
-    return str_list;
+    //return str_list;
 }
 
 bool TinyTuple::is_null() const
@@ -570,7 +536,8 @@ string TinyTuple::dump_str() const
     if (is_null())
         return "<DELETE>";
 
-    vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
+    //vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
+    vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
 
     string tmp = "(";
     for (size_t i = 0; i < name_type_list.size(); ++i) {
@@ -581,13 +548,15 @@ string TinyTuple::dump_str() const
         const auto& name = name_type_list[i].first;
         const auto& type = name_type_list[i].second;
         Field value = _tuple->getField(name);
-        if (type == INT) {
+        //if (type == INT) {
+        if (type == TINY_INT) {
             //cout << name << ": " << value.integer << endl;
             tmp += name;    
             tmp += " ";
             tmp += jjjj222::dump_str(value.integer);
         } else {
-            assert(type == STR20);
+            //assert(type == STR20);
+            assert(type == TINY_STR20);
 
             tmp += name;    
             tmp += " ";
@@ -624,7 +593,7 @@ void TinyTuple::dump() const
 
 vector<string> TinyTuple::dump_str_list() const
 {
-    return str_list();
+    return get_str_list();
 }
 
 //------------------------------------------------------------------------------
@@ -1751,7 +1720,8 @@ void TinyRelation::print_table() const
         TinyTuple tuple = scanner.get_next();
         assert(!tuple.is_null());
 
-        table.add_row(tuple.str_list());
+        //table.add_row(tuple.str_list());
+        table.add_row(tuple.get_str_list());
         //to_relation->push_back(tuple);
     }
     //size_t mem_index = 0;
@@ -1846,7 +1816,7 @@ void TinyRelation::dump_tuples() const
                 row.push_back("");
                 //dump_normal(TinyTuple(tuple));
                 //dump_normal(tuple);
-                add_into(row, tuple.str_list());
+                add_into(row, tuple.get_str_list());
             }
             table.add_row(row);
         }

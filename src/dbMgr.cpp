@@ -495,21 +495,6 @@ void HwMgr::dump_memory() const
     //    b.dump();
     }
     table.draw();
-    //    cout << "block " << i << ":" << endl;
-    //    Block* b = _mem->getBlock(i);
-    //    vector<Tuple> ts = b->getTuples();
-    //    for (auto t : ts) {
-    //        Schema s = t.getSchema();
-    //        vector<FIELD_TYPE> fts = s.getFieldTypes();
-    //        for (auto ft : fts) {
-    //            if (ft == INT) {
-    //                cout << "INT" << endl;
-    //            } else {
-    //                cout << "STR20" << endl;
-    //            }
-    //        }
-    //    } 
-    //}
 }
 
 void HwMgr::dump_relations() const

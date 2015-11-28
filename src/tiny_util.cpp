@@ -96,6 +96,13 @@ DataValue::DataValue()
     ;
 }
 
+DataValue::DataValue(const DataType& type)
+: _type(type)
+, _integer(0)
+{
+    ;
+}
+
 DataValue::DataValue(const string& s)
 : _type(TINY_STR20)
 , _integer(0)
@@ -112,9 +119,11 @@ DataValue::DataValue(int i)
 string DataValue::dump_str() const
 {
     if (_type == TINY_INT) {
-        return jjjj222::dump_str(_integer);
+        //return jjjj222::dump_str(_integer);
+        return tiny_dump_str(_integer);
     } else if (_type == TINY_STR20){
-        return jjjj222::dump_str(_literal);
+        //return jjjj222::dump_str(_literal);
+        return tiny_dump_str(_literal);
     } else {
         return "<TINY_UNKNOWN>";
     }
