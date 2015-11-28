@@ -71,6 +71,7 @@ class HwMgr
         bool insert_into(const string&, const vector<pair<string, string>>&);
         bool delete_from(const string&, tree_node_t* where_node);
 
+        
         // debug
         void dump();
         void dump_memory() const;

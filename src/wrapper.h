@@ -167,7 +167,7 @@ class TinyBlock
 class MemIter
 {
     public:
-        MemIter(TinyRelation*, size_t);
+        MemIter(const TinyRelation*, size_t);
         MemIter& operator++() { ++_pos; return *this; }
         MemIter operator++(int) { MemIter tmp(*this); ++tmp; return tmp; }
         bool operator==(const MemIter& rhs) const { return is_equal_to(rhs); }
@@ -186,7 +186,7 @@ class MemIter
         bool is_equal_to(const MemIter&) const;
 
     private:
-        TinyRelation*       _relation;
+        const TinyRelation*       _relation;
         size_t              _pos;
 };
 
@@ -196,8 +196,10 @@ class MemIter
 class RelIter
 {
     public:
-        RelIter(TinyRelation*);
-        RelIter(TinyRelation*, size_t);
+        //RelIter(TinyRelation*);
+        //RelIter(TinyRelation*, size_t);
+        RelIter(const TinyRelation*);
+        RelIter(const TinyRelation*, size_t);
         RelIter& operator++() { ++_pos; return *this; }
         RelIter operator++(int) { RelIter tmp(*this); ++tmp; return tmp; }
         bool operator==(const RelIter& rhs) const { return is_equal_to(rhs); }
@@ -221,7 +223,7 @@ class RelIter
         //TinyTuple get_tuple() const;
 
     private:
-        TinyRelation*   _relation;
+        const TinyRelation*   _relation;
         size_t          _pos;
         //size_t          _block;
         //size_t          _mem_idx;
@@ -248,7 +250,8 @@ class RelPartialScanner
 class RelScanner
 {
     public:
-        RelScanner(TinyRelation*, size_t, size_t);
+        //RelScanner(TinyRelation*, size_t, size_t);
+        RelScanner(const TinyRelation*, size_t, size_t);
 
         void set_begin(const RelIter& it) { _iter = it; }
         void set_end(const RelIter& it) { _iter_end = it; }
@@ -278,7 +281,8 @@ class RelScanner
         size_t get_last_mem_block() const;
 
     private:
-        TinyRelation*   _relation;
+        //TinyRelation*   _relation;
+        const TinyRelation*   _relation;
         size_t          _base_idx;
         size_t          _mem_size;
         MemIter         _m_iter;
@@ -300,10 +304,12 @@ class RelSorter
         ~RelSorter();
 
         //void set_attr(const string& attr) { _attr = attr; }
-        void set_attr(const string& attr) { _attr_list.push_back(attr); }
+        //void set_attr(const string& attr) { _attr_list.push_back(attr); }
 
         //TinyTuple get_next();
-        bool sort();
+        //bool sort();
+        void sort();
+        void sort(const string&);
 
     private:
         TinyTuple get_max(vector<RelScanner>&);
@@ -341,6 +347,7 @@ class TinyRelation
         void add_space(size_t, size_t);
         void add_space(size_t);
         void set_with_prefix() { _with_prefix = true; }
+        //void set_is_tmp() { _is_tmp = true; }
         //void set_with_prefix();
         void clear();
 
@@ -373,10 +380,13 @@ class TinyRelation
         pair<size_t, size_t> get_idx_by_pos(size_t) const;
         bool is_null(size_t) const;
         bool is_with_prefix() const { return _with_prefix; }
+        //bool is_tmp() const { return _is_tmp; }
         bool is_attr_exist(const string&) const;
 
-        iterator begin();
-        iterator end();
+        iterator begin() const;
+        iterator end() const;
+
+        void print_table() const;
 
         //
         bool next_is_new_block() const;
@@ -392,6 +402,7 @@ class TinyRelation
 
     private:
         Relation*           _relation;
+        //bool                _is_tmp;
         bool                _with_prefix;
         vector<size_t>      _space;
 };

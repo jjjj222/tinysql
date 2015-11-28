@@ -251,8 +251,11 @@ class QueryNode
         virtual ~QueryNode();
 
         //void set_table_info(const TableInfo&);
-        void set_tmp_table();
-        void set_real_table(const string&);
+        //void set_tmp_table();
+        void set_tmp_table(TinyRelation*);
+        //void set_real_table(const string&);
+        //void set_real_table(const string&, TinyRelation*);
+        void set_relation(TinyRelation*);
         void add_child(QueryNode*);
 
         virtual bool print_result();
@@ -260,7 +263,7 @@ class QueryNode
 
         //get
         TinyRelation* get_or_create_relation();
-        TableInfo* get_table_info() const { return _table_info; }
+        //TableInfo* get_table_info() const { return _table_info; }
         virtual NodeType get_type() const { return BASE_NODE; };
 
         bool has_node(NodeType) const;
@@ -282,7 +285,9 @@ class QueryNode
 
 
     protected:
-        TableInfo*          _table_info;
+        TinyRelation*       _relation;
+        bool                _delete_relation;
+        //TableInfo*          _table_info;
 
     private:
         vector<QueryNode*>  _childs;
