@@ -26,7 +26,7 @@ using namespace jjjj222;
 #include "parser.h"
 #include "tiny_util.h"
 
-//#define ENABLE_OPTIMIZE
+#define ENABLE_OPTIMIZE
 
 //------------------------------------------------------------------------------
 //   
@@ -1702,6 +1702,9 @@ bool CrossProductNode::calculate_result()
         return false;
 
     TinyRelation* cross_relation = HwMgr::ins()->create_tmp_relation(relation_s, relation_l);
+    cross_relation->set_with_prefix();
+    set_relation(cross_relation);
+    set_tmp_table(cross_relation);
     //cross_relation->dump();
 
     bool is_swap = false;
@@ -1710,36 +1713,43 @@ bool CrossProductNode::calculate_result()
         is_swap = true;
     }
 
-    size_t total_size = HwMgr::ins()->get_mem_size() - 1;
-    size_t l_index = 1;
-    size_t l_size = 1;
-    size_t s_index = l_index + l_size;
-    size_t s_size = total_size - l_size;;
 
-    RelScanner scanner_s(relation_s, s_index, s_size);
-    while(!scanner_s.is_end()) {
-        TinyTuple tuple_s = scanner_s.get_next();
-        RelScanner scanner_l(relation_l, l_index, l_size);
-        while(!scanner_l.is_end()) {
-            TinyTuple tuple_l = scanner_l.get_next();
-            //cout << scanner_s.dump_str() << " | " << scanner_l.dump_str() << endl;
-        
-            TinyTuple new_tuple = cross_relation->create_tuple();
-            if (is_swap) {
-                new_tuple.set_value(tuple_l, tuple_s);
-            } else {
-                new_tuple.set_value(tuple_s, tuple_l);
-            }
-            //new_tuple.dump();
-            //cout << new_tuple.dump_str() << endl;
-            cross_relation->push_back(new_tuple); // TODO: it use mem addr 0
-        }
-    }
+    MemRange total_range = HwMgr::ins()->get_mem_range().get_not_first_block();
+    MemRange l_range = total_range.get_first_block();
+    MemRange s_range = total_range.get_not_first_block();
+    //dump_normal(total_range);
+    //size_t total_size = HwMgr::ins()->get_mem_size() - 1;
+    //size_t l_index = 1;
+    //size_t l_size = 1;
+    //size_t s_index = l_index + l_size;
+    //size_t s_size = total_size - l_size;;
 
-    cross_relation->set_with_prefix();
-    //set_real_table(cross_relation->get_name(), cross_relation);
-    set_relation(cross_relation);
-    set_tmp_table(cross_relation);
+    //RelScanner scanner_s(relation_s, s_index, s_size);
+    //RelScanner scanner_l(relation_l, l_index, l_size);
+    RelScanner scanner_s(relation_s, s_range);
+    RelScanner scanner_l(relation_l, l_range);
+    do_cross_product(scanner_s, scanner_l, is_swap);
+
+    //RelScanner scanner_s(relation_s, s_index, s_size);
+    //while(!scanner_s.is_end()) {
+    //    TinyTuple tuple_s = scanner_s.get_next();
+    //    RelScanner scanner_l(relation_l, l_index, l_size);
+    //    while(!scanner_l.is_end()) {
+    //        TinyTuple tuple_l = scanner_l.get_next();
+    //        //cout << scanner_s.dump_str() << " | " << scanner_l.dump_str() << endl;
+    //    
+    //        TinyTuple new_tuple = cross_relation->create_tuple();
+    //        if (is_swap) {
+    //            new_tuple.set_value(tuple_l, tuple_s);
+    //        } else {
+    //            new_tuple.set_value(tuple_s, tuple_l);
+    //        }
+    //        //new_tuple.dump();
+    //        //cout << new_tuple.dump_str() << endl;
+    //        cross_relation->push_back(new_tuple); // TODO: it use mem addr 0
+    //    }
+    //}
+
     //cross_relation->dump();
 
     //HwMgr::ins()->dump_memory();
@@ -1765,6 +1775,29 @@ bool CrossProductNode::calculate_result()
     //    }
     //}
     return true;
+}
+
+void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelScanner& scanner_l, bool is_swap)
+{
+    assert(_relation != NULL);
+
+    RelScanner scanner_i = scanner_s;
+    while(!scanner_i.is_end()) {
+        TinyTuple tuple_s = scanner_i.get_next();
+        RelScanner scanner_j = scanner_l;
+        while(!scanner_j.is_end()) {
+            TinyTuple tuple_l = scanner_j.get_next();
+        
+            TinyTuple new_tuple = _relation->create_tuple();
+            if (is_swap) {
+                new_tuple.set_value(tuple_l, tuple_s);
+            } else {
+                new_tuple.set_value(tuple_s, tuple_l);
+            }
+
+            _relation->push_back(new_tuple); // TODO: it use mem addr 0
+        }
+    }
 }
 
 void CrossProductNode::split()
@@ -1838,42 +1871,129 @@ bool NaturalJoinNode::calculate_result()
     const vector<QueryNode*>& childs = get_childs();
     assert(childs.size() == 2);
 
-    TinyRelation* relation_s = childs[0]->get_or_create_relation();
-    TinyRelation* relation_l = childs[1]->get_or_create_relation();
-    if (relation_s == NULL || relation_l == NULL)
+    TinyRelation* relation_0 = childs[0]->get_or_create_relation();
+    TinyRelation* relation_1 = childs[1]->get_or_create_relation();
+    if (relation_0 == NULL || relation_1 == NULL)
         return false;
 
-    TinyRelation* join_relation = HwMgr::ins()->create_tmp_relation(relation_s, relation_l);
+    TinyRelation* join_relation = HwMgr::ins()->create_tmp_relation(relation_0, relation_1);
+    join_relation->set_with_prefix();
+    set_relation(join_relation);
+    set_tmp_table(join_relation);
 
-    bool is_swap = false;
-    if (relation_s->size() > relation_l->size()) {
-        swap(relation_s, relation_l);
-        is_swap = true;
-    }
+    //bool is_swap = false;
+    //if (relation_s->size() > relation_l->size()) {
+    //    swap(relation_s, relation_l);
+    //    is_swap = true;
+    //}
 
-    string attr_s = _attr_list[0];
-    string attr_l = _attr_list[1];
-    if (!relation_s->is_attr_exist(attr_s)) {
-        swap(attr_s, attr_l);
+    string attr_0 = _attr_list[0];
+    string attr_1 = _attr_list[1];
+    if (!relation_0->is_attr_exist(attr_0)) {
+        swap(attr_0, attr_1);
     }
-    assert(relation_s->is_attr_exist(attr_s));
-    assert(relation_l->is_attr_exist(attr_l));
+    assert(relation_0->is_attr_exist(attr_0));
+    assert(relation_1->is_attr_exist(attr_1));
 
 
     size_t total_size = HwMgr::ins()->get_mem_size() - 1;
     size_t base_index = 1;
     size_t mem_size = total_size;
-    RelSorter sorter_s(relation_s, base_index, mem_size);
-    sorter_s.sort(attr_s);
-    RelSorter sorter_l(relation_l, base_index, mem_size);
-    sorter_l.sort(attr_l);
+    RelSorter sorter_s(relation_0, base_index, mem_size);
+    sorter_s.sort(attr_0);
+    RelSorter sorter_l(relation_1, base_index, mem_size);
+    sorter_l.sort(attr_1);
 
+    //vector<pair<DataValue, pair<RelIter, RelIter>>> sub_list_0 =
+    //    relation_0->get_sub_list_by_attr(attr_0, 1);
+    vector<pair<DataValue, RelRange>> sub_list_0 =
+        relation_0->get_sub_list_by_attr(attr_0, 1);
+    //vector<pair<DataValue, pair<RelIter, RelIter>>> sub_list_1 =
+    //    relation_1->get_sub_list_by_attr(attr_1, 1);
+    vector<pair<DataValue, RelRange>> sub_list_1 =
+        relation_1->get_sub_list_by_attr(attr_1, 1);
+    //dump_pretty(sub_list_0);
     //size_t l_index = 1;
     //size_t l_size = 1;
     //size_t s_index = l_index + l_size;
     //size_t s_size = total_size - l_size;;
-    dump_normal(is_swap);
+    //dump_normal(is_swap);
+    //size_t total_size = HwMgr::ins()->get_mem_size() - 1;
+    //size_t l_index = 1;
+    //size_t l_size = 1;
+    //size_t s_index = l_index + l_size;
+    //size_t s_size = total_size - l_size;;
+    MemRange total_range = HwMgr::ins()->get_mem_range().get_not_first_block();
+    MemRange l_range = total_range.get_first_block();
+    MemRange s_range = total_range.get_not_first_block();
 
+    size_t i_0 = 0;
+    size_t i_1 = 0;
+    while (i_0 < sub_list_0.size() && i_1 < sub_list_1.size()) {
+        const auto& value_iter_0 = sub_list_0[i_0];
+        const auto& value_iter_1 = sub_list_1[i_1];
+
+        const auto& value_0 = value_iter_0.first;
+        const auto& value_1 = value_iter_1.first;
+
+        if (value_0 == value_1) {
+            const auto& range_0 = value_iter_0.second;
+            const auto& range_1 = value_iter_1.second;
+            //size_t index_diff_0 = iter_0.second.get_block_idx() - iter_0.first.get_block_idx();
+            size_t size_0 = range_0.num_of_block();
+            size_t size_1 = range_1.num_of_block();
+
+            //size_t index_0, size_0, index_1, size_1;
+            MemRange mem_range_0, mem_range_1;
+            bool is_swap = false;
+            if (size_0 < size_1) {
+                mem_range_0 = s_range;
+                mem_range_1 = l_range;
+            //    index_0 = s_index; 
+            //    size_0 = s_size;
+            //    index_1 = l_index;
+            //    size_1 = l_size;
+            } else {
+                mem_range_0 = l_range;
+                mem_range_1 = s_range;
+                is_swap = true;
+            //    index_0 = s_index; 
+            //    size_0 = s_size;
+            //    index_1 = l_index;
+            //    size_1 = l_size;
+            }
+            RelScanner scanner_0(relation_0, mem_range_0);
+            scanner_0.set_range(range_0);
+            //scanner_0.set_begin(iter_0.first);
+            //scanner_0.set_end(iter_0.second);
+            RelScanner scanner_1(relation_1, mem_range_1);
+            scanner_1.set_range(range_1);
+
+            if (is_swap) {
+                do_cross_product(scanner_1, scanner_0, is_swap);
+            } else {
+                do_cross_product(scanner_0, scanner_1, is_swap);
+            }
+            //RelScanner scanner_1(relation_1, index_1, size_1);
+            //scanner_1.set_begin(iter_1.first);
+            //scanner_1.set_end(iter_1.second);
+            //    //RelScanner scanner_1(relation_1, l_index, l_size);
+            //    //do_cross_product(scanner_0, scanner_1, false);        
+            //if (index_diff_0 < index_diff_1) {
+            //} else {
+            //}
+            //dump_normal(value_0);
+            //RelScanner
+            ++i_0;
+            ++i_1;
+        } else if (value_0 < value_1) {
+            ++i_0;
+        } else { // value_0 > value_1
+            ++i_1;
+        }
+    }
+
+    
 
     //RelScanner scanner_s(relation_s, s_index, s_size);
     //RelScanner scanner_l(relation_l, l_index, l_size);
@@ -1906,9 +2026,6 @@ bool NaturalJoinNode::calculate_result()
     //    }
     //}
 
-    join_relation->set_with_prefix();
-    set_relation(join_relation);
-    set_tmp_table(join_relation);
     return true;
 }
 

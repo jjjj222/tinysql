@@ -116,6 +116,11 @@ DataValue::DataValue(int i)
 {
 }
 
+//bool DataValue::is_null() const
+//{
+//    return _type == TINY_UNKNOWN;
+//}
+
 string DataValue::dump_str() const
 {
     if (_type == TINY_INT) {
@@ -219,4 +224,44 @@ DataValue& DataValue::div(const DataValue& rhs)
     }
 
     return *this;
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+MemRange::MemRange()
+: _base_idx(0)
+, _size(0)
+{
+    ;
+}
+
+MemRange::MemRange(size_t base_idx, size_t size)
+: _base_idx(base_idx)
+, _size(size)
+{
+    ;
+}
+
+MemRange MemRange::get_first_block() const
+{
+    assert(_size > 0);
+
+    return MemRange(_base_idx, 1); 
+}
+
+MemRange MemRange::get_not_first_block() const
+{
+    assert(_size > 1);
+
+    return MemRange(_base_idx + 1, _size - 1); 
+}
+
+string MemRange::dump_str() const
+{
+    if (_size == 0) {
+        return "<null>";
+    }
+
+    return tiny_dump_str(_base_idx, _base_idx + _size - 1);
 }

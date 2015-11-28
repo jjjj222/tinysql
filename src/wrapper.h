@@ -21,6 +21,7 @@ class Block;
 class TinyRelation;
 class DataValue;
 class ColumnName;
+class MemRange;
 
 //------------------------------------------------------------------------------
 //   TinySchema
@@ -94,6 +95,7 @@ class TinyTuple
         TinySchema get_tiny_schema() const;
         DataType get_data_type(const string&) const;
         DataValue get_value(const string&) const; // TODO: get_data_value
+        DataValue get_data_value(const string&) const; // TODO: get_data_value
 
         vector<string> get_attr_list() const;
         vector<DataType> get_type_list() const;
@@ -204,10 +206,12 @@ class RelIter
         RelIter operator++(int) { RelIter tmp(*this); ++tmp; return tmp; }
         bool operator==(const RelIter& rhs) const { return is_equal_to(rhs); }
         bool operator!=(const RelIter& rhs) const { return !is_equal_to(rhs); }
+        bool operator<=(const RelIter& rhs) const { return !is_greater_than(rhs); }
 
         // get
         size_t get_block_idx() const;
         size_t get_tuple_idx() const;
+        //const TinyRelation* get_relation() const { return _relation; }
 
         void skip_null();
         TinyTuple load_to_mem(size_t) const;
@@ -221,6 +225,7 @@ class RelIter
 
     private:
         bool is_equal_to(const RelIter&) const;
+        bool is_greater_than(const RelIter&) const;
 
     private:
         const TinyRelation*     _relation;
@@ -230,17 +235,34 @@ class RelIter
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-class RelPartialScanner
+class RelRange
 {
     public:
-        RelPartialScanner(TinyRelation*, size_t, const RelIter&, const RelIter&);
+        RelRange(const RelIter&, const RelIter&);
+
+        const RelIter& begin() const { return _begin; }
+        const RelIter& end() const { return _end; }
+        size_t num_of_block() const;
 
     private:
-        TinyRelation*   _relation;
-        size_t          _mem_idx;
-        RelIter         _it;
-        RelIter         _it_end;
+        const RelIter   _begin;
+        const RelIter   _end;
 };
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+//class RelPartialScanner
+//{
+//    public:
+//        RelPartialScanner(TinyRelation*, size_t, const RelIter&, const RelIter&);
+//
+//    private:
+//        TinyRelation*   _relation;
+//        size_t          _mem_idx;
+//        RelIter         _it;
+//        RelIter         _it_end;
+//};
 
 //------------------------------------------------------------------------------
 //   
@@ -249,8 +271,10 @@ class RelScanner
 {
     public:
         //RelScanner(TinyRelation*, size_t, size_t);
-        RelScanner(const TinyRelation*, size_t, size_t);
+        RelScanner(const TinyRelation*, size_t, size_t); // TODO: remove
+        RelScanner(const TinyRelation*, const MemRange&);
 
+        void set_range(const RelRange&);
         void set_begin(const RelIter& it) { _iter = it; }
         void set_end(const RelIter& it) { _iter_end = it; }
 
@@ -389,6 +413,11 @@ class TinyRelation
 
         //
         bool next_is_new_block() const;
+
+        // TODO: assert(is_sorted());
+        //vector<pair<DataValue, pair<RelIter, RelIter>>> get_sub_list_by_attr(
+        vector<pair<DataValue, RelRange>> get_sub_list_by_attr(
+            const string& attr, size_t mem_idx) const; 
 
         // debug
         void dump() const;

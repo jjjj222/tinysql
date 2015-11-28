@@ -26,6 +26,7 @@ class Block;
 class TinySchema;
 class TinyRelation;
 class TinyBlock;
+class MemRange;
 
 //------------------------------------------------------------------------------
 //   SqlParser
@@ -59,6 +60,7 @@ class HwMgr
         //TinyBlock get_tiny_block(size_t);
         size_t get_mem_size() const;
         size_t get_block_size() const;
+        MemRange get_mem_range() const;
         //vector<Tuple> get_block_tuple(const Block&) const;
         TinyRelation* get_tiny_relation(const string& name) const;
         TinyRelation* create_tmp_relation(TinyRelation*, TinyRelation*);

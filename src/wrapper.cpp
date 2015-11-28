@@ -400,6 +400,25 @@ DataType TinyTuple::get_data_type(const string& name) const
     return get_tiny_schema().get_data_type(name);
 }
 
+DataValue TinyTuple::get_data_value(const string& name) const
+{
+    assert(_tuple != NULL);
+
+    DataType type = get_data_type(name);
+
+    DataValue res;
+
+    if (type == TINY_INT) {
+        Field value = _tuple->getField(name);
+        res = value.integer;
+    } else if (type == TINY_STR20) {
+        Field value = _tuple->getField(name);
+        res = *(value.str);
+    }
+
+    return res;
+}
+
 DataValue TinyTuple::get_value(const string& column_name) const
 {
     ColumnName cn(column_name);
@@ -806,10 +825,16 @@ RelIter::RelIter(const TinyRelation* r, size_t pos)
 bool RelIter::is_equal_to(const RelIter& rhs) const
 {
     assert(_relation == rhs._relation);
-    //assert(_mem_idx == rhs._mem_idx);
 
-    //bool res = _block == rhs._block && _pos == rhs._pos;
     bool res = _pos == rhs._pos;
+    return res;
+}
+
+bool RelIter::is_greater_than(const RelIter& rhs) const
+{
+    assert(_relation == rhs._relation);
+
+    bool res = _pos > rhs._pos;
     return res;
 }
 
@@ -891,15 +916,31 @@ string RelIter::dump_str() const
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-RelPartialScanner::RelPartialScanner(TinyRelation* r,
-    size_t mem_idx, const RelIter& it, const RelIter& it_end)
-: _relation(r)
-, _mem_idx(mem_idx)
-, _it(it)
-, _it_end(it_end)
+RelRange::RelRange(const RelIter& begin, const RelIter& end)
+: _begin(begin)
+, _end(end)
 {
-    ;
+    assert(_begin <= _end);
 }
+
+size_t RelRange::num_of_block() const
+{
+    size_t res = _end.get_block_idx() - _begin.get_block_idx() + 1;
+    return res;
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+//RelPartialScanner::RelPartialScanner(TinyRelation* r,
+//    size_t mem_idx, const RelIter& it, const RelIter& it_end)
+//: _relation(r)
+//, _mem_idx(mem_idx)
+//, _it(it)
+//, _it_end(it_end)
+//{
+//    ;
+//}
 
 
 //------------------------------------------------------------------------------
@@ -921,6 +962,28 @@ RelScanner::RelScanner(const TinyRelation* r, size_t base_idx, size_t mem_size)
     assert(_base_idx + _mem_size - 1 < HwMgr::ins()->get_mem_size());
 }
 
+RelScanner::RelScanner(const TinyRelation* r, const MemRange& range)
+: _relation(r)
+, _base_idx(range.get_base_idx())
+, _mem_size(range.size())
+, _m_iter(r, 0)
+, _m_iter_end(r, 0)
+, _iter(r->begin())
+, _iter_end(r->end())
+{
+    assert(_relation != NULL);
+    assert(_base_idx >= 0 && _base_idx < HwMgr::ins()->get_mem_size());
+    assert(_mem_size >= 1);
+    assert(_base_idx + _mem_size - 1 < HwMgr::ins()->get_mem_size());
+}
+
+void RelScanner::set_range(const RelRange& range)
+{
+    _iter = range.begin();
+    _iter_end = range.end();
+}
+        //void set_begin(const RelIter& it) { _iter = it; }
+        //void set_end(const RelIter& it) { _iter_end = it; }
 
 TinyTuple RelScanner::get_next()
 {
@@ -1701,6 +1764,49 @@ size_t TinyRelation::get_total_pos() const
 bool TinyRelation::next_is_new_block() const
 {
     return (size() + _space.size()) % tuple_per_block() == 0; 
+}
+
+//vector<pair<DataValue, pair<RelIter, RelIter>>> TinyRelation::get_sub_list_by_attr(
+vector<pair<DataValue, RelRange>> TinyRelation::get_sub_list_by_attr(
+    const string& attr, size_t mem_idx) const
+{
+    assert(!attr.empty());
+    assert(is_attr_exist(attr));
+
+    string search_name = get_attr_search_name(attr);
+
+    //vector<pair<DataValue, pair<RelIter, RelIter>>> res; 
+    vector<pair<DataValue, RelRange>> res; 
+
+    RelIter iter = begin();
+    RelIter iter_end = iter;;
+
+    size_t block_idx = iter.get_block_idx();
+    TinyTuple tuple = iter.load_to_mem(mem_idx);
+    DataValue old_value = tuple.get_data_value(search_name);;
+    while (iter != end()) {
+        if (block_idx == iter.get_block_idx()) {
+            tuple = iter.get_from_mem(mem_idx);
+        } else {
+            tuple = iter.load_to_mem(mem_idx);
+            block_idx = iter.get_block_idx();
+        }
+        DataValue value = tuple.get_data_value(search_name);
+
+        if (value != old_value) {
+            //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
+            res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
+            //cout << old_value.dump_str() << " " << iter_end.dump_str() << " "
+            //    << iter.dump_str() << endl;
+            old_value = value;
+            iter_end = iter;
+        }
+        ++iter;
+    }
+    res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
+    //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
+
+    return res;
 }
 
 void TinyRelation::print_table() const

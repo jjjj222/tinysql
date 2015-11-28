@@ -141,6 +141,10 @@ size_t HwMgr::get_block_size() const
     return FIELDS_PER_BLOCK;
 }
 
+MemRange HwMgr::get_mem_range() const
+{
+    return MemRange(0, get_mem_size());
+}
 //vector<Tuple> HwMgr::get_block_tuple(const Block& block) const
 //{
 //    return block.getTuples();

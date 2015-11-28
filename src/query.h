@@ -9,6 +9,7 @@ typedef struct tree_node tree_node_t;
 class DataValue;
 class TinyRelation;
 class TinyTuple;
+class RelScanner;
 //class TinySchema;
 
 //------------------------------------------------------------------------------
@@ -355,13 +356,15 @@ class CrossProductNode : public QueryNode
 
         virtual bool calculate_result();
 
-        string dump_str() const;
+        virtual string dump_str() const;
 
-        void split();
-        //void convert_to_natural(const vector<string>&);
+        void split(); // TODO: remove
+
+    public:
+        void do_cross_product(const RelScanner&, const RelScanner&, bool);        
 };
 
-class NaturalJoinNode : public QueryNode
+class NaturalJoinNode : public CrossProductNode
 {
     public:
         NaturalJoinNode(const vector<string>&);
@@ -370,6 +373,7 @@ class NaturalJoinNode : public QueryNode
         virtual bool calculate_result();
 
         string dump_str() const;
+
     private:
         vector<string>  _attr_list;
 };

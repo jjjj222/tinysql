@@ -62,6 +62,7 @@ class DataValue {
         DataValue(int);
 
         bool operator==(const DataValue& rhs) const { return is_equal_to(rhs); }
+        bool operator!=(const DataValue& rhs) const { return !is_equal_to(rhs); }
         bool operator>(const DataValue& rhs) const { return is_greater_than(rhs); }
         bool operator<(const DataValue& rhs) const { return is_less_than(rhs); }
         DataValue& operator+=(const DataValue& rhs) { return add(rhs); }
@@ -85,6 +86,8 @@ class DataValue {
         int get_int() const { return _integer; }
         string get_str() const { return _literal; }
 
+        //bool is_null() const;
+
         string dump_str() const;
 
     private:
@@ -102,5 +105,25 @@ class DataValue {
         string      _literal;
 };
 
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+class MemRange
+{
+    public:
+        MemRange();
+        MemRange(size_t base_idx, size_t size);
+
+        size_t get_base_idx() const { return _base_idx; }
+        size_t size() const { return _size; }
+        MemRange get_first_block() const;        
+        MemRange get_not_first_block() const;        
+
+        string dump_str() const;
+
+    private:
+        size_t  _base_idx;
+        size_t  _size;
+};
 
 #endif
