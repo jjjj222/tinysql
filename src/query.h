@@ -273,7 +273,9 @@ class QueryNode
 
         bool has_node(NodeType) const;
         QueryNode* get_node(NodeType);
-        string get_base_name() const;
+        QueryNode* get_node_by_base_table(const vector<string>&);
+        vector<string> get_base_table_name() const;
+        string get_base_name() const; // TODO
         //bool has_where() const;
 
         // debug
@@ -413,8 +415,10 @@ class QueryMgr
         void optimize_cross_product(QueryNode*);
         void optimize_where_with_cross_product(QueryNode*);
         void create_natural_join(const vector<string>&);
+        void insert_where(const string&, tree_node_t*);
         //void convert_to_natural(QueryNode*);
         //vector<tree_node_t*> separate_where_node_by_and(tree_node_t*);
+        vector<string> get_all_table(tree_node_t*) const;
 
     private:
         vector<pair<string, DataType>> get_attribute_type_list(tree_node_t*);

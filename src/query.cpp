@@ -26,7 +26,7 @@ using namespace jjjj222;
 #include "parser.h"
 #include "tiny_util.h"
 
-#define ENABLE_OPTIMIZE
+#define SHOW_OPTIMIZE
 
 //------------------------------------------------------------------------------
 //   
@@ -330,9 +330,12 @@ bool ConditionMgr::is_tuple_match(const Tuple& tuple)
 bool ConditionMgr::build_condition_node(tree_node_t* node)
 {
     assert(node != NULL);
-    assert(node_is_where(node));
+    //assert(node_is_where(node));
 
-    tree_node_t* child = node->child;
+    tree_node_t* child = node;
+    if(node_is_where(node)) {
+        child = node->child;
+    }
     assert(child != NULL);
 
     _root = build_condition_node_rec(child);
@@ -399,33 +402,33 @@ bool ConditionMgr::check_var_node(VarNode* node) const
     string column = node->get_column();
     ColumnName column_name(table, column);
 
-    string field_name;
+    string field_name = _tiny_relation->get_attr_search_name(column_name);;
 
-    if (table.empty()) {
-        if (_tiny_relation->is_with_prefix()) {
-            error_msg("ambiguous \'" + column + "\'");
-            return false;
-            //field_name = table + "." + column;
-            //field_name = column_name;
-            //field_name = column;
-        } else {
+    //if (table.empty()) {
+    //    if (_tiny_relation->is_with_prefix()) {
+    //        error_msg("ambiguous \'" + column + "\'");
+    //        return false;
+    //        //field_name = table + "." + column;
+    //        //field_name = column_name;
+    //        //field_name = column;
+    //    } else {
 
-            field_name = column;
-        }
-    } else { // !table.empty()
-        if (_tiny_relation->is_with_prefix()) {
-            //field_name = table + "." + column;
-            field_name = column_name;
-        } else {
-            if (table != _tiny_relation->get_base_name()) {
-                error_msg_not_exist("attribute", column_name);
-                return false;
-            }
+    //        field_name = column;
+    //    }
+    //} else { // !table.empty()
+    //    if (_tiny_relation->is_with_prefix()) {
+    //        //field_name = table + "." + column;
+    //        field_name = column_name;
+    //    } else {
+    //        if (table != _tiny_relation->get_base_name()) {
+    //            error_msg_not_exist("attribute", column_name);
+    //            return false;
+    //        }
 
-            field_name = column;
-        }
+    //        field_name = column;
+    //    }
 
-    }
+    //}
     //if (!table.empty() && _tiny_relation->get_name() != table) {
     //dump_normal(field_name);
 
@@ -821,9 +824,11 @@ bool QueryMgr::select_from(tree_node_t* node)
     if (_select_root == NULL)
         return false;
 
-#ifdef ENABLE_OPTIMIZE
+#ifdef SHOW_OPTIMIZE
     dump_pretty(_select_root);
+#endif
     optimize_select_tree();
+#ifdef SHOW_OPTIMIZE
     dump_pretty(_select_root);
 #endif
     //QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
@@ -837,7 +842,6 @@ bool QueryMgr::select_from(tree_node_t* node)
     return res;
 }
 
-//QueryNode* QueryMgr::optimize_select_tree(QueryNode* node)
 void QueryMgr::optimize_select_tree()
 {
     QueryNode* node = _select_root;
@@ -868,7 +872,7 @@ void QueryMgr::optimize_cross_product(QueryNode* node)
     CrossProductNode* cross_node = dynamic_cast<CrossProductNode*>(node);
     assert(cross_node != NULL);
 
-    cross_node->split();
+    cross_node->split(); // TODO
 }
 
 void QueryMgr::optimize_where_with_cross_product(QueryNode* node)
@@ -886,36 +890,33 @@ void QueryMgr::optimize_where_with_cross_product(QueryNode* node)
     //}
     //vector<tree_node_t*> single_table;
     for (const auto& and_equal : and_equal_list) {
-        tree_node_t* child_left = and_equal->child;
-        assert(child_left != NULL);
+        if (node_is_comp_op(and_equal)) {
+            string comp_type = and_equal->value;
+            if (comp_type == "=") {
+                tree_node_t* child_left = and_equal->child;
+                assert(child_left != NULL);
 
-        tree_node_t* child_right = child_left->next;
-        assert(child_right != NULL);
+                tree_node_t* child_right = child_left->next;
+                assert(child_right != NULL);
 
-        if (node_is_column_name(child_left) &&
-            node_is_column_name(child_right)
-        ) {
-            vector<string> attr_list;
-            attr_list.push_back(child_left->value);
-            attr_list.push_back(child_right->value);
-            create_natural_join(attr_list);
+                if (node_is_column_name(child_left) &&
+                    node_is_column_name(child_right)
+                ) {
+                    vector<string> attr_list;
+                    attr_list.push_back(child_left->value);
+                    attr_list.push_back(child_right->value);
+                    create_natural_join(attr_list);
+                    continue; // TODO
+                }
+            }
         }
-        //if (node_is_column_name(child)) {
-        //    if (node_is_column_name(child_right)) {
-        //        cout << "both" << endl;
-        //    } else {
-        //        //cout << "left" << endl;
-        //        single_table.push_back(and_equal);
-        //    }
-        //} else {
-        //    if (node_is_column_name(child_right)) {
-        //        //cout << "right" << endl;
-        //        single_table.push_back(and_equal);
-        //    } else {
 
-        //    }
-        //}
-        //dump_tree_node(and_equal);
+
+        vector<string> all_table = get_all_table(and_equal);
+        //dump_pretty(all_table);
+        if (all_table.size() == 1) {
+            insert_where(all_table[0], and_equal);
+        }
     }
 }
 
@@ -923,17 +924,11 @@ void QueryMgr::create_natural_join(const vector<string>& attr_list)
 {
     assert(attr_list.size() == 2);
 
-    //cout << "qq" << endl;
-    QueryNode* node = _select_root->get_node(QueryNode::CROSS_PRODUCT);
-    assert(node != NULL);
+    QueryNode* cross_node = _select_root->get_node(QueryNode::CROSS_PRODUCT);
+    if (cross_node == NULL)
+        return;
+    //assert(cross_node != NULL);
 
-    //CrossProductNode* cross_node = dynamic_cast<CrossProductNode*>(node);
-    QueryNode* cross_node = node;
-    assert(cross_node != NULL);
-
-    //cross_node->convert_to_natural(attr_list);
-
-    //dump_pretty(attr_list);
     vector<string> table_list;
     for (const string& attr : attr_list) {
         table_list.push_back( ColumnName(attr).get_table() );
@@ -942,11 +937,11 @@ void QueryMgr::create_natural_join(const vector<string>& attr_list)
     vector<QueryNode*> natural;
     const vector<QueryNode*>& childs = cross_node->get_childs();
     for (size_t i = 0; i < childs.size(); ++i) {
-        string base_name = childs[i]->get_base_name();
-        //dump_normal(base_name);
-        if (is_contain(table_list, base_name)) {
+        vector<string> base_table_name = childs[i]->get_base_table_name();
+        //string base_name = childs[i]->get_base_name();
+        //if (is_contain(table_list, base_name)) {
+        if (is_contain(table_list, base_table_name)) {
             natural.push_back(childs[i]);
-            //cout << "yes" << endl;
         }
     }
 
@@ -974,6 +969,44 @@ void QueryMgr::create_natural_join(const vector<string>& attr_list)
             cross_node->add_child(new_node);
         }
     }
+}
+
+void QueryMgr::insert_where(const string& table_name, tree_node_t* where_tree)
+{
+    assert(!table_name.empty());
+    assert(where_tree != NULL);
+
+    //dump_normal(table_name);
+
+    vector<string> tmp;
+    tmp.push_back(table_name);
+    QueryNode* node = _select_root->get_node_by_base_table(tmp);
+    assert(node != NULL); 
+
+    QueryNode* new_node = build_where(where_tree);
+    replace_all(node->_parent->_childs, node, new_node);
+    new_node->add_child(node);
+}
+
+vector<string> QueryMgr::get_all_table(tree_node_t* node) const
+{
+    assert(node != NULL);
+
+    vector<string> res;
+
+    if (node_is_column_name(node)) {
+        ColumnName cn(node->value);    
+        assert(!cn.get_table().empty());
+        add_into(res, cn.get_table());
+    }
+
+    tree_node_t* child = node->child;
+    while (child != NULL) {
+        add_into(res, get_all_table(child));
+        child = child->next;
+    }
+
+    return res;
 }
 
 bool QueryMgr::build_select_tree(tree_node_t* node)
@@ -1294,6 +1327,38 @@ QueryNode* QueryNode::get_node(NodeType type)
     }
 
     return NULL;
+}
+
+QueryNode* QueryNode::get_node_by_base_table(const vector<string>& table_list)
+{
+    vector<string> sorted_table = table_list;
+    std::sort(sorted_table.begin(), sorted_table.end());
+    if (get_base_table_name() == sorted_table) {
+        return this;
+    }
+
+    for (const auto& child_ptr : _childs) {
+        QueryNode* tmp = child_ptr->get_node_by_base_table(table_list);
+        if (tmp != NULL)
+            return tmp;
+    }
+
+    return NULL;
+}
+
+vector<string> QueryNode::get_base_table_name() const // TODO: store
+{
+    vector<string> res;
+    if (_relation != NULL) {
+        res.push_back(_relation->get_name());
+    }
+
+    for (const auto& child_ptr : _childs) {
+        add_into(res, child_ptr->get_base_table_name());
+    }
+
+    std::sort(res.begin(), res.end());
+    return res;
 }
 
 string QueryNode::get_base_name() const
@@ -1654,12 +1719,13 @@ vector<tree_node_t*> WhereNode::split_and_equal() const
     }
 
     while (child != NULL) {
-        if (node_is_comp_op(child)) {
-            string comp_type = child->value;
-            if (comp_type == "=") {
-                res.push_back(child);
-            } 
-        }
+        //if (node_is_comp_op(child)) {
+        //    string comp_type = child->value;
+        //    if (comp_type == "=") {
+        //        res.push_back(child);
+        //    } 
+        //}
+        res.push_back(child);
         //ConditionNode* tmp = build_condition_node_rec(child);
         //new_node->add_child(tmp);
         child = child->next;
