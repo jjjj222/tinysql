@@ -26,7 +26,7 @@ using namespace jjjj222;
 #include "parser.h"
 #include "tiny_util.h"
 
-#define SHOW_OPTIMIZE
+//#define SHOW_OPTIMIZE
 
 //------------------------------------------------------------------------------
 //   
