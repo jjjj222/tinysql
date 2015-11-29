@@ -1696,10 +1696,14 @@ vector<pair<string, DataType>> TinyRelation::get_attr_type_list() const
 
 vector<pair<string, DataType>> TinyRelation::get_attr_type_list_with_name() const
 {
+    if (is_with_prefix()) {
+        return get_attr_type_list();
+    }
+
     //vector<pair<string, DataType>> attr_list = get_tiny_schema().get_attr_type_list();
     vector<pair<string, DataType>> attr_list = get_attr_type_list();
     vector<pair<string, DataType>> res;
-    string relation_base_name = get_base_name();
+    string relation_base_name = get_base_name(); // TODO
     for (const auto& name_type : attr_list) {
         const string& name = name_type.first;
         res.push_back( make_pair(relation_base_name + "." + name, name_type.second) );

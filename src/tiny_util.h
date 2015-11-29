@@ -12,9 +12,15 @@ using namespace jjjj222;
 
 #include "enum.h"
 
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+void error_msg_table_not_exist(const string& name);
 string get_literal_value(const string&);
-//DataType get_data_type(FIELD_TYPE);
 
+//------------------------------------------------------------------------------
+//   dump
+//------------------------------------------------------------------------------
 template<typename T>
 string tiny_dump_str(const T& data)
 {
@@ -26,8 +32,9 @@ string tiny_dump_str(const T& data, const D& data2)
 {
     return jjjj222::dump_str(data, data2);
 }
+
 //------------------------------------------------------------------------------
-//   
+//   ColumnName
 //------------------------------------------------------------------------------
 class ColumnName
 {
@@ -51,7 +58,7 @@ class ColumnName
 
 
 //------------------------------------------------------------------------------
-//   
+//   DataValue
 //------------------------------------------------------------------------------
 
 class DataValue {
@@ -61,6 +68,7 @@ class DataValue {
         DataValue(const string&);
         DataValue(int);
 
+        // operator
         bool operator==(const DataValue& rhs) const { return is_equal_to(rhs); }
         bool operator!=(const DataValue& rhs) const { return !is_equal_to(rhs); }
         bool operator>(const DataValue& rhs) const { return is_greater_than(rhs); }
@@ -82,12 +90,12 @@ class DataValue {
             lhs /= rhs; return lhs;
         }
 
+        // get
         DataType get_type() const { return _type; }
         int get_int() const { return _integer; }
         string get_str() const { return _literal; }
 
-        //bool is_null() const;
-
+        // debug
         string dump_str() const;
 
     private:
@@ -106,7 +114,7 @@ class DataValue {
 };
 
 //------------------------------------------------------------------------------
-//   
+//   MemRange
 //------------------------------------------------------------------------------
 class MemRange
 {
@@ -114,11 +122,13 @@ class MemRange
         MemRange();
         MemRange(size_t base_idx, size_t size);
 
+        // get
         size_t get_base_idx() const { return _base_idx; }
         size_t size() const { return _size; }
         MemRange get_first_block() const;        
         MemRange get_not_first_block() const;        
 
+        // debug
         string dump_str() const;
 
     private:

@@ -10,39 +10,11 @@ class DataValue;
 class TinyRelation;
 class TinyTuple;
 class RelScanner;
-//class TinySchema;
+class ColumnName;
+class ConditionMgr;
 
 //------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-//class TableInfo
-//{
-//    public:
-//        TableInfo(const string&);
-//        ~TableInfo();
-//
-//        //
-//        void set_is_tmp() { _is_tmp = true; }
-//        //void set_is_in_disk() { _is_in_disk = true; }
-//
-//        //
-//        const string& get_name() const { return _name; }
-//
-//        //
-//        void print_table() const;
-//
-//        //
-//        void dump() const;
-//        string dump_str() const;
-//
-//    private:
-//        string  _name;
-//        //bool    _is_in_disk;
-//        bool    _is_tmp;
-//};
-
-//------------------------------------------------------------------------------
-//   
+//   ConditionNode
 //------------------------------------------------------------------------------
 class ConditionNode
 {
@@ -151,9 +123,9 @@ class DivNode : public ArithNode
 class VarNode : public ConditionNode
 {
     public:
-        VarNode(const string&, const string&);
+        //VarNode(const ConditionMgr*, const string&, const string&);
+        VarNode(const ConditionMgr*, const ColumnName&);
 
-        //NodeType get_type() const { return VAR; }
         DataValue get_value(const TinyTuple&) const;
         const string& get_table() const { return _table; }
         const string& get_column() const { return _column; }
@@ -161,8 +133,9 @@ class VarNode : public ConditionNode
         string dump_str() const;
 
     private:
-        string _table;
-        string _column;
+        const ConditionMgr*     _cond_mgr;
+        string                  _table;
+        string                  _column;
 };
 
 class LiteralNode : public ConditionNode
@@ -170,7 +143,7 @@ class LiteralNode : public ConditionNode
     public:
         LiteralNode(const string&);
 
-        //NodeType get_type() const { return LITERAL; }
+        // get
         DataValue get_value(const TinyTuple&) const;
 
         // debug
@@ -185,7 +158,7 @@ class IntegerNode : public ConditionNode
     public:
         IntegerNode(int);
 
-        //NodeType get_type() const { return INTEGER; }
+        // get
         DataValue get_value(const TinyTuple&) const;
 
         // debug
@@ -195,16 +168,20 @@ class IntegerNode : public ConditionNode
         int _value;
 };
 
+//------------------------------------------------------------------------------
+//   ConditionMgr
+//------------------------------------------------------------------------------
 class ConditionMgr
 {
     public:
         ConditionMgr(tree_node_t*, TinyRelation* relation);
-        //ConditionMgr(tree_node_t*); // debug only
         ~ConditionMgr();
 
         bool is_error() const { return _error; }
         bool is_tuple_match(const Tuple&);
+        TinyRelation* get_tiny_relation() const { return _tiny_relation; }
 
+        // debug
         void dump() const;
 
     private:

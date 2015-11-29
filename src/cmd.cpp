@@ -10,12 +10,11 @@ using namespace std;
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include "tiny_util.h"
 #include "util.h"
 #include "debug.h"
 #include "obj_util.h"
 
-using jjjj222::dump_str;
-using jjjj222::dump_pretty_impl;
 using jjjj222::UpdateTo;
 using jjjj222::tokenize;
 using jjjj222::error_msg;
@@ -79,6 +78,9 @@ CmdState cmd_process(const char* buf)
             cmd_unknown_error("command", tokens[1]);
             state =  CMD_ERROR;
         }
+    } else if (tokens[0] == "quit") {
+        state =  CMD_QUIT;
+        cout << "Bye" << endl;
     } else {
         QueryMgr query_mgr;
         if (!query_mgr.exec_query(buf))
@@ -137,15 +139,6 @@ CmdState cmd_readfile(const char* file_name)
 }
 
 //------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-//bool cmd_match_1(const vector<string>&, const string&)
-//{
-//}
-//
-//bool cmd_match_2(const vector<string>&, const string&, const string&);
-
-//------------------------------------------------------------------------------
 //   error
 //------------------------------------------------------------------------------
 void cmd_unknown_error(const string& type, const string& str)
@@ -170,9 +163,9 @@ void cmd_missing_error(const string& str)
 void cmd_error_file_lineno(const string& str)
 {
     error_msg(
-        dump_str(parser_file_name) +
+        tiny_dump_str(parser_file_name) +
         ":" +
-        dump_str(parser_file_lineno) +
+        tiny_dump_str(parser_file_lineno) +
         ": " +
         str
     );

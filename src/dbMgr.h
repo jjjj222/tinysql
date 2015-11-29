@@ -21,7 +21,6 @@ class Schema;
 class Relation;
 class Tuple;
 class Block;
-//enum FIELD_TYPE;
 
 class TinySchema;
 class TinyRelation;
@@ -55,34 +54,27 @@ class HwMgr
     public:
         ~HwMgr();
 
-        //Block* get_mem_block(size_t);
+        // get
         TinyBlock get_mem_block(size_t);
-        //TinyBlock get_tiny_block(size_t);
         size_t get_mem_size() const;
         size_t get_block_size() const;
         MemRange get_mem_range() const;
-        //vector<Tuple> get_block_tuple(const Block&) const;
-        TinyRelation* get_tiny_relation(const string& name) const;
-        TinyRelation* create_tmp_relation(TinyRelation*, TinyRelation*);
-        //TinyRelation* create_tmp_relation(const string&, TinyRelation*);
-        TinyRelation* create_relation(const string& name, const TinySchema&);
 
-        //
+        TinyRelation* get_tiny_relation(const string& name) const;
+        TinyRelation* create_relation(const string& name, const TinySchema&);
+        TinyRelation* create_tmp_relation(TinyRelation*, TinyRelation*); // TODO
+
+        // do
         bool create_table(const string&, const vector<pair<string, DataType>>&);
         bool drop_table(const string&);
         bool insert_into(const string&, const vector<pair<string, string>>&);
         bool delete_from(const string&, tree_node_t* where_node);
-
         
         // debug
         void dump();
         void dump_memory() const;
         void dump_relations() const;
-        //void dump_schema(const Schema&) const;
-        //void dump_relation(const Relation&) const;
         void dump_relation(const string&) const;
-        void dump_tuple(const Tuple&) const;
-        void dump_block(const Block&) const;
 
     public:
         static HwMgr* ins();
@@ -91,15 +83,8 @@ class HwMgr
         HwMgr();
         void init();
 
-        bool is_table_exist(const string&) const;
-        //Relation* create_relation(const string& name, const Schema&);
-        //TinyRelation* create_relation(const string& name, const Schema&);
-        //Tuple create_tuple(const Relation&); // TODO
-
+        //bool is_table_exist(const string&) const;
         Relation* get_relation(const string& name) const;
-        //bool delete_relation(const string& name) const;
-
-        bool assert_relations() const;
 
     private:
         static HwMgr*   _ins;
@@ -112,10 +97,5 @@ class HwMgr
         Disk*                   _disk;
         SchemaManager*          _schema_mgr;
 };
-
-//------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-void error_msg_table_not_exist(const string& name);
 
 #endif

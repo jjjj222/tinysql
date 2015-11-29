@@ -26,80 +26,6 @@ using namespace jjjj222;
 #include "parser.h"
 #include "tiny_util.h"
 
-//#define SHOW_OPTIMIZE
-
-//------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-//TableInfo::TableInfo(const string& name)
-//: _name(name)
-////, _is_in_disk(false)
-//, _is_tmp(false)
-//{
-//    ;
-//}
-//
-//TableInfo::~TableInfo()
-//{
-//    if (_is_tmp) {
-//        HwMgr::ins()->drop_table(_name);
-//    }
-//}
-//
-//void TableInfo::print_table() const
-//{
-//    TinyRelation* relation = HwMgr::ins()->get_tiny_relation(_name);
-//    assert(relation != NULL);
-//
-//    relation->print_table();
-//    //DrawTable table(relation->get_num_of_attribute(), DrawTable::MYSQL_TABLE);
-//    //vector<DataType> type_list = relation->get_type_list();
-//    //for (size_t i = 0; i < type_list.size(); ++i) {
-//    //    if (type_list[i] == TINY_INT) {
-//    //        table.set_align_right(i);
-//    //    }
-//    //}
-//
-//    //table.set_header(relation->get_attr_list());
-//
-//    //size_t mem_index = 0;
-//    //size_t num_of_block = relation->get_num_of_block();
-//    ////dump_normal(num_of_block);
-//    //for (size_t i = 0; i < num_of_block; ++i) {
-//    //    relation->load_block_to_mem(i, mem_index);
-//    //    //_relation->getBlock(i, mem_index);
-//    //    //Block* block = HwMgr::ins()->get_mem_block(mem_index);
-//    //    TinyBlock block = HwMgr::ins()->get_mem_block(mem_index);
-//    //    //vector<Tuple> tuples = block->getTuples();
-//    //    vector<Tuple> tuples = block.get_tuples();
-//    //    for (const auto& tuple : tuples) {
-//    //        //dump_normal(TinyTuple(tuple));
-//    //        if (!tuple.isNull())
-//    //            table.add_row(TinyTuple(tuple).str_list());
-//    //    }
-//    //}
-//
-//    //if (table.size() == 0) {
-//    //    cout << "Empty set" << endl;
-//    //} else {
-//    //    table.draw();
-//    //    cout << table.size() << " ";
-//    //    cout << ((table.size() == 1) ? "row" : "rows");
-//    //    cout << " in set";
-//    //    cout << endl;
-//    //}
-//}
-//
-//void TableInfo::dump() const
-//{
-//    cout << dump_str() << endl;
-//}
-//
-//string TableInfo::dump_str() const
-//{
-//    return _name;
-//}
-
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -200,9 +126,11 @@ bool LtNode::comp_op(const DataValue& lhs, const DataValue& rhs) const
     return lhs < rhs;
 }
 
-VarNode::VarNode(const string& table, const string& column)
-: _table(table)
-, _column(column)
+//VarNode::VarNode(const ConditionMgr* c, const string& table, const string& column)
+VarNode::VarNode(const ConditionMgr* c, const ColumnName& column_name)
+: _cond_mgr(c)
+, _table(column_name.get_table())
+, _column(column_name.get_column())
 {
     ;
 }
@@ -210,7 +138,10 @@ VarNode::VarNode(const string& table, const string& column)
 DataValue VarNode::get_value(const TinyTuple& tuple) const
 {
     ColumnName column_name(_table, _column);
-    return tuple.get_value(column_name.get_column_name());
+    string search_name = _cond_mgr->get_tiny_relation()->get_attr_search_name(column_name);
+
+    //return tuple.get_value(column_name.get_column_name());
+    return tuple.get_data_value(search_name);
 }
 
 string VarNode::dump_str() const
@@ -232,17 +163,13 @@ DataValue ArithNode::get_value(const TinyTuple& tuple) const
     const vector<ConditionNode*>& childs = get_childs();
     assert(childs.size() >= 2);
 
-    //DataValue l_v = childs[0]->get_value(tiny_tuple);
-    //DataValue r_v = childs[1]->get_value(tiny_tuple);
-    DataValue tmp = childs[0]->get_value(tuple);
+    DataValue res = childs[0]->get_value(tuple);
     for (size_t i = 1; i < childs.size(); ++i) {
         ConditionNode* child_ptr = childs[i];
-        tmp = arith_op(tmp, child_ptr->get_value(tuple));
+        res = arith_op(res, child_ptr->get_value(tuple));
     }
 
-    //bool res = comp_op(l_v, r_v);
-    //return res;
-    return tmp;
+    return res;
 }
 
 
@@ -585,14 +512,9 @@ ConditionNode* ConditionMgr::build_var_node(tree_node_t* node)
     assert(node != NULL);
     assert(node_is_name(node) || node_is_column_name(node));
 
-    //string var_name;
-    //string table_name;
-    //if (node_is_column_name(node)) {
-    //pair<string, string> table_var = get_column_name_value(node->value);
     ColumnName column_name(node->value);
-    //dump_normal(table_var);
-    //ConditionNode* new_node = new VarNode(table_var.first, table_var.second);
-    ConditionNode* new_node = new VarNode(column_name.get_table(), column_name.get_column());
+    //ConditionNode* new_node = new VarNode(this, column_name.get_table(), column_name.get_column());
+    ConditionNode* new_node = new VarNode(this, column_name);
 
     return new_node;
 }
