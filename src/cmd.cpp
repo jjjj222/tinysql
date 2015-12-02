@@ -56,7 +56,8 @@ CmdState cmd_process(const char* buf)
             cmd_missing_error("command");
             state =  CMD_ERROR;
         } else if (tokens[1] == "tables"){
-            HwMgr::ins()->dump_relations();
+            //HwMgr::ins()->dump_relations();
+            HwMgr::ins()->print_tables();
         } else {
             cmd_unknown_error("command", tokens[1]);
             state =  CMD_ERROR;

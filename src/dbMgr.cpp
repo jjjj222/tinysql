@@ -315,6 +315,39 @@ size_t HwMgr::get_elapse_io()
     return res;
 }
 
+void HwMgr::print_tables()
+{
+    DrawTable table(1, DrawTable::MYSQL_TABLE);
+    //table.set_align_right(i);
+    //vector<DataType> type_list = get_type_list();
+    //for (size_t i = 0; i < type_list.size(); ++i) {
+    //    if (type_list[i] == TINY_INT) {
+    //        table.set_align_right(i);
+    //    }
+    //}
+
+    vector<string> header;
+    header.push_back("Tables_in_tinysql");
+    table.set_header(header);
+
+    for (const auto& relation_ptr : _relations) {
+        vector<string> row;
+        row.push_back(relation_ptr->get_name());
+        table.add_row(row);
+    }
+    
+    if (table.size() == 0) {
+        cout << "Empty set";
+    } else {
+        table.draw();
+        cout << table.size() << " ";
+        cout << ((table.size() == 1) ? "row" : "rows");
+        cout << " in set";
+    }
+
+    cout << " (" << get_elapse_io() << " disk I/O)"<< endl;
+}
+
 void HwMgr::print_time() const
 {
     cout << "Calculated elapse time = " << _disk->getDiskTimer() << " ms" << endl;

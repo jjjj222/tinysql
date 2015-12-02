@@ -72,6 +72,7 @@ class HwMgr
         bool delete_from(const string&, tree_node_t* where_node);
 
         //
+        void print_tables();
         void print_time() const;
         
         // debug
