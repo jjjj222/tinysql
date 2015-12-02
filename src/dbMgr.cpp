@@ -56,7 +56,8 @@ void SqlParser::dump() const
 HwMgr* HwMgr::_ins = NULL;
 
 HwMgr::HwMgr() 
-: _mem(NULL)
+: _disk_io(0)
+, _mem(NULL)
 , _disk(NULL)
 , _schema_mgr(NULL)
 {
@@ -301,6 +302,23 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
 Relation* HwMgr::get_relation(const string& name) const
 {
     return _schema_mgr->getRelation(name);
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
+size_t HwMgr::get_elapse_io()
+{
+    size_t current_io = _disk->getDiskIOs();
+    size_t res = current_io - _disk_io;
+    _disk_io = current_io;
+    return res;
+}
+
+void HwMgr::print_time() const
+{
+    cout << "Calculated elapse time = " << _disk->getDiskTimer() << " ms" << endl;
+    cout << "Calculated Disk I/Os = " << _disk->getDiskIOs() << endl;
 }
 
 //------------------------------------------------------------------------------

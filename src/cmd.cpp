@@ -65,6 +65,8 @@ CmdState cmd_process(const char* buf)
         if (tokens.size() < 2) {
             cmd_missing_error("command");
             state =  CMD_ERROR;
+        } else if (tokens[1] == "time"){
+            HwMgr::ins()->print_time();
         } else if (tokens[1] == "memory"){
             HwMgr::ins()->dump_memory();
         } else if (tokens[1] == "relation"){
@@ -83,8 +85,13 @@ CmdState cmd_process(const char* buf)
         cout << "Bye" << endl;
     } else {
         QueryMgr query_mgr;
-        if (!query_mgr.exec_query(buf))
+        if (!query_mgr.exec_query(buf)) {
             state = CMD_ERROR;
+        } else {
+            //if (cmd_is_not_comment(buf)) {
+            //    cout << "Query OK ("<< HwMgr::ins()->get_elapse_io() << " disk I/O)"<< endl;
+            //}
+        }
     }
 
     if (cmd_is_not_comment(buf)) {

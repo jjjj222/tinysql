@@ -59,6 +59,7 @@ class HwMgr
         size_t get_mem_size() const;
         size_t get_block_size() const;
         MemRange get_mem_range() const;
+        size_t get_elapse_io();
 
         TinyRelation* get_tiny_relation(const string& name) const;
         TinyRelation* create_relation(const string& name, const TinySchema&);
@@ -69,6 +70,9 @@ class HwMgr
         bool drop_table(const string&);
         bool insert_into(const string&, const vector<pair<string, string>>&);
         bool delete_from(const string&, tree_node_t* where_node);
+
+        //
+        void print_time() const;
         
         // debug
         void dump();
@@ -91,6 +95,7 @@ class HwMgr
 
     private:
         vector<TinyRelation*>   _relations;
+        size_t                  _disk_io;
 
     private:
         MainMemory*             _mem;

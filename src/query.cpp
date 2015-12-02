@@ -602,6 +602,11 @@ bool QueryMgr::exec_query(const string& query)
     return !error;
 } 
 
+void QueryMgr::print_elapse_io() const
+{
+    cout << "Query OK ("<< HwMgr::ins()->get_elapse_io() << " disk I/O)"<< endl;
+}
+
 bool QueryMgr::create_table(tree_node_t* node)
 {
     assert(node != NULL);
@@ -619,6 +624,9 @@ bool QueryMgr::create_table(tree_node_t* node)
 
     //return true;
     bool res = HwMgr::ins()->create_table(name, attr_list);
+    if (res) {
+        print_elapse_io();
+    }
     return res;
 }
 
@@ -634,6 +642,9 @@ bool QueryMgr::drop_table(tree_node_t* node)
 
     
     bool res = HwMgr::ins()->drop_table(name_node->value);
+    if (res) {
+        print_elapse_io();
+    }
     return res;
 }
 
@@ -658,6 +669,9 @@ bool QueryMgr::insert_into(tree_node_t* node)
     if (node_is_select(tuples_node)) {
         //cout << "TODO: SELECT in INSERT" << endl; // TODO
         bool res = insert_into_from_select(table_name, name_list, tuples_node);
+        if (res) {
+            print_elapse_io();
+        }
         return res;
     }   
 
@@ -679,6 +693,9 @@ bool QueryMgr::insert_into(tree_node_t* node)
     vector<pair<string, string>> data = vector_make_pair(name_list, value_list);
     //dump_pretty(data);
     bool res = HwMgr::ins()->insert_into(table_name, data);
+    if (res) {
+        print_elapse_io();
+    }
     return res;
 }
 
@@ -728,6 +745,9 @@ bool QueryMgr::delete_from(tree_node_t* node)
     tree_node_t* where_node = name_node->next;
 
     bool res = HwMgr::ins()->delete_from(name, where_node);
+    if (res) {
+        print_elapse_io();
+    }
     return res;
 }
 
@@ -1539,7 +1559,8 @@ bool ProjectNode::calculate_result()
         for (const auto& attr_type : new_attr_type_list) {
             const string& name = attr_type.first;
             const string search_name = relation->get_attr_search_name(name);
-            new_tuple.set_value(name, tuple.get_value(search_name));
+            //new_tuple.set_value(name, tuple.get_value(search_name));
+            new_tuple.set_value(name, tuple.get_data_value(search_name));
         }
         new_relation->push_back(new_tuple);
     }

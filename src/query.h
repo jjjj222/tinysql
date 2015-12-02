@@ -376,6 +376,8 @@ class QueryMgr
         bool delete_from(tree_node_t*);
         bool select_from(tree_node_t*);
 
+        void print_elapse_io() const;
+
     private:
         bool insert_into_from_select(const string&, const vector<string>&, tree_node_t*);
 

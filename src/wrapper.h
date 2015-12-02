@@ -94,8 +94,8 @@ class TinyTuple
         size_t size() const;
         TinySchema get_tiny_schema() const;
         DataType get_data_type(const string&) const;
-        DataValue get_value(const string&) const; // TODO: get_data_value
-        DataValue get_data_value(const string&) const; // TODO: get_data_value
+        //DataValue get_value(const string&) const; // TODO: get_data_value
+        DataValue get_data_value(const string&) const;
 
         vector<string> get_attr_list() const;
         vector<DataType> get_type_list() const;
@@ -112,7 +112,7 @@ class TinyTuple
         // debug
         void dump() const;
         string dump_str() const; // TODO
-        vector<string> dump_str_list() const; // TODO: remove
+        //vector<string> dump_str_list() const; // TODO: remove
 
     private:
         void assign(const TinyTuple&);

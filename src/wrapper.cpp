@@ -419,31 +419,31 @@ DataValue TinyTuple::get_data_value(const string& name) const
     return res;
 }
 
-DataValue TinyTuple::get_value(const string& column_name) const
-{
-    ColumnName cn(column_name);
-
-    vector<pair<string, DataType>> name_type_list = get_attr_type_list();
-    for (const auto& name_type : name_type_list) {
-        const auto& name = name_type.first;
-        const auto& type = name_type.second;
-
-        if (name == cn.get_column() || name == cn.get_column_name()) {
-            Field value = _tuple->getField(name);
-            //if (type == INT) {
-            if (type == TINY_INT) {
-                return DataValue(value.integer);
-            } else {
-                //assert(type == STR20);
-                assert(type == TINY_STR20);
-
-                return DataValue(*(value.str));
-            }
-        }
-    }
-
-    return DataValue();
-}
+//DataValue TinyTuple::get_value(const string& column_name) const
+//{
+//    ColumnName cn(column_name);
+//
+//    vector<pair<string, DataType>> name_type_list = get_attr_type_list();
+//    for (const auto& name_type : name_type_list) {
+//        const auto& name = name_type.first;
+//        const auto& type = name_type.second;
+//
+//        if (name == cn.get_column() || name == cn.get_column_name()) {
+//            Field value = _tuple->getField(name);
+//            //if (type == INT) {
+//            if (type == TINY_INT) {
+//                return DataValue(value.integer);
+//            } else {
+//                //assert(type == STR20);
+//                assert(type == TINY_STR20);
+//
+//                return DataValue(*(value.str));
+//            }
+//        }
+//    }
+//
+//    return DataValue();
+//}
 
 vector<pair<string, DataType>> TinyTuple::get_attr_type_list() const
 {
@@ -537,8 +537,10 @@ bool TinyTuple::is_equal_to(const TinyTuple& rhs) const
 bool TinyTuple::is_less_than_by_attr(const TinyTuple& rhs, const vector<string>& attr_list) const
 {
     for (const string& attr : attr_list) {
-        DataValue value = get_value(attr);
-        DataValue rhs_value = rhs.get_value(attr);
+        //DataValue value = get_value(attr);
+        DataValue value = get_data_value(attr);
+        //DataValue rhs_value = rhs.get_value(attr);
+        DataValue rhs_value = rhs.get_data_value(attr);
 
         if (value < rhs_value) {
             return true;
@@ -610,10 +612,10 @@ void TinyTuple::dump() const
   //union Field getField(int offset) const; // returns INT_MIN if out of bound
 }
 
-vector<string> TinyTuple::dump_str_list() const
-{
-    return get_str_list();
-}
+//vector<string> TinyTuple::dump_str_list() const
+//{
+//    return get_str_list();
+//}
 
 //------------------------------------------------------------------------------
 //   
@@ -721,7 +723,8 @@ vector<string> TinyBlock::dump_str_list() const
                 res.push_back(""); 
             }
         } else {
-            const vector<string> str_list = tuple.dump_str_list();
+            //const vector<string> str_list = tuple.dump_str_list();
+            const vector<string> str_list = tuple.get_str_list();
             count += str_list.size();
             add_into(res, str_list); 
         }
@@ -1785,7 +1788,10 @@ vector<pair<DataValue, RelRange>> TinyRelation::get_sub_list_by_attr(
     vector<pair<DataValue, RelRange>> res; 
 
     RelIter iter = begin();
-    RelIter iter_end = iter;;
+    RelIter iter_end = iter;
+    if (iter == end()) {
+        return res;
+    }
 
     size_t block_idx = iter.get_block_idx();
     TinyTuple tuple = iter.load_to_mem(mem_idx);
@@ -1809,6 +1815,7 @@ vector<pair<DataValue, RelRange>> TinyRelation::get_sub_list_by_attr(
         }
         ++iter;
     }
+
     res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
     //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
 
@@ -1854,14 +1861,15 @@ void TinyRelation::print_table() const
     //}
 
     if (table.size() == 0) {
-        cout << "Empty set" << endl;
+        cout << "Empty set";
     } else {
         table.draw();
         cout << table.size() << " ";
         cout << ((table.size() == 1) ? "row" : "rows");
         cout << " in set";
-        cout << endl;
     }
+
+    cout << " (" << HwMgr::ins()->get_elapse_io() << " disk I/O)"<< endl;
 }
 
 void TinyRelation::dump() const
