@@ -354,7 +354,9 @@ void HwMgr::print_tables()
         cout << " in set";
     }
 
-    cout << " (" << get_elapse_io() << " disk I/O)"<< endl;
+    //cout << " (" << get_elapse_io() << " disk I/O)"<< endl;
+    cout << " (" << get_elapse_io() << " disk I/O), ";
+    cout << get_elapse_time() << " ms)"<< endl;
 }
 
 void HwMgr::print_time() const

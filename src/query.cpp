@@ -722,16 +722,25 @@ bool QueryMgr::insert_into_from_select(const string& table_name, const vector<st
     if (_select_root == NULL) // TODO: remove
         return false;
 
+    optimize_select_tree();
+
     TinyRelation* from_relation = _select_root->get_or_create_relation(); // TODO
     if (from_relation == NULL)
         return false;
 
-    RelScanner scanner(from_relation, 1, 1);
-    while(!scanner.is_end()) {
-        TinyTuple tuple = scanner.get_next();
-        assert(!tuple.is_null());
+    if (from_relation->is_pipe_queue()) {
+        const vector<TinyTuple>& pipe_tuples = from_relation->get_pipe_queue();
+        for (const auto& tuple : pipe_tuples) {
+            to_relation->push_back(tuple);
+        }
+    } else {
+        RelScanner scanner(from_relation, 1, 1);
+        while(!scanner.is_end()) {
+            TinyTuple tuple = scanner.get_next();
+            assert(!tuple.is_null());
 
-        to_relation->push_back(tuple);
+            to_relation->push_back(tuple);
+        }
     }
     
     return true;
@@ -1424,9 +1433,11 @@ bool DistinctNode::calculate_result()
         size_t total_size = HwMgr::ins()->get_mem_size() - 1;
         size_t base_index = 1;
         size_t mem_size = total_size;
-        RelSorter sorter(relation, base_index, mem_size);
+        RelSorter sorter(relation, base_index, mem_size); // TODO
         sorter.sort();
     }
+
+    //cout << "io: " << HwMgr::ins()->get_elapse_io() << endl;
 
     string new_table_name = "distinct " + relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(

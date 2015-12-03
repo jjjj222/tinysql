@@ -1254,8 +1254,6 @@ RelSorter::RelSorter(TinyRelation* r, size_t base_idx, size_t mem_size)
 : _relation(r)
 , _base_idx(base_idx)
 , _mem_size(mem_size)
-//, _sorted_relation(NULL)
-//, _scanner_list(NULL)
 {
     assert(_relation != NULL);
     assert(_base_idx >= 0 && _base_idx < HwMgr::ins()->get_mem_size());
@@ -1263,13 +1261,13 @@ RelSorter::RelSorter(TinyRelation* r, size_t base_idx, size_t mem_size)
     assert(_base_idx + _mem_size - 1 < HwMgr::ins()->get_mem_size());
 }
 
-RelSorter::~RelSorter()
-{
-    //delete_not_null(_scanner_list);
-    //if (_sorted_relation != NULL) {
-    //    HwMgr::ins()->drop_table(_sorted_relation->get_name());
-    //}
-}
+//RelSorter::~RelSorter()
+//{
+//    //delete_not_null(_scanner_list);
+//    //if (_sorted_relation != NULL) {
+//    //    HwMgr::ins()->drop_table(_sorted_relation->get_name());
+//    //}
+//}
 
 void RelSorter::sort(const string& attr)
 {
@@ -1280,19 +1278,19 @@ void RelSorter::sort(const string& attr)
     sort();
 }
 
-//bool RelSorter::sort()
 void RelSorter::sort()
 {
+    //if (_relation->get_num_of_block() <= _mem_size) {
+
+    //}
     //assert(_sub_list.empty());
     //assert(_sorted_relation == NULL);
 
     string new_table_name = "tmp " + _relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
         new_table_name, _relation->get_tiny_schema());
-    
-    //_relation->dump();
-    //dump_normal(new_relation->end());
-    //RelIter it = new_relation->end();
+
+
     RelScanner scanner(_relation, _base_idx, _mem_size);
     RelIter it = new_relation->end();
     vector<pair<RelIter, RelIter>> sub_list;
@@ -1300,67 +1298,24 @@ void RelSorter::sort()
         scanner.load_to_mem();
         scanner.sort(_attr_list);
         scanner.add_mem_into(*new_relation);
-        //scanner.dump();
-        //cout << endl;
 
         RelIter it_end = new_relation->end();
         sub_list.push_back(make_pair(it, it_end));
         it = it_end;
     }
-    //new_relation->dump();
-    //dump_pretty(_sub_list);
-    //scanner.load_to_mem();
-    //scanner.sort(_attr);
-    //scanner.dump();
-    //HwMgr::ins()->dump_memory();
-    //_relation->clear();
-    //if (_mem_size < sub_list.size()) {
-    //    cout << "error" << endl;
-    //}
+
+    //cout << "io: " << HwMgr::ins()->get_elapse_io() << endl;
 
     while (_mem_size < sub_list.size()) {
         new_relation = reduce_sub_list(new_relation, sub_list);
     }
 
-    //_relation->dump();
-    //new_relation->dump();
-    //dump_pretty(sub_list);
-    
-    //_sorted_relation = new_relation;
-
-    //assert(_scanner_list == NULL);
-    //if (_scanner_list == NULL) {
-        //scanner_list = new vector<RelScanner>();
-
-
-
-
     vector<RelScanner> scanner_list = get_scanner_list(new_relation, sub_list);
-    //vector<RelScanner> scanner_list;
-    //for (size_t i = 0; i < sub_list.size(); ++i) {
-    //    size_t mem_idx = _base_idx + i;
-    //    const RelIter& it = sub_list[i].first;
-    //    const RelIter& it_end = sub_list[i].second;
 
-    //    //scanner_list.push_back( RelScanner(_sorted_relation, mem_idx, 1) );
-    //    scanner_list.push_back( RelScanner(new_relation, mem_idx, 1) );
-    //    scanner_list.back().set_begin(it);
-    //    scanner_list.back().set_end(it_end);
-
-    //    //_scanner_list->back().dump();
-    //    //cout << endl;
-    //}
-    //}
-
-    //_relation->dump();
-    //_sorted_relation->dump();
-    //TinyTuple tmp = get_max(*_sorted_relation, scanner_list);
     _relation->clear();
     TinyTuple tmp = get_max(scanner_list);
     while (!tmp.is_null()) {
-        //dump_normal(tmp);
         _relation->push_back(tmp);
-        //tmp = get_max(*_sorted_relation, scanner_list);
         tmp = get_max(scanner_list);
     }
 
@@ -1369,9 +1324,6 @@ void RelSorter::sort()
     //_relation->dump();
 
     HwMgr::ins()->drop_table(new_relation->get_name());
-
-    //return _relation->create_null_tuple();
-    //return true;
 }
 
 TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)

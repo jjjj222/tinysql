@@ -325,7 +325,7 @@ class RelSorter
 
     public:
         RelSorter(TinyRelation*, size_t, size_t);
-        ~RelSorter();
+        //~RelSorter();
 
         //void set_attr(const string& attr) { _attr = attr; }
         //void set_attr(const string& attr) { _attr_list.push_back(attr); }
@@ -368,6 +368,7 @@ class TinyRelation
 
         //operator const Relation& () const { return *_relation; }
 
+        void push_back_block(const vector<TinyTuple>&);
         void push_back(const TinyTuple&);
         void add_space(size_t, size_t);
         void add_space(size_t);
