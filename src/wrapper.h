@@ -269,6 +269,24 @@ class RelRange
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
+class RelWriter
+{
+    public:
+        RelWriter(TinyRelation*);
+        ~RelWriter();
+
+        void push_back(const TinyTuple&);
+        void flush();
+
+    private:
+        TinyRelation*       _relation;
+        size_t              _mem_idx;
+        vector<TinyTuple>   _tuples;
+};
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
 class RelScanner
 {
     public:

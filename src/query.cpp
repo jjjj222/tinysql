@@ -1593,6 +1593,7 @@ bool ProjectNode::calculate_result()
     }
     
     //new_relation->dump();
+    RelWriter writer(new_relation);
     RelScanner scanner(relation, 1, 1);
     while(!scanner.is_end()) {
         TinyTuple tuple = scanner.get_next();
@@ -1603,8 +1604,10 @@ bool ProjectNode::calculate_result()
             //new_tuple.set_value(name, tuple.get_value(search_name));
             new_tuple.set_value(name, tuple.get_data_value(search_name));
         }
-        new_relation->push_back(new_tuple);
+        //new_relation->push_back(new_tuple);
+        writer.push_back(new_tuple);
     }
+    writer.flush();
 
     if (relation->is_with_prefix()) {
         new_relation->set_with_prefix();

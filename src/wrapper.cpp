@@ -968,6 +968,38 @@ size_t RelRange::num_of_block() const
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
+RelWriter::RelWriter(TinyRelation* r)
+: _relation(r)
+, _mem_idx(0)
+{
+    assert(_relation != NULL);
+}
+
+RelWriter::~RelWriter()
+{
+    assert(_tuples.empty());
+}
+
+void RelWriter::push_back(const TinyTuple& tuple)
+{
+    _tuples.push_back(tuple);
+    if (_tuples.size() == _relation->get_last_block_capacity()) {
+        _relation->push_back_block(_tuples);
+        _tuples.clear();
+    }
+}
+
+void RelWriter::flush()
+{
+    if (!_tuples.empty()) {
+        _relation->push_back_block(_tuples);
+        _tuples.clear();
+    }
+}
+
+//------------------------------------------------------------------------------
+//   
+//------------------------------------------------------------------------------
 //RelScanner::RelScanner(TinyRelation* r, size_t base_idx, size_t mem_size)
 RelScanner::RelScanner(const TinyRelation* r, size_t base_idx, size_t mem_size)
 : _relation(r)
@@ -1019,6 +1051,7 @@ TinyTuple RelScanner::get_next()
         }
     }
 
+    assert(_m_iter != _m_iter_end);
     TinyTuple res = _m_iter.get_tuple();
     ++_m_iter;
 
@@ -1037,6 +1070,7 @@ TinyTuple RelScanner::peep_next() // TODO
         }
     }
 
+    assert(_m_iter != _m_iter_end);
     TinyTuple res = _m_iter.get_tuple();
 
     return res;
@@ -1122,9 +1156,7 @@ void RelScanner::load_to_mem()
     size_t old_block_idx = 0;
     size_t load_idx = get_last_mem_block();
     for (_m_iter = m_begin(); _m_iter != m_load_end(); ++_m_iter) {
-        //move_to_non_null();
         _iter.skip_null();
-        //if (_iter.is_end()) {
         if (is_iter_end()) {
             break;
         }
@@ -1180,29 +1212,47 @@ void RelScanner::load_to_mem()
                 ++_m_iter;
             }
 
-            //dump_normal(_m_iter);
         }
     }
 
     _m_iter_end = _m_iter;
     _m_iter = m_begin();
+    assert(_m_iter != _m_iter_end);
 }
 
 void RelScanner::add_mem_into(TinyRelation& new_relation) const
 {
-    vector<TinyTuple> tmp;
+    RelWriter writer(&new_relation);
     for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
-        tmp.push_back(it.get_tuple());
-        //new_relation.push_back(it.get_tuple());
-        if (tmp.size() == _relation->get_last_block_capacity()) {
-            new_relation.push_back_block(tmp);
-            tmp.clear();
-        }
+        //tmp.push_back(it.get_tuple());
+        ////new_relation.push_back(it.get_tuple());
+        ////if (tmp.size() == new_relation->get_last_block_capacity()) {
+        //if (tmp.size() == new_relation.get_last_block_capacity()) {
+        //    new_relation.push_back_block(tmp);
+        //    tmp.clear();
+        //}
+        writer.push_back(it.get_tuple());
     }
+    writer.flush();
 
-    if (!tmp.empty()) {
-        new_relation.push_back_block(tmp);
-    }
+    //if (!tmp.empty()) {
+    //    new_relation.push_back_block(tmp);
+    //}
+
+    //vector<TinyTuple> tmp;
+    //for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
+    //    tmp.push_back(it.get_tuple());
+    //    //new_relation.push_back(it.get_tuple());
+    //    //if (tmp.size() == new_relation->get_last_block_capacity()) {
+    //    if (tmp.size() == new_relation.get_last_block_capacity()) {
+    //        new_relation.push_back_block(tmp);
+    //        tmp.clear();
+    //    }
+    //}
+
+    //if (!tmp.empty()) {
+    //    new_relation.push_back_block(tmp);
+    //}
 }
 //TinyTuple RelScanner::get_from_mem()
 //{
