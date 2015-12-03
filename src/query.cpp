@@ -728,10 +728,12 @@ bool QueryMgr::insert_into_from_select(const string& table_name, const vector<st
     if (from_relation == NULL)
         return false;
 
+    RelWriter writer(to_relation);
     if (from_relation->is_pipe_queue()) {
         const vector<TinyTuple>& pipe_tuples = from_relation->get_pipe_queue();
         for (const auto& tuple : pipe_tuples) {
-            to_relation->push_back(tuple);
+            //to_relation->push_back(tuple);
+            writer.push_back(tuple);
         }
     } else {
         RelScanner scanner(from_relation, 1, 1);
@@ -739,9 +741,11 @@ bool QueryMgr::insert_into_from_select(const string& table_name, const vector<st
             TinyTuple tuple = scanner.get_next();
             assert(!tuple.is_null());
 
-            to_relation->push_back(tuple);
+            //to_relation->push_back(tuple);
+            writer.push_back(tuple);
         }
     }
+    writer.flush();
     
     return true;
 }
@@ -1448,6 +1452,7 @@ bool DistinctNode::calculate_result()
 
 
     RelScanner scanner(relation, 1, 1);
+    RelWriter writer(new_relation);
     TinyTuple previous_tuple = new_relation->create_null_tuple();
     while(!scanner.is_end()) {
         TinyTuple tuple = scanner.get_next();
@@ -1462,10 +1467,13 @@ bool DistinctNode::calculate_result()
             continue;
         }
 
-        new_relation->push_back(previous_tuple);
+        //new_relation->push_back(previous_tuple);
+        writer.push_back(previous_tuple);
         previous_tuple = tuple;
     }
-    new_relation->push_back(previous_tuple);
+    //new_relation->push_back(previous_tuple);
+    writer.push_back(previous_tuple);
+    writer.flush();
 
     if (relation->is_with_prefix()) {
         new_relation->set_with_prefix();
@@ -1661,11 +1669,13 @@ bool WhereNode::calculate_result()
         new_relation->set_pipe_queue();
     }
 
+    RelWriter writer(new_relation);
     if (relation->is_pipe_queue()) {
         const vector<TinyTuple>& pipe_tuples = relation->get_pipe_queue();
         for (const auto& tuple : pipe_tuples) {
             if (cond_mgr.is_tuple_match(tuple)) {
-                new_relation->push_back(tuple);
+                //new_relation->push_back(tuple);
+                writer.push_back(tuple);
             }
         }
     } else {
@@ -1673,10 +1683,12 @@ bool WhereNode::calculate_result()
         while(!scanner.is_end()) {
             TinyTuple tuple = scanner.get_next();
             if (cond_mgr.is_tuple_match(tuple)) {
-                new_relation->push_back(tuple);
+                //new_relation->push_back(tuple);
+                writer.push_back(tuple);
             }
         }
     }
+    writer.flush();
 
     if (relation->is_with_prefix()) {
         new_relation->set_with_prefix();
@@ -1784,6 +1796,7 @@ void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelSc
 {
     assert(_relation != NULL);
 
+    RelWriter writer(_relation);
     RelScanner scanner_i = scanner_s;
     while(!scanner_i.is_end()) {
         TinyTuple tuple_s = scanner_i.get_next();
@@ -1798,9 +1811,11 @@ void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelSc
                 new_tuple.set_value(tuple_s, tuple_l);
             }
 
-            _relation->push_back(new_tuple); // TODO: it use mem addr 0
+            //_relation->push_back(new_tuple); // TODO: it use mem addr 0
+            writer.push_back(new_tuple);
         }
     }
+    writer.flush();
 }
 
 void CrossProductNode::split()
