@@ -1511,6 +1511,7 @@ TinyRelation::~TinyRelation()
 
 void TinyRelation::set_pipe_queue()
 {
+    //cout << get_name() << "set pipe" << endl;
     _pipe_queue = new vector<TinyTuple>();
 }
 
@@ -1732,6 +1733,13 @@ pair<size_t, size_t> TinyRelation::get_idx_by_pos(size_t pos) const
     return tmp;
 }
 
+const vector<TinyTuple>& TinyRelation::get_pipe_queue() const
+{
+    assert(_pipe_queue != NULL);
+
+    return *_pipe_queue;
+}
+
 bool TinyRelation::is_null(size_t pos) const
 {
     return is_contain(_space, pos);
@@ -1872,7 +1880,12 @@ void TinyRelation::dump() const
     //t.add_row("name", get_name());
     //t.add_row("schema", get_tiny_schema().dump_str());
     //t.draw();
-    dump_tuples();
+    if (is_pipe_queue()) { 
+        cout << "_pipe_queue" << endl;
+        print_table();
+    } else {
+        dump_tuples();
+    }
 }
 
 void TinyRelation::dump_tuples() const

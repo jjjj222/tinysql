@@ -396,6 +396,7 @@ class TinyRelation
         vector<string> get_attr_list() const;
         vector<pair<string, DataType>> get_attr_type_list() const;
         vector<pair<string, DataType>> get_attr_type_list_with_name() const;
+        const vector<TinyTuple>& get_pipe_queue() const;
         size_t size() const;
         bool empty() const;
         size_t get_num_of_attribute() const;
@@ -408,6 +409,7 @@ class TinyRelation
         bool is_with_prefix() const { return _with_prefix; }
         //bool is_tmp() const { return _is_tmp; }
         bool is_attr_exist(const string&) const;
+        bool is_pipe_queue() const { return _pipe_queue != NULL; }
 
         iterator begin() const;
         iterator end() const;

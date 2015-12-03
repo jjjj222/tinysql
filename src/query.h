@@ -255,6 +255,8 @@ class QueryNode
         string get_base_name() const; // TODO
         //bool has_where() const;
 
+        bool check() const;
+
         // debug
         virtual void dump() const;
         virtual string dump_str() const;
@@ -398,6 +400,8 @@ class QueryMgr
         //void convert_to_natural(QueryNode*);
         //vector<tree_node_t*> separate_where_node_by_and(tree_node_t*);
         vector<string> get_all_table(tree_node_t*) const;
+
+        bool check_select_tree() const;
 
     private:
         vector<pair<string, DataType>> get_attribute_type_list(tree_node_t*);

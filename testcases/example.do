@@ -3,7 +3,8 @@
 #INSERT INTO example (attr1, attr2) VALUES ("B", 1)
 #source testcases/all_tmp.in
 #source testcases/example.in.tmp
-source testcases/example3.in.tmp
+#source testcases/example3.in.tmp
+source testcases/debug.in.tmp
 #source testcases/all_4.in
 #source testcases/example2.in.tmp
 #source testcases/example2.in

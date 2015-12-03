@@ -26,6 +26,8 @@ using namespace jjjj222;
 #include "parser.h"
 #include "tiny_util.h"
 
+//#define SHOW_OPTIMIZE
+
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -775,6 +777,7 @@ bool QueryMgr::select_from(tree_node_t* node)
 #ifdef SHOW_OPTIMIZE
     dump_pretty(_select_root);
 #endif
+    assert(check_select_tree());
     //QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
     //QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
     //dump_pretty(optimized_tree);
@@ -901,6 +904,7 @@ void QueryMgr::create_natural_join(const vector<string>& attr_list)
             QueryNode* parent = cross_node->_parent;
             if (parent != NULL) {
                 replace_all(parent->_childs, cross_node, new_node);
+                new_node->_parent = parent;
             }  else {
                 assert(_select_root == cross_node);
                 _select_root = new_node;
@@ -929,6 +933,7 @@ void QueryMgr::insert_where(const string& table_name, tree_node_t* where_tree)
 
     QueryNode* new_node = build_where(where_tree);
     replace_all(node->_parent->_childs, node, new_node);
+    new_node->_parent = node->_parent;
     new_node->add_child(node);
 }
 
@@ -1038,6 +1043,15 @@ bool QueryMgr::build_select_tree(tree_node_t* node)
     }
 
     return true;
+}
+
+bool QueryMgr::check_select_tree() const
+{
+    if (_select_root == NULL)
+        return false;
+
+    bool res = _select_root->check();
+    return res;
 }
 
 QueryNode* QueryMgr::build_cross_product(const vector<string>& table_list)
@@ -1330,6 +1344,17 @@ string QueryNode::get_base_name() const
 //bool QueryNode::has_where() const
 //{
 //}
+bool QueryNode::check() const
+{
+    for (const auto& child_ptr : _childs) {
+        assert(child_ptr->_parent == this);
+        if (child_ptr->_parent != this) {
+            cout << "internal error" << endl;
+            return false;
+        }
+    }
+    return true;
+}
 
 #define NODE_TYPE(name) case name: return #name
 string QueryNode::get_type_str(NodeType t) const
@@ -1395,11 +1420,13 @@ bool DistinctNode::calculate_result()
     if (relation == NULL)
         return false;
 
-    size_t total_size = HwMgr::ins()->get_mem_size() - 1;
-    size_t base_index = 1;
-    size_t mem_size = total_size;
-    RelSorter sorter(relation, base_index, mem_size); // TODO: skip sort if sorted
-    sorter.sort();
+    if (child->get_type() != QueryNode::ORDER_BY) {
+        size_t total_size = HwMgr::ins()->get_mem_size() - 1;
+        size_t base_index = 1;
+        size_t mem_size = total_size;
+        RelSorter sorter(relation, base_index, mem_size);
+        sorter.sort();
+    }
 
     string new_table_name = "distinct " + relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
@@ -1525,7 +1552,6 @@ bool ProjectNode::calculate_result()
 
     vector<pair<string, DataType>> new_attr_type_list;
 
-    //bool is_with_prefix = relation->get_is_with_prefix;
     vector<pair<string, DataType>> attr_type_list = relation->get_attr_type_list();
     for (const string& attr : _attr_list) {
         const string project_name = relation->get_attr_search_name(attr);
@@ -1533,7 +1559,6 @@ bool ProjectNode::calculate_result()
         bool is_match = false;
         for (const auto& attr_type : attr_type_list) {
             const string& attr_name = attr_type.first;
-            //cout << attr_name << " - " << project_name << endl;
             if (attr_name == project_name) {
                 is_match = true;
                 new_attr_type_list.push_back(make_pair(attr, attr_type.second)); 
@@ -1542,7 +1567,6 @@ bool ProjectNode::calculate_result()
         }
 
         if (!is_match) {
-            //error_msg_not_exist("attribute", attr);
             error_msg_attribute_not_exist(attr);
             return false;
         }
@@ -1623,11 +1647,20 @@ bool WhereNode::calculate_result()
         new_relation->set_pipe_queue();
     }
 
-    RelScanner scanner(relation, 1, 1);
-    while(!scanner.is_end()) {
-        TinyTuple tuple = scanner.get_next();
-        if (cond_mgr.is_tuple_match(tuple)) {
-            new_relation->push_back(tuple);
+    if (relation->is_pipe_queue()) {
+        const vector<TinyTuple>& pipe_tuples = relation->get_pipe_queue();
+        for (const auto& tuple : pipe_tuples) {
+            if (cond_mgr.is_tuple_match(tuple)) {
+                new_relation->push_back(tuple);
+            }
+        }
+    } else {
+        RelScanner scanner(relation, 1, 1);
+        while(!scanner.is_end()) {
+            TinyTuple tuple = scanner.get_next();
+            if (cond_mgr.is_tuple_match(tuple)) {
+                new_relation->push_back(tuple);
+            }
         }
     }
 
@@ -1635,6 +1668,8 @@ bool WhereNode::calculate_result()
         new_relation->set_with_prefix();
     }
 
+    //new_relation->print_table();
+    //new_relation->dump();
     return true;
 }
 
@@ -1709,7 +1744,7 @@ bool CrossProductNode::calculate_result()
     cross_relation->set_with_prefix();
     set_relation(cross_relation);
     set_tmp_table(cross_relation);
-    if (_parent == NULL) {
+    if (_parent == NULL || _parent->get_type() == QueryNode::WHERE) {
         cross_relation->set_pipe_queue();
     }
 
@@ -1723,63 +1758,11 @@ bool CrossProductNode::calculate_result()
     MemRange total_range = HwMgr::ins()->get_mem_range().get_not_first_block();
     MemRange l_range = total_range.get_first_block();
     MemRange s_range = total_range.get_not_first_block();
-    //dump_normal(total_range);
-    //size_t total_size = HwMgr::ins()->get_mem_size() - 1;
-    //size_t l_index = 1;
-    //size_t l_size = 1;
-    //size_t s_index = l_index + l_size;
-    //size_t s_size = total_size - l_size;;
 
-    //RelScanner scanner_s(relation_s, s_index, s_size);
-    //RelScanner scanner_l(relation_l, l_index, l_size);
     RelScanner scanner_s(relation_s, s_range);
     RelScanner scanner_l(relation_l, l_range);
     do_cross_product(scanner_s, scanner_l, is_swap);
 
-    //RelScanner scanner_s(relation_s, s_index, s_size);
-    //while(!scanner_s.is_end()) {
-    //    TinyTuple tuple_s = scanner_s.get_next();
-    //    RelScanner scanner_l(relation_l, l_index, l_size);
-    //    while(!scanner_l.is_end()) {
-    //        TinyTuple tuple_l = scanner_l.get_next();
-    //        //cout << scanner_s.dump_str() << " | " << scanner_l.dump_str() << endl;
-    //    
-    //        TinyTuple new_tuple = cross_relation->create_tuple();
-    //        if (is_swap) {
-    //            new_tuple.set_value(tuple_l, tuple_s);
-    //        } else {
-    //            new_tuple.set_value(tuple_s, tuple_l);
-    //        }
-    //        //new_tuple.dump();
-    //        //cout << new_tuple.dump_str() << endl;
-    //        cross_relation->push_back(new_tuple); // TODO: it use mem addr 0
-    //    }
-    //}
-
-    //cross_relation->dump();
-
-    //HwMgr::ins()->dump_memory();
-    //for (TinyRelation::iterator it = relation_s->begin(); it != relation_s->end(); ++it) {
-    ////    cout << (*it).dump_str() << endl;
-    //    //TinyTuple = it.load_to_mem(0);
-    //    cout << it.load_to_mem(0).dump_str() << endl;
-    //}
-    
-
-    //dump_pretty(relation_0);
-    //dump_pretty(relation_1);
-    //size_t mem_index = 0;
-    //size_t num_of_block = relation->get_num_of_block();
-    //for (size_t i = 0; i < num_of_block; ++i) {
-    //    relation->load_block_to_mem(i, mem_index);
-    //    //_relation->getBlock(i, mem_index);
-    //    Block* block = HwMgr::ins()->get_mem_block(mem_index);
-    //    vector<Tuple> tuples = block->getTuples();
-    //    for (const auto& tuple : tuples) {
-    //        //dump_normal(TinyTuple(tuple));
-    //        table.add_row(TinyTuple(tuple).str_list());
-    //    }
-    //}
     return true;
 }
 
@@ -1886,7 +1869,7 @@ bool NaturalJoinNode::calculate_result()
     join_relation->set_with_prefix();
     set_relation(join_relation);
     set_tmp_table(join_relation);
-    if (_parent == NULL) {
+    if (_parent == NULL || _parent->get_type() == QueryNode::WHERE) {
         join_relation->set_pipe_queue();
     }
 
