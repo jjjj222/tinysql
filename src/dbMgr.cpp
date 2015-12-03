@@ -57,6 +57,7 @@ HwMgr* HwMgr::_ins = NULL;
 
 HwMgr::HwMgr() 
 : _disk_io(0)
+, _disk_time(0)
 , _mem(NULL)
 , _disk(NULL)
 , _schema_mgr(NULL)
@@ -312,6 +313,14 @@ size_t HwMgr::get_elapse_io()
     size_t current_io = _disk->getDiskIOs();
     size_t res = current_io - _disk_io;
     _disk_io = current_io;
+    return res;
+}
+
+double HwMgr::get_elapse_time()
+{
+    double current_time = _disk->getDiskTimer();
+    double res = current_time - _disk_time;
+    _disk_time = current_time;
     return res;
 }
 

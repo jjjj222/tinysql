@@ -16,6 +16,7 @@ using namespace jjjj222;
 //   
 //------------------------------------------------------------------------------
 void error_msg_table_not_exist(const string& name);
+void error_msg_attribute_not_exist(const string& name);
 string get_literal_value(const string&);
 
 //------------------------------------------------------------------------------

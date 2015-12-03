@@ -60,6 +60,7 @@ class HwMgr
         size_t get_block_size() const;
         MemRange get_mem_range() const;
         size_t get_elapse_io();
+        double get_elapse_time();
 
         TinyRelation* get_tiny_relation(const string& name) const;
         TinyRelation* create_relation(const string& name, const TinySchema&);
@@ -97,6 +98,7 @@ class HwMgr
     private:
         vector<TinyRelation*>   _relations;
         size_t                  _disk_io;
+        size_t                  _disk_time;
 
     private:
         MainMemory*             _mem;

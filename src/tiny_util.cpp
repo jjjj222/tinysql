@@ -19,6 +19,11 @@ void error_msg_table_not_exist(const string& name)
     error_msg_not_exist("Table", name);
 }
 
+void error_msg_attribute_not_exist(const string& name)
+{
+    error_msg_not_exist("Attribute", name);
+}
+
 string get_literal_value(const string& literal)
 {
     assert(literal.front() == '\"');

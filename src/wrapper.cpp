@@ -284,6 +284,10 @@ bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
     }
 
     DataType data_type = get_data_type(name);
+    if (data_type == TINY_UNKNOWN) {
+        error_msg_attribute_not_exist(name);
+        return false;
+    }
 
     bool res = false;
     if (raw_value[0] == '\"') {
@@ -514,6 +518,14 @@ bool TinyTuple::is_null() const
     assert(_tuple != NULL);
     
     return _tuple->isNull();
+}
+
+bool TinyTuple::is_attr_exist(const string& attr) const
+{
+    assert(_tuple != NULL);
+    
+    bool res = get_tiny_schema().is_field_name_exist(attr);
+    return res;
 }
 
 void TinyTuple::assign(const TinyTuple& rhs)
@@ -1869,7 +1881,8 @@ void TinyRelation::print_table() const
         cout << " in set";
     }
 
-    cout << " (" << HwMgr::ins()->get_elapse_io() << " disk I/O)"<< endl;
+    cout << " (" << HwMgr::ins()->get_elapse_io() << " disk I/O), ";
+    cout << HwMgr::ins()->get_elapse_time() << " ms)"<< endl;
 }
 
 void TinyRelation::dump() const

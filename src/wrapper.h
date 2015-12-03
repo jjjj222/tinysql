@@ -108,6 +108,7 @@ class TinyTuple
 
         // is
         bool is_null() const;
+        bool is_attr_exist(const string&) const;
 
         // debug
         void dump() const;

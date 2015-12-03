@@ -362,7 +362,8 @@ bool ConditionMgr::check_var_node(VarNode* node) const
     TinySchema schema = _tiny_relation->get_tiny_schema();
     if (!schema.is_field_name_exist(field_name)) {
         //error_msg_not_exist("attribute", build_column_name(table, column));
-        error_msg_not_exist("attribute", column_name.get_column_name());
+        //error_msg_not_exist("attribute", column_name.get_column_name());
+        error_msg_attribute_not_exist(column_name.get_column_name());
         return false;
     }
     //schema
@@ -599,12 +600,17 @@ bool QueryMgr::exec_query(const string& query)
 
     }
 
+    if (!error && !node_is_select(root)) {
+        print_elapse_io();
+    }
+
     return !error;
 } 
 
 void QueryMgr::print_elapse_io() const
 {
-    cout << "Query OK ("<< HwMgr::ins()->get_elapse_io() << " disk I/O)"<< endl;
+    cout << "Query OK ("<< HwMgr::ins()->get_elapse_io() << " disk I/O, "
+        << HwMgr::ins()->get_elapse_time() << " ms)"<< endl;
 }
 
 bool QueryMgr::create_table(tree_node_t* node)
@@ -624,9 +630,9 @@ bool QueryMgr::create_table(tree_node_t* node)
 
     //return true;
     bool res = HwMgr::ins()->create_table(name, attr_list);
-    if (res) {
-        print_elapse_io();
-    }
+    //if (res) {
+    //    print_elapse_io();
+    //}
     return res;
 }
 
@@ -642,9 +648,9 @@ bool QueryMgr::drop_table(tree_node_t* node)
 
     
     bool res = HwMgr::ins()->drop_table(name_node->value);
-    if (res) {
-        print_elapse_io();
-    }
+    //if (res) {
+    //    print_elapse_io();
+    //}
     return res;
 }
 
@@ -669,9 +675,9 @@ bool QueryMgr::insert_into(tree_node_t* node)
     if (node_is_select(tuples_node)) {
         //cout << "TODO: SELECT in INSERT" << endl; // TODO
         bool res = insert_into_from_select(table_name, name_list, tuples_node);
-        if (res) {
-            print_elapse_io();
-        }
+        //if (res) {
+        //    print_elapse_io();
+        //}
         return res;
     }   
 
@@ -693,9 +699,9 @@ bool QueryMgr::insert_into(tree_node_t* node)
     vector<pair<string, string>> data = vector_make_pair(name_list, value_list);
     //dump_pretty(data);
     bool res = HwMgr::ins()->insert_into(table_name, data);
-    if (res) {
-        print_elapse_io();
-    }
+    //if (res) {
+    //    print_elapse_io();
+    //}
     return res;
 }
 
@@ -745,9 +751,9 @@ bool QueryMgr::delete_from(tree_node_t* node)
     tree_node_t* where_node = name_node->next;
 
     bool res = HwMgr::ins()->delete_from(name, where_node);
-    if (res) {
-        print_elapse_io();
-    }
+    //if (res) {
+    //    print_elapse_io();
+    //}
     return res;
 }
 
@@ -1468,7 +1474,8 @@ bool OrderByNode::calculate_result()
         return false;
 
     if (!relation->is_attr_exist(_name)) {
-        error_msg_not_exist("attribute", _name);
+        error_msg_attribute_not_exist(_name);
+        //error_msg_not_exist("attribute", _name);
         return false;
     }
     //string new_table_name = "order_by " + relation->get_name();
@@ -1542,7 +1549,8 @@ bool ProjectNode::calculate_result()
         }
 
         if (!is_match) {
-            error_msg_not_exist("attribute", attr);
+            //error_msg_not_exist("attribute", attr);
+            error_msg_attribute_not_exist(attr);
             return false;
         }
     }
