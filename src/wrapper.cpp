@@ -671,6 +671,13 @@ void TinyBlock::push_back(const TinyTuple& tuple)
     _block->appendTuple(tuple);
 }
 
+void TinyBlock::push_back(const vector<TinyTuple>& tuples)
+{
+    for (const auto& tuple : tuples) {
+        push_back(tuple);
+    }
+}
+
 void TinyBlock::set_tuple(size_t i, const TinyTuple& tuple)
 {
     _block->setTuple(i, tuple);
@@ -1183,8 +1190,18 @@ void RelScanner::load_to_mem()
 
 void RelScanner::add_mem_into(TinyRelation& new_relation) const
 {
+    vector<TinyTuple> tmp;
     for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
-        new_relation.push_back(it.get_tuple());
+        tmp.push_back(it.get_tuple());
+        //new_relation.push_back(it.get_tuple());
+        if (tmp.size() == _relation->get_last_block_capacity()) {
+            new_relation.push_back_block(tmp);
+            tmp.clear();
+        }
+    }
+
+    if (!tmp.empty()) {
+        new_relation.push_back_block(tmp);
     }
 }
 //TinyTuple RelScanner::get_from_mem()
@@ -1280,9 +1297,16 @@ void RelSorter::sort(const string& attr)
 
 void RelSorter::sort()
 {
-    //if (_relation->get_num_of_block() <= _mem_size) {
+    if (_relation->get_num_of_block() <= _mem_size) {
+        RelScanner scanner(_relation, _base_idx, _mem_size);
+        scanner.load_to_mem();
+        scanner.sort(_attr_list);
 
-    //}
+
+        _relation->clear();
+        scanner.add_mem_into(*_relation);
+        return;
+    }
     //assert(_sub_list.empty());
     //assert(_sorted_relation == NULL);
 
@@ -1483,6 +1507,29 @@ void TinyRelation::push_back(const TinyTuple& tuple)
     } else {
         _relation->getBlock(_relation->getNumOfBlocks()-1, mem_index);
         block.push_back(tuple);
+        _relation->setBlock(_relation->getNumOfBlocks()-1, mem_index);
+    }
+}
+
+void TinyRelation::push_back_block(const vector<TinyTuple>& tuples)
+{
+    assert(tuples.size() <= get_last_block_capacity());
+
+    if (_pipe_queue != NULL) {
+        //_pipe_queue->push_back(tuple);
+        add_into(*_pipe_queue, tuples);
+        return;
+    }
+
+    size_t mem_index = 0;
+    TinyBlock block = HwMgr::ins()->get_mem_block(mem_index);
+    if (next_is_new_block()) {
+        block.clear();
+        block.push_back(tuples);
+        _relation->setBlock(_relation->getNumOfBlocks(), mem_index);
+    } else {
+        _relation->getBlock(_relation->getNumOfBlocks()-1, mem_index);
+        block.push_back(tuples);
         _relation->setBlock(_relation->getNumOfBlocks()-1, mem_index);
     }
 }
@@ -1723,6 +1770,11 @@ size_t TinyRelation::get_total_pos() const
 bool TinyRelation::next_is_new_block() const
 {
     return (size() + _space.size()) % tuple_per_block() == 0; 
+}
+
+size_t TinyRelation::get_last_block_capacity() const
+{
+    return tuple_per_block() - ((size() + _space.size()) % tuple_per_block()); 
 }
 
 //vector<pair<DataValue, pair<RelIter, RelIter>>> TinyRelation::get_sub_list_by_attr(

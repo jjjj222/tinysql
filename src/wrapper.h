@@ -147,6 +147,7 @@ class TinyBlock
         void null_tuple(size_t);
         void clear();
         void push_back(const TinyTuple&);
+        void push_back(const vector<TinyTuple>&);
         void set_tuple(size_t, const TinyTuple&);
 
         // is
@@ -368,8 +369,8 @@ class TinyRelation
 
         //operator const Relation& () const { return *_relation; }
 
-        void push_back_block(const vector<TinyTuple>&);
         void push_back(const TinyTuple&);
+        void push_back_block(const vector<TinyTuple>&);
         void add_space(size_t, size_t);
         void add_space(size_t);
         void set_with_prefix() { _with_prefix = true; }
@@ -405,6 +406,7 @@ class TinyRelation
         size_t tuple_per_block() const;
         size_t get_block_idx_by_pos(size_t) const;
         size_t get_tuple_idx_by_pos(size_t) const;
+        size_t get_last_block_capacity() const;
         pair<size_t, size_t> get_idx_by_pos(size_t) const;
         bool is_null(size_t) const;
         bool is_with_prefix() const { return _with_prefix; }
