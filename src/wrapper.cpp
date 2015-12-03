@@ -1498,62 +1498,40 @@ vector<RelScanner> RelSorter::get_scanner_list(TinyRelation* r, const SubListTyp
 
 TinyRelation::TinyRelation(Relation* r)
 : _relation(r)
-//, _is_tmp(false)
+, _pipe_queue(NULL)
 , _with_prefix(false)
-//, _size(0)
 {
     assert(_relation != NULL);
 }
 
+TinyRelation::~TinyRelation()
+{
+    delete_not_null(_pipe_queue);
+}
+
+void TinyRelation::set_pipe_queue()
+{
+    _pipe_queue = new vector<TinyTuple>();
+}
+
 void TinyRelation::push_back(const TinyTuple& tuple)
 {
-    //dump_pretty(tuple);
+    if (_pipe_queue != NULL) {
+        _pipe_queue->push_back(tuple);
+        return;
+    }
+
     size_t mem_index = 0;
-    //Block* block = HwMgr::ins()->get_mem_block(mem_index);
     TinyBlock block = HwMgr::ins()->get_mem_block(mem_index);
     if (next_is_new_block()) {
-        //block->clear();
         block.clear();
-        //block->appendTuple(tuple);
         block.push_back(tuple);
         _relation->setBlock(_relation->getNumOfBlocks(), mem_index);
     } else {
         _relation->getBlock(_relation->getNumOfBlocks()-1, mem_index);
-        //block->appendTuple(tuple); // append the tuple
         block.push_back(tuple);
         _relation->setBlock(_relation->getNumOfBlocks()-1, mem_index);
     }
-    //relation_ptr->setBlock(relation_ptr->getNumOfBlocks(),memory_block_index);
-//void appendTupleToRelation(Relation* relation_ptr, MainMemory& mem, int memory_block_index, Tuple& tuple) {
-//  Block* block_ptr;
-//  if (relation_ptr->getNumOfBlocks()==0) {
-//    cout << "The relation is empty" << endl;
-//    cout << "Get the handle to the memory block " << memory_block_index << " and clear it" << endl;
-//    block_ptr=mem.getBlock(memory_block_index);
-//    block_ptr->clear(); //clear the block
-//    block_ptr->appendTuple(tuple); // append the tuple
-//    cout << "Write to the first block of the relation" << endl;
-//    relation_ptr->setBlock(relation_ptr->getNumOfBlocks(),memory_block_index);
-//  } else {
-//    cout << "Read the last block of the relation into memory block 5:" << endl;
-//    relation_ptr->getBlock(relation_ptr->getNumOfBlocks()-1,memory_block_index);
-//    block_ptr=mem.getBlock(memory_block_index);
-//
-//    if (block_ptr->isFull()) {
-//      cout << "(The block is full: Clear the memory block and append the tuple)" << endl;
-//      block_ptr->clear(); //clear the block
-//      block_ptr->appendTuple(tuple); // append the tuple
-//      cout << "Write to a new block at the end of the relation" << endl;
-//      relation_ptr->setBlock(relation_ptr->getNumOfBlocks(),memory_block_index); //write back to the relation
-//    } else {
-//      cout << "(The block is not full: Append it directly)" << endl;
-//      block_ptr->appendTuple(tuple); // append the tuple
-//      cout << "Write to the last block of the relation" << endl;
-//      relation_ptr->setBlock(relation_ptr->getNumOfBlocks()-1,memory_block_index); //write back to the relation
-//    }
-//  }  
-//}
-
 }
 
 void TinyRelation::add_space(size_t block_idx, size_t tuple_idx)
@@ -1846,31 +1824,19 @@ void TinyRelation::print_table() const
 
     table.set_header(get_attr_list());
 
-    RelScanner scanner(this, 1, 1);
-    while(!scanner.is_end()) {
-        TinyTuple tuple = scanner.get_next();
-        assert(!tuple.is_null());
+    if (_pipe_queue != NULL) {
+        for (const auto& tuple : *_pipe_queue) {
+            table.add_row(tuple.get_str_list());
+        }
+    } else {
+        RelScanner scanner(this, 1, 1);
+        while(!scanner.is_end()) {
+            TinyTuple tuple = scanner.get_next();
+            assert(!tuple.is_null());
 
-        //table.add_row(tuple.str_list());
-        table.add_row(tuple.get_str_list());
-        //to_relation->push_back(tuple);
+            table.add_row(tuple.get_str_list());
+        }
     }
-    //size_t mem_index = 0;
-    //size_t num_of_block = get_num_of_block();
-    ////dump_normal(num_of_block);
-    //for (size_t i = 0; i < num_of_block; ++i) {
-    //    relation->load_block_to_mem(i, mem_index);
-    //    //_relation->getBlock(i, mem_index);
-    //    //Block* block = HwMgr::ins()->get_mem_block(mem_index);
-    //    TinyBlock block = HwMgr::ins()->get_mem_block(mem_index);
-    //    //vector<Tuple> tuples = block->getTuples();
-    //    vector<Tuple> tuples = block.get_tuples();
-    //    for (const auto& tuple : tuples) {
-    //        //dump_normal(TinyTuple(tuple));
-    //        if (!tuple.isNull())
-    //            table.add_row(TinyTuple(tuple).str_list());
-    //    }
-    //}
 
     if (table.size() == 0) {
         cout << "Empty set";

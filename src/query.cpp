@@ -673,11 +673,7 @@ bool QueryMgr::insert_into(tree_node_t* node)
     assert(tuples_node != NULL);
 
     if (node_is_select(tuples_node)) {
-        //cout << "TODO: SELECT in INSERT" << endl; // TODO
         bool res = insert_into_from_select(table_name, name_list, tuples_node);
-        //if (res) {
-        //    print_elapse_io();
-        //}
         return res;
     }   
 
@@ -1169,21 +1165,17 @@ QueryNode::QueryNode()
 : _relation(NULL)
 , _delete_relation(false)
 , _parent(NULL)
-//, _table_info(NULL)
 {
     ;
 }
 QueryNode::~QueryNode()
 {
-    //cout << _relation->get_name() << endl;
     if (_delete_relation) {
         assert(_relation != NULL);
-        //assert(_relation->is_tmp());
+
         HwMgr::ins()->drop_table(_relation->get_name());
-        //HwMgr::ins()->drop_table(_name);
-        //delete_not_null(_relation);
     }
-    //delete_not_null(_table_info);
+    //delete_not_null(_pipe_queue);
     delete_all(_childs);
 }
 
@@ -1412,6 +1404,10 @@ bool DistinctNode::calculate_result()
     string new_table_name = "distinct " + relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
         new_table_name, relation->get_tiny_schema());
+    set_relation(new_relation);
+    set_tmp_table(new_relation);
+    new_relation->set_pipe_queue();
+
 
     RelScanner scanner(relation, 1, 1);
     TinyTuple previous_tuple = new_relation->create_null_tuple();
@@ -1437,9 +1433,6 @@ bool DistinctNode::calculate_result()
         new_relation->set_with_prefix();
     }
     //set_real_table(new_table_name, new_relation);
-    set_relation(new_relation);
-    set_tmp_table(new_relation);
-
     return true;
 }
 
@@ -1558,6 +1551,11 @@ bool ProjectNode::calculate_result()
     string tmp_table_name = "project " + relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
         tmp_table_name, new_attr_type_list);
+    set_relation(new_relation);
+    set_tmp_table(new_relation);
+    if (_parent == NULL) {
+        new_relation->set_pipe_queue();
+    }
     
     //new_relation->dump();
     RelScanner scanner(relation, 1, 1);
@@ -1577,8 +1575,6 @@ bool ProjectNode::calculate_result()
         new_relation->set_with_prefix();
     }
     //set_real_table(tmp_table_name, new_relation);
-    set_relation(new_relation);
-    set_tmp_table(new_relation);
     return true;
 }
 
@@ -1600,9 +1596,6 @@ WhereNode::WhereNode(tree_node_t* node)
 
 bool WhereNode::calculate_result()
 {
-    //assert(get_table_info() == NULL);
-    //if (get_table_info() != NULL) // TODO
-    //if (_table_info != NULL)
     if (_relation != NULL)
         return true;
 
@@ -1612,27 +1605,23 @@ bool WhereNode::calculate_result()
     QueryNode* child = childs[0];
     assert(child != NULL);
 
-    //child->calculate_result();
-    //TableInfo* child_table_info = child->get_table_info();
-    ////assert(child_table_info != NULL);
-    
-    //TinyRelation* relation = HwMgr::ins()->get_tiny_relation(child_table_info->get_name());
     TinyRelation* relation = child->get_or_create_relation();
     if (relation == NULL)
         return false;
-    //assert(relation != NULL);
 
     ConditionMgr cond_mgr(_where_tree, relation);
     if (cond_mgr.is_error()) {
-        //return false;
-        //cout << "ERROR in whereNode" << endl;
         return false;
     }
 
     string tmp_table_name = "where " + relation->get_name();
-    //TinyRelation* new_relation = HwMgr::ins()->create_tmp_relation(tmp_table_name, relation);
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
         tmp_table_name, relation->get_tiny_schema());
+    set_relation(new_relation);
+    set_tmp_table(new_relation);
+    if (_parent == NULL) {
+        new_relation->set_pipe_queue();
+    }
 
     RelScanner scanner(relation, 1, 1);
     while(!scanner.is_end()) {
@@ -1645,9 +1634,7 @@ bool WhereNode::calculate_result()
     if (relation->is_with_prefix()) {
         new_relation->set_with_prefix();
     }
-    //set_real_table(tmp_table_name, new_relation);
-    set_relation(new_relation);
-    set_tmp_table(new_relation);
+
     return true;
 }
 
@@ -1722,7 +1709,9 @@ bool CrossProductNode::calculate_result()
     cross_relation->set_with_prefix();
     set_relation(cross_relation);
     set_tmp_table(cross_relation);
-    //cross_relation->dump();
+    if (_parent == NULL) {
+        cross_relation->set_pipe_queue();
+    }
 
     bool is_swap = false;
     if (relation_s->size() > relation_l->size()) {
@@ -1897,12 +1886,10 @@ bool NaturalJoinNode::calculate_result()
     join_relation->set_with_prefix();
     set_relation(join_relation);
     set_tmp_table(join_relation);
+    if (_parent == NULL) {
+        join_relation->set_pipe_queue();
+    }
 
-    //bool is_swap = false;
-    //if (relation_s->size() > relation_l->size()) {
-    //    swap(relation_s, relation_l);
-    //    is_swap = true;
-    //}
 
     string attr_0 = _attr_list[0];
     string attr_1 = _attr_list[1];

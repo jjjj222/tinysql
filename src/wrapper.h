@@ -364,6 +364,7 @@ class TinyRelation
 
     public:
         TinyRelation(Relation*);
+        ~TinyRelation();
 
         //operator const Relation& () const { return *_relation; }
 
@@ -371,6 +372,7 @@ class TinyRelation
         void add_space(size_t, size_t);
         void add_space(size_t);
         void set_with_prefix() { _with_prefix = true; }
+        void set_pipe_queue();
         //void set_is_tmp() { _is_tmp = true; }
         //void set_with_prefix();
         void clear();
@@ -431,7 +433,7 @@ class TinyRelation
 
     private:
         Relation*           _relation;
-        //bool                _is_tmp;
+        vector<TinyTuple>*  _pipe_queue;
         bool                _with_prefix;
         vector<size_t>      _space;
 };
