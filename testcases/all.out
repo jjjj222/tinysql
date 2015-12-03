@@ -481,7 +481,7 @@ testcases/all.in:82> SELECT DISTINCT grade FROM course
 | D     |
 | E     |
 +-------+
-5 rows in set (420 disk I/O), 31345.1 ms)
+5 rows in set (92 disk I/O), 6866.51 ms)
 
 testcases/all.in:83> SELECT DISTINCT * FROM course
 +-----+----------+---------+------+-------+
@@ -507,7 +507,7 @@ testcases/all.in:83> SELECT DISTINCT * FROM course
 |  16 |        0 |       0 |    0 | E     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-19 rows in set (300 disk I/O), 22389.1 ms)
+19 rows in set (300 disk I/O), 22389.5 ms)
 
 testcases/all.in:84> SELECT * FROM course ORDER BY exam
 +-----+----------+---------+------+-------+
@@ -574,7 +574,7 @@ testcases/all.in:84> SELECT * FROM course ORDER BY exam
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-60 rows in set (300 disk I/O), 22389.2 ms)
+60 rows in set (300 disk I/O), 22389.5 ms)
 
 testcases/all.in:85> SELECT * FROM course WHERE exam = 100
 +-----+----------+---------+------+-------+
@@ -585,7 +585,7 @@ testcases/all.in:85> SELECT * FROM course WHERE exam = 100
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-4 rows in set (60 disk I/O), 4477.95 ms)
+4 rows in set (60 disk I/O), 4478.31 ms)
 
 testcases/all.in:86> SELECT * FROM course WHERE grade = "A"
 +-----+----------+---------+------+-------+
@@ -596,7 +596,7 @@ testcases/all.in:86> SELECT * FROM course WHERE grade = "A"
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-4 rows in set (60 disk I/O), 4478.75 ms)
+4 rows in set (60 disk I/O), 4478.11 ms)
 
 testcases/all.in:87> SELECT * FROM course WHERE exam = 100 AND project = 100
 +-----+----------+---------+------+-------+
@@ -606,7 +606,7 @@ testcases/all.in:87> SELECT * FROM course WHERE exam = 100 AND project = 100
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-3 rows in set (60 disk I/O), 4478.55 ms)
+3 rows in set (60 disk I/O), 4477.91 ms)
 
 testcases/all.in:88> SELECT * FROM course WHERE exam = 100 OR exam = 99
 +-----+----------+---------+------+-------+
@@ -618,7 +618,7 @@ testcases/all.in:88> SELECT * FROM course WHERE exam = 100 OR exam = 99
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-5 rows in set (60 disk I/O), 4478.35 ms)
+5 rows in set (60 disk I/O), 4478.71 ms)
 
 testcases/all.in:89> SELECT * FROM course WHERE NOT exam = 0
 +-----+----------+---------+------+-------+
@@ -644,7 +644,7 @@ testcases/all.in:89> SELECT * FROM course WHERE NOT exam = 0
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-19 rows in set (60 disk I/O), 4478.15 ms)
+19 rows in set (60 disk I/O), 4478.51 ms)
 
 testcases/all.in:90> SELECT * FROM course WHERE exam > 70
 +-----+----------+---------+------+-------+
@@ -661,7 +661,7 @@ testcases/all.in:90> SELECT * FROM course WHERE exam > 70
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-10 rows in set (60 disk I/O), 4477.95 ms)
+10 rows in set (60 disk I/O), 4478.31 ms)
 
 testcases/all.in:91> SELECT * FROM course WHERE exam = 100 OR homework = 100 AND project = 100
 +-----+----------+---------+------+-------+
@@ -677,7 +677,7 @@ testcases/all.in:91> SELECT * FROM course WHERE exam = 100 OR homework = 100 AND
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-9 rows in set (60 disk I/O), 4478.75 ms)
+9 rows in set (60 disk I/O), 4478.11 ms)
 
 testcases/all.in:92> SELECT * FROM course WHERE [ exam = 100 OR homework = 100 ] AND project = 100
 +-----+----------+---------+------+-------+
@@ -692,7 +692,7 @@ testcases/all.in:92> SELECT * FROM course WHERE [ exam = 100 OR homework = 100 ]
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-8 rows in set (60 disk I/O), 4478.55 ms)
+8 rows in set (60 disk I/O), 4477.91 ms)
 
 testcases/all.in:93> SELECT * FROM course WHERE exam + homework = 200
 +-----+----------+---------+------+-------+
@@ -702,7 +702,7 @@ testcases/all.in:93> SELECT * FROM course WHERE exam + homework = 200
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-3 rows in set (60 disk I/O), 4478.35 ms)
+3 rows in set (60 disk I/O), 4478.71 ms)
 
 testcases/all.in:94> SELECT * FROM course WHERE ( exam * 30 + homework * 20 + project * 50 ) / 100 = 100
 +-----+----------+---------+------+-------+
@@ -711,7 +711,7 @@ testcases/all.in:94> SELECT * FROM course WHERE ( exam * 30 + homework * 20 + pr
 |  17 |      100 |     100 |  100 | A     |
 |  17 |      100 |     100 |  100 | A     |
 +-----+----------+---------+------+-------+
-2 rows in set (60 disk I/O), 4478.15 ms)
+2 rows in set (60 disk I/O), 4478.51 ms)
 
 testcases/all.in:95> SELECT * FROM course WHERE grade = "C" AND [ exam > 70 OR project > 70 ] AND NOT ( exam * 30 + homework * 20 + project * 50 ) / 100 < 60
 +-----+----------+---------+------+-------+
@@ -720,19 +720,19 @@ testcases/all.in:95> SELECT * FROM course WHERE grade = "C" AND [ exam > 70 OR p
 |   7 |      100 |      50 |   73 | C     |
 |   3 |      100 |     100 |   98 | C     |
 +-----+----------+---------+------+-------+
-2 rows in set (60 disk I/O), 4477.95 ms)
+2 rows in set (60 disk I/O), 4478.31 ms)
 
 testcases/all.in:96> CREATE TABLE course2 (sid INT, exam INT, grade STR20)
-Query OK (0 disk I/O, 0.95 ms)
+Query OK (0 disk I/O, 0.31 ms)
 
 testcases/all.in:97> INSERT INTO course2 (sid, exam, grade) VALUES (1, 100, "A")
-Query OK (1 disk I/O, 75.58 ms)
+Query OK (1 disk I/O, 74.94 ms)
 
 testcases/all.in:98> INSERT INTO course2 (sid, exam, grade) VALUES (16, 25, "E")
-Query OK (2 disk I/O, 149.84 ms)
+Query OK (2 disk I/O, 150.2 ms)
 
 testcases/all.in:99> INSERT INTO course2 (sid, exam, grade) VALUES (17, 0, "A")
-Query OK (1 disk I/O, 75.47 ms)
+Query OK (1 disk I/O, 74.83 ms)
 
 testcases/all.in:100> SELECT * FROM course, course2
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
@@ -919,70 +919,70 @@ testcases/all.in:100> SELECT * FROM course, course2
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
-180 rows in set (182 disk I/O), 13583.1 ms)
+180 rows in set (182 disk I/O), 13583.5 ms)
 
 testcases/all.in:101> INSERT INTO course2 (sid, exam, grade) VALUES (2, 99, "B")
-Query OK (2 disk I/O, 149.39 ms)
+Query OK (2 disk I/O, 149.75 ms)
 
 testcases/all.in:102> INSERT INTO course2 (sid, exam, grade) VALUES (3, 98, "C")
-Query OK (1 disk I/O, 75.02 ms)
+Query OK (1 disk I/O, 75.38 ms)
 
 testcases/all.in:103> INSERT INTO course2 (sid, exam, grade) VALUES (4, 97, "D")
-Query OK (2 disk I/O, 149.28 ms)
+Query OK (2 disk I/O, 149.64 ms)
 
 testcases/all.in:104> INSERT INTO course2 (sid, exam, grade) VALUES (5, 66, "A")
-Query OK (1 disk I/O, 74.91 ms)
+Query OK (1 disk I/O, 75.27 ms)
 
 testcases/all.in:105> INSERT INTO course2 (sid, exam, grade) VALUES (6, 65, "B")
-Query OK (2 disk I/O, 150.17 ms)
+Query OK (2 disk I/O, 149.53 ms)
 
 testcases/all.in:106> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 74.8 ms)
+Query OK (1 disk I/O, 75.16 ms)
 
 testcases/all.in:107> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 150.06 ms)
+Query OK (2 disk I/O, 149.42 ms)
 
 testcases/all.in:108> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 74.69 ms)
+Query OK (1 disk I/O, 75.05 ms)
 
 testcases/all.in:109> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 149.95 ms)
+Query OK (2 disk I/O, 149.31 ms)
 
 testcases/all.in:110> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 75.58 ms)
+Query OK (1 disk I/O, 74.94 ms)
 
 testcases/all.in:111> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 149.84 ms)
+Query OK (2 disk I/O, 150.2 ms)
 
 testcases/all.in:112> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 75.47 ms)
+Query OK (1 disk I/O, 74.83 ms)
 
 testcases/all.in:113> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 149.73 ms)
+Query OK (2 disk I/O, 150.09 ms)
 
 testcases/all.in:114> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 75.36 ms)
+Query OK (1 disk I/O, 74.72 ms)
 
 testcases/all.in:115> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 149.62 ms)
+Query OK (2 disk I/O, 149.98 ms)
 
 testcases/all.in:116> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 75.25 ms)
+Query OK (1 disk I/O, 75.61 ms)
 
 testcases/all.in:117> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 149.51 ms)
+Query OK (2 disk I/O, 149.87 ms)
 
 testcases/all.in:118> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 75.14 ms)
+Query OK (1 disk I/O, 75.5 ms)
 
 testcases/all.in:119> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 149.4 ms)
+Query OK (2 disk I/O, 149.76 ms)
 
 testcases/all.in:120> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (1 disk I/O, 75.03 ms)
+Query OK (1 disk I/O, 75.39 ms)
 
 testcases/all.in:121> INSERT INTO course2 (sid, exam, grade) VALUES (18, 0, "A")
-Query OK (2 disk I/O, 149.29 ms)
+Query OK (2 disk I/O, 149.65 ms)
 
 testcases/all.in:122> SELECT course.sid, course.grade, course2.grade FROM course, course2 WHERE course.sid = course2.sid
 +------------+--------------+---------------+
@@ -1039,7 +1039,7 @@ testcases/all.in:122> SELECT course.sid, course.grade, course2.grade FROM course
 |         17 | A            | A             |
 |         17 | A            | A             |
 +------------+--------------+---------------+
-50 rows in set (566 disk I/O), 42240.9 ms)
+50 rows in set (542 disk I/O), 40450.1 ms)
 
 testcases/all.in:123> SELECT DISTINCT course.grade, course2.grade FROM course, course2 WHERE course.sid = course2.sid
 +--------------+---------------+
@@ -1051,7 +1051,7 @@ testcases/all.in:123> SELECT DISTINCT course.grade, course2.grade FROM course, c
 | D            | D             |
 | E            | E             |
 +--------------+---------------+
-5 rows in set (866 disk I/O), 64630.5 ms)
+5 rows in set (694 disk I/O), 51793.3 ms)
 
 testcases/all.in:124> SELECT * FROM course, course2 WHERE course.sid = course2.sid ORDER BY course.exam
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
@@ -1108,7 +1108,7 @@ testcases/all.in:124> SELECT * FROM course, course2 WHERE course.sid = course2.s
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
-50 rows in set (766 disk I/O), 57167 ms)
+50 rows in set (742 disk I/O), 55375.8 ms)
 
 testcases/all.in:125> SELECT * FROM course, course2 WHERE course.sid = course2.sid AND course.exam = 100 AND course2.exam = 100
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
@@ -1116,7 +1116,7 @@ testcases/all.in:125> SELECT * FROM course, course2 WHERE course.sid = course2.s
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
 |          1 |              99 |            100 |         100 | A            |           1 |          100 | A             |
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
-1 row in set (104 disk I/O), 7761.55 ms)
+1 row in set (94 disk I/O), 7016.01 ms)
 
 testcases/all.in:126> SELECT * FROM course, course2 WHERE course.sid = course2.sid AND [ course.exam = 100 OR course2.exam = 100 ]
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
@@ -1126,7 +1126,7 @@ testcases/all.in:126> SELECT * FROM course, course2 WHERE course.sid = course2.s
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
-3 rows in set (466 disk I/O), 34778.1 ms)
+3 rows in set (442 disk I/O), 32986.5 ms)
 
 testcases/all.in:127> SELECT * FROM course, course2 WHERE course.sid = course2.sid AND course.exam > course2.exam
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
@@ -1135,7 +1135,7 @@ testcases/all.in:127> SELECT * FROM course, course2 WHERE course.sid = course2.s
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
-2 rows in set (466 disk I/O), 34777.7 ms)
+2 rows in set (442 disk I/O), 32986.9 ms)
 
 testcases/all.in:128> SELECT * FROM course, course2 WHERE course.sid = course2.sid AND course.exam > course2.exam AND course.homework = 100
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
@@ -1144,7 +1144,7 @@ testcases/all.in:128> SELECT * FROM course, course2 WHERE course.sid = course2.s
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
-2 rows in set (248 disk I/O), 18509 ms)
+2 rows in set (224 disk I/O), 16718.1 ms)
 
 testcases/all.in:129> SELECT * FROM course, course2 WHERE course.sid = course2.sid AND [ course.exam > course2.exam OR course.homework = 100 ]
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
@@ -1159,7 +1159,7 @@ testcases/all.in:129> SELECT * FROM course, course2 WHERE course.sid = course2.s
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 |         17 |             100 |            100 |         100 | A            |          17 |            0 | A             |
 +------------+-----------------+----------------+-------------+--------------+-------------+--------------+---------------+
-8 rows in set (466 disk I/O), 34778.5 ms)
+8 rows in set (442 disk I/O), 32986.5 ms)
 
 testcases/all.in:130> SELECT DISTINCT course.grade, course2.grade FROM course, course2 WHERE course.sid = course2.sid AND [ course.exam > course2.exam OR course.grade = "A" AND course2.grade = "A" ] ORDER BY course.exam
 +--------------+---------------+
@@ -1167,391 +1167,391 @@ testcases/all.in:130> SELECT DISTINCT course.grade, course2.grade FROM course, c
 +--------------+---------------+
 | A            | A             |
 +--------------+---------------+
-1 row in set (514 disk I/O), 38360.4 ms)
+1 row in set (462 disk I/O), 34479.6 ms)
 
 testcases/all.in:131> DROP TABLE course
-Query OK (0 disk I/O, 0.35 ms)
+Query OK (0 disk I/O, 0.57 ms)
 
 testcases/all.in:132> DROP TABLE course2
-Query OK (0 disk I/O, 0.35 ms)
+Query OK (0 disk I/O, 0.57 ms)
 
 testcases/all.in:133> CREATE TABLE r (a INT, b INT)
-Query OK (0 disk I/O, 0.35 ms)
+Query OK (0 disk I/O, 0.57 ms)
 
 testcases/all.in:134> CREATE TABLE s (b INT, c INT)
-Query OK (0 disk I/O, 0.35 ms)
+Query OK (0 disk I/O, 0.57 ms)
 
 testcases/all.in:135> CREATE TABLE t (a INT, c INT)
-Query OK (0 disk I/O, 0.35 ms)
+Query OK (0 disk I/O, 0.57 ms)
 
 testcases/all.in:136> INSERT INTO r (a, b) VALUES (0, 0)
-Query OK (1 disk I/O, 74.98 ms)
+Query OK (1 disk I/O, 75.2 ms)
 
 testcases/all.in:137> INSERT INTO r (a, b) VALUES (1, 1)
-Query OK (2 disk I/O, 150.24 ms)
-
-testcases/all.in:138> INSERT INTO r (a, b) VALUES (1, 1)
-Query OK (2 disk I/O, 149.5 ms)
-
-testcases/all.in:139> INSERT INTO r (a, b) VALUES (2, 2)
-Query OK (2 disk I/O, 149.76 ms)
-
-testcases/all.in:140> INSERT INTO r (a, b) VALUES (3, 3)
-Query OK (1 disk I/O, 75.39 ms)
-
-testcases/all.in:141> INSERT INTO r (a, b) VALUES (0, 0)
-Query OK (2 disk I/O, 149.65 ms)
-
-testcases/all.in:142> INSERT INTO r (a, b) VALUES (1, 1)
-Query OK (2 disk I/O, 149.91 ms)
-
-testcases/all.in:143> INSERT INTO r (a, b) VALUES (2, 2)
-Query OK (2 disk I/O, 150.17 ms)
-
-testcases/all.in:144> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 74.8 ms)
-
-testcases/all.in:145> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 150.06 ms)
-
-testcases/all.in:146> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.32 ms)
-
-testcases/all.in:147> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.58 ms)
-
-testcases/all.in:148> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 75.21 ms)
-
-testcases/all.in:149> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.47 ms)
-
-testcases/all.in:150> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.73 ms)
-
-testcases/all.in:151> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.99 ms)
-
-testcases/all.in:152> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 75.62 ms)
-
-testcases/all.in:153> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.88 ms)
-
-testcases/all.in:154> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 150.14 ms)
-
-testcases/all.in:155> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.4 ms)
-
-testcases/all.in:156> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 75.03 ms)
-
-testcases/all.in:157> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.29 ms)
-
-testcases/all.in:158> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.55 ms)
-
-testcases/all.in:159> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.81 ms)
-
-testcases/all.in:160> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 75.44 ms)
-
-testcases/all.in:161> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.7 ms)
-
-testcases/all.in:162> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.96 ms)
-
-testcases/all.in:163> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 150.22 ms)
-
-testcases/all.in:164> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 74.85 ms)
-
-testcases/all.in:165> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 150.11 ms)
-
-testcases/all.in:166> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.37 ms)
-
-testcases/all.in:167> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.63 ms)
-
-testcases/all.in:168> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 75.26 ms)
-
-testcases/all.in:169> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.52 ms)
-
-testcases/all.in:170> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.78 ms)
-
-testcases/all.in:171> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 150.04 ms)
-
-testcases/all.in:172> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 74.67 ms)
-
-testcases/all.in:173> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.93 ms)
-
-testcases/all.in:174> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 150.19 ms)
-
-testcases/all.in:175> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (2 disk I/O, 149.45 ms)
-
-testcases/all.in:176> INSERT INTO r (a, b) VALUES (100, 100)
-Query OK (1 disk I/O, 75.08 ms)
-
-testcases/all.in:177> INSERT INTO s (b, c) VALUES (0, 0)
-Query OK (1 disk I/O, 74.71 ms)
-
-testcases/all.in:178> INSERT INTO s (b, c) VALUES (2, 2)
-Query OK (2 disk I/O, 149.97 ms)
-
-testcases/all.in:179> INSERT INTO s (b, c) VALUES (3, 3)
-Query OK (2 disk I/O, 150.23 ms)
-
-testcases/all.in:180> INSERT INTO s (b, c) VALUES (0, 0)
-Query OK (2 disk I/O, 149.49 ms)
-
-testcases/all.in:181> INSERT INTO s (b, c) VALUES (0, 0)
-Query OK (1 disk I/O, 75.12 ms)
-
-testcases/all.in:182> INSERT INTO s (b, c) VALUES (1, 1)
-Query OK (2 disk I/O, 149.38 ms)
-
-testcases/all.in:183> INSERT INTO s (b, c) VALUES (1, 1)
-Query OK (2 disk I/O, 149.64 ms)
-
-testcases/all.in:184> INSERT INTO s (b, c) VALUES (2, 2)
-Query OK (2 disk I/O, 149.9 ms)
-
-testcases/all.in:185> INSERT INTO s (b, c) VALUES (2, 2)
-Query OK (1 disk I/O, 75.53 ms)
-
-testcases/all.in:186> INSERT INTO s (b, c) VALUES (3, 3)
-Query OK (2 disk I/O, 149.79 ms)
-
-testcases/all.in:187> INSERT INTO s (b, c) VALUES (3, 3)
-Query OK (2 disk I/O, 150.05 ms)
-
-testcases/all.in:188> INSERT INTO s (b, c) VALUES (3, 3)
-Query OK (2 disk I/O, 149.31 ms)
-
-testcases/all.in:189> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 74.94 ms)
-
-testcases/all.in:190> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 150.2 ms)
-
-testcases/all.in:191> INSERT INTO s (b, c) VALUES (101, 101)
 Query OK (2 disk I/O, 149.46 ms)
 
-testcases/all.in:192> INSERT INTO s (b, c) VALUES (101, 101)
+testcases/all.in:138> INSERT INTO r (a, b) VALUES (1, 1)
 Query OK (2 disk I/O, 149.72 ms)
 
-testcases/all.in:193> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 75.35 ms)
-
-testcases/all.in:194> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.61 ms)
-
-testcases/all.in:195> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.87 ms)
-
-testcases/all.in:196> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 150.13 ms)
-
-testcases/all.in:197> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 74.76 ms)
-
-testcases/all.in:198> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 150.02 ms)
-
-testcases/all.in:199> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.28 ms)
-
-testcases/all.in:200> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.54 ms)
-
-testcases/all.in:201> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 75.17 ms)
-
-testcases/all.in:202> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.43 ms)
-
-testcases/all.in:203> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.69 ms)
-
-testcases/all.in:204> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.95 ms)
-
-testcases/all.in:205> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 75.58 ms)
-
-testcases/all.in:206> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.84 ms)
-
-testcases/all.in:207> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 150.1 ms)
-
-testcases/all.in:208> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.36 ms)
-
-testcases/all.in:209> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 74.99 ms)
-
-testcases/all.in:210> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 150.25 ms)
-
-testcases/all.in:211> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.51 ms)
-
-testcases/all.in:212> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.77 ms)
-
-testcases/all.in:213> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 75.4 ms)
-
-testcases/all.in:214> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.66 ms)
-
-testcases/all.in:215> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 149.92 ms)
-
-testcases/all.in:216> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (2 disk I/O, 150.18 ms)
-
-testcases/all.in:217> INSERT INTO s (b, c) VALUES (101, 101)
-Query OK (1 disk I/O, 74.81 ms)
-
-testcases/all.in:218> INSERT INTO t (a, c) VALUES (0, 0)
-Query OK (1 disk I/O, 75.44 ms)
-
-testcases/all.in:219> INSERT INTO t (a, c) VALUES (1, 1)
-Query OK (2 disk I/O, 149.7 ms)
-
-testcases/all.in:220> INSERT INTO t (a, c) VALUES (2, 2)
-Query OK (2 disk I/O, 149.96 ms)
-
-testcases/all.in:221> INSERT INTO t (a, c) VALUES (0, 0)
-Query OK (2 disk I/O, 150.22 ms)
-
-testcases/all.in:222> INSERT INTO t (a, c) VALUES (1, 1)
-Query OK (1 disk I/O, 74.85 ms)
-
-testcases/all.in:223> INSERT INTO t (a, c) VALUES (1, 1)
-Query OK (2 disk I/O, 150.11 ms)
-
-testcases/all.in:224> INSERT INTO t (a, c) VALUES (2, 2)
-Query OK (2 disk I/O, 149.37 ms)
-
-testcases/all.in:225> INSERT INTO t (a, c) VALUES (3, 3)
-Query OK (2 disk I/O, 149.63 ms)
-
-testcases/all.in:226> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 75.26 ms)
-
-testcases/all.in:227> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.52 ms)
-
-testcases/all.in:228> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.78 ms)
-
-testcases/all.in:229> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 150.04 ms)
-
-testcases/all.in:230> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 74.67 ms)
-
-testcases/all.in:231> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.93 ms)
-
-testcases/all.in:232> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 150.19 ms)
-
-testcases/all.in:233> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.45 ms)
-
-testcases/all.in:234> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 75.08 ms)
-
-testcases/all.in:235> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.34 ms)
-
-testcases/all.in:236> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.6 ms)
-
-testcases/all.in:237> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.86 ms)
-
-testcases/all.in:238> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 75.49 ms)
-
-testcases/all.in:239> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.75 ms)
-
-testcases/all.in:240> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 150.01 ms)
-
-testcases/all.in:241> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.27 ms)
-
-testcases/all.in:242> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 74.9 ms)
-
-testcases/all.in:243> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 150.16 ms)
-
-testcases/all.in:244> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.42 ms)
-
-testcases/all.in:245> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.68 ms)
-
-testcases/all.in:246> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 75.31 ms)
-
-testcases/all.in:247> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.57 ms)
-
-testcases/all.in:248> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.83 ms)
-
-testcases/all.in:249> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 150.09 ms)
-
-testcases/all.in:250> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 74.72 ms)
-
-testcases/all.in:251> INSERT INTO t (a, c) VALUES (102, 102)
+testcases/all.in:139> INSERT INTO r (a, b) VALUES (2, 2)
 Query OK (2 disk I/O, 149.98 ms)
 
-testcases/all.in:252> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 150.24 ms)
+testcases/all.in:140> INSERT INTO r (a, b) VALUES (3, 3)
+Query OK (1 disk I/O, 75.61 ms)
 
-testcases/all.in:253> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (2 disk I/O, 149.5 ms)
+testcases/all.in:141> INSERT INTO r (a, b) VALUES (0, 0)
+Query OK (2 disk I/O, 149.87 ms)
 
-testcases/all.in:254> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 75.13 ms)
+testcases/all.in:142> INSERT INTO r (a, b) VALUES (1, 1)
+Query OK (2 disk I/O, 150.13 ms)
 
-testcases/all.in:255> INSERT INTO t (a, c) VALUES (102, 102)
+testcases/all.in:143> INSERT INTO r (a, b) VALUES (2, 2)
 Query OK (2 disk I/O, 149.39 ms)
 
-testcases/all.in:256> INSERT INTO t (a, c) VALUES (102, 102)
+testcases/all.in:144> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 75.02 ms)
+
+testcases/all.in:145> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.28 ms)
+
+testcases/all.in:146> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.54 ms)
+
+testcases/all.in:147> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.8 ms)
+
+testcases/all.in:148> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 75.43 ms)
+
+testcases/all.in:149> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.69 ms)
+
+testcases/all.in:150> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.95 ms)
+
+testcases/all.in:151> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 150.21 ms)
+
+testcases/all.in:152> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 74.84 ms)
+
+testcases/all.in:153> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 150.1 ms)
+
+testcases/all.in:154> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.36 ms)
+
+testcases/all.in:155> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.62 ms)
+
+testcases/all.in:156> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 75.25 ms)
+
+testcases/all.in:157> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.51 ms)
+
+testcases/all.in:158> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.77 ms)
+
+testcases/all.in:159> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 150.03 ms)
+
+testcases/all.in:160> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 74.66 ms)
+
+testcases/all.in:161> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.92 ms)
+
+testcases/all.in:162> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 150.18 ms)
+
+testcases/all.in:163> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.44 ms)
+
+testcases/all.in:164> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 75.07 ms)
+
+testcases/all.in:165> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.33 ms)
+
+testcases/all.in:166> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.59 ms)
+
+testcases/all.in:167> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.85 ms)
+
+testcases/all.in:168> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 75.48 ms)
+
+testcases/all.in:169> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.74 ms)
+
+testcases/all.in:170> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 150 ms)
+
+testcases/all.in:171> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.26 ms)
+
+testcases/all.in:172> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 74.89 ms)
+
+testcases/all.in:173> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 150.15 ms)
+
+testcases/all.in:174> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.41 ms)
+
+testcases/all.in:175> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (2 disk I/O, 149.67 ms)
+
+testcases/all.in:176> INSERT INTO r (a, b) VALUES (100, 100)
+Query OK (1 disk I/O, 75.3 ms)
+
+testcases/all.in:177> INSERT INTO s (b, c) VALUES (0, 0)
+Query OK (1 disk I/O, 74.93 ms)
+
+testcases/all.in:178> INSERT INTO s (b, c) VALUES (2, 2)
+Query OK (2 disk I/O, 150.19 ms)
+
+testcases/all.in:179> INSERT INTO s (b, c) VALUES (3, 3)
+Query OK (2 disk I/O, 149.45 ms)
+
+testcases/all.in:180> INSERT INTO s (b, c) VALUES (0, 0)
+Query OK (2 disk I/O, 149.71 ms)
+
+testcases/all.in:181> INSERT INTO s (b, c) VALUES (0, 0)
+Query OK (1 disk I/O, 75.34 ms)
+
+testcases/all.in:182> INSERT INTO s (b, c) VALUES (1, 1)
+Query OK (2 disk I/O, 149.6 ms)
+
+testcases/all.in:183> INSERT INTO s (b, c) VALUES (1, 1)
+Query OK (2 disk I/O, 149.86 ms)
+
+testcases/all.in:184> INSERT INTO s (b, c) VALUES (2, 2)
+Query OK (2 disk I/O, 150.12 ms)
+
+testcases/all.in:185> INSERT INTO s (b, c) VALUES (2, 2)
+Query OK (1 disk I/O, 74.75 ms)
+
+testcases/all.in:186> INSERT INTO s (b, c) VALUES (3, 3)
+Query OK (2 disk I/O, 150.01 ms)
+
+testcases/all.in:187> INSERT INTO s (b, c) VALUES (3, 3)
+Query OK (2 disk I/O, 149.27 ms)
+
+testcases/all.in:188> INSERT INTO s (b, c) VALUES (3, 3)
+Query OK (2 disk I/O, 149.53 ms)
+
+testcases/all.in:189> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 75.16 ms)
+
+testcases/all.in:190> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.42 ms)
+
+testcases/all.in:191> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.68 ms)
+
+testcases/all.in:192> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.94 ms)
+
+testcases/all.in:193> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 75.57 ms)
+
+testcases/all.in:194> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.83 ms)
+
+testcases/all.in:195> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 150.09 ms)
+
+testcases/all.in:196> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.35 ms)
+
+testcases/all.in:197> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 74.98 ms)
+
+testcases/all.in:198> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 150.24 ms)
+
+testcases/all.in:199> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.5 ms)
+
+testcases/all.in:200> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.76 ms)
+
+testcases/all.in:201> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 75.39 ms)
+
+testcases/all.in:202> INSERT INTO s (b, c) VALUES (101, 101)
 Query OK (2 disk I/O, 149.65 ms)
 
-testcases/all.in:257> INSERT INTO t (a, c) VALUES (102, 102)
+testcases/all.in:203> INSERT INTO s (b, c) VALUES (101, 101)
 Query OK (2 disk I/O, 149.91 ms)
 
+testcases/all.in:204> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 150.17 ms)
+
+testcases/all.in:205> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 74.8 ms)
+
+testcases/all.in:206> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 150.06 ms)
+
+testcases/all.in:207> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.32 ms)
+
+testcases/all.in:208> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.58 ms)
+
+testcases/all.in:209> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 75.21 ms)
+
+testcases/all.in:210> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.47 ms)
+
+testcases/all.in:211> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.73 ms)
+
+testcases/all.in:212> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.99 ms)
+
+testcases/all.in:213> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 75.62 ms)
+
+testcases/all.in:214> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.88 ms)
+
+testcases/all.in:215> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 150.14 ms)
+
+testcases/all.in:216> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (2 disk I/O, 149.4 ms)
+
+testcases/all.in:217> INSERT INTO s (b, c) VALUES (101, 101)
+Query OK (1 disk I/O, 75.03 ms)
+
+testcases/all.in:218> INSERT INTO t (a, c) VALUES (0, 0)
+Query OK (1 disk I/O, 74.66 ms)
+
+testcases/all.in:219> INSERT INTO t (a, c) VALUES (1, 1)
+Query OK (2 disk I/O, 149.92 ms)
+
+testcases/all.in:220> INSERT INTO t (a, c) VALUES (2, 2)
+Query OK (2 disk I/O, 150.18 ms)
+
+testcases/all.in:221> INSERT INTO t (a, c) VALUES (0, 0)
+Query OK (2 disk I/O, 149.44 ms)
+
+testcases/all.in:222> INSERT INTO t (a, c) VALUES (1, 1)
+Query OK (1 disk I/O, 75.07 ms)
+
+testcases/all.in:223> INSERT INTO t (a, c) VALUES (1, 1)
+Query OK (2 disk I/O, 149.33 ms)
+
+testcases/all.in:224> INSERT INTO t (a, c) VALUES (2, 2)
+Query OK (2 disk I/O, 149.59 ms)
+
+testcases/all.in:225> INSERT INTO t (a, c) VALUES (3, 3)
+Query OK (2 disk I/O, 149.85 ms)
+
+testcases/all.in:226> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 75.48 ms)
+
+testcases/all.in:227> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.74 ms)
+
+testcases/all.in:228> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 150 ms)
+
+testcases/all.in:229> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.26 ms)
+
+testcases/all.in:230> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 74.89 ms)
+
+testcases/all.in:231> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 150.15 ms)
+
+testcases/all.in:232> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.41 ms)
+
+testcases/all.in:233> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.67 ms)
+
+testcases/all.in:234> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 75.3 ms)
+
+testcases/all.in:235> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.56 ms)
+
+testcases/all.in:236> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.82 ms)
+
+testcases/all.in:237> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 150.08 ms)
+
+testcases/all.in:238> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 74.71 ms)
+
+testcases/all.in:239> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.97 ms)
+
+testcases/all.in:240> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 150.23 ms)
+
+testcases/all.in:241> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.49 ms)
+
+testcases/all.in:242> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 75.12 ms)
+
+testcases/all.in:243> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.38 ms)
+
+testcases/all.in:244> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.64 ms)
+
+testcases/all.in:245> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.9 ms)
+
+testcases/all.in:246> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 75.53 ms)
+
+testcases/all.in:247> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.79 ms)
+
+testcases/all.in:248> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 150.05 ms)
+
+testcases/all.in:249> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.31 ms)
+
+testcases/all.in:250> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 74.94 ms)
+
+testcases/all.in:251> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 150.2 ms)
+
+testcases/all.in:252> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.46 ms)
+
+testcases/all.in:253> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.72 ms)
+
+testcases/all.in:254> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (1 disk I/O, 75.35 ms)
+
+testcases/all.in:255> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.61 ms)
+
+testcases/all.in:256> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 149.87 ms)
+
+testcases/all.in:257> INSERT INTO t (a, c) VALUES (102, 102)
+Query OK (2 disk I/O, 150.13 ms)
+
 testcases/all.in:258> INSERT INTO t (a, c) VALUES (102, 102)
-Query OK (1 disk I/O, 75.54 ms)
+Query OK (1 disk I/O, 74.76 ms)
 
 testcases/all.in:259> SELECT * FROM r, s, t WHERE r.a=t.a AND r.b=s.b AND s.c=t.c
 +-----+-----+-----+-----+-----+-----+
@@ -1604,88 +1604,88 @@ testcases/all.in:259> SELECT * FROM r, s, t WHERE r.a=t.a AND r.b=s.b AND s.c=t.
 |   3 |   3 |   3 |   3 |   3 |   3 |
 |   3 |   3 |   3 |   3 |   3 |   3 |
 +-----+-----+-----+-----+-----+-----+
-46 rows in set (680 disk I/O), 50748.9 ms)
+46 rows in set (432 disk I/O), 32240.9 ms)
 
 testcases/all.in:260> DROP TABLE r
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:261> DROP TABLE s
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:262> DROP TABLE t
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:263> CREATE TABLE t1 (c INT)
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:264> CREATE TABLE t2 (c INT)
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:265> CREATE TABLE t3 (c INT)
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:266> CREATE TABLE t4 (c INT)
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:267> CREATE TABLE t5 (c INT)
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:268> CREATE TABLE t6 (c INT)
-Query OK (0 disk I/O, 0.94 ms)
+Query OK (0 disk I/O, 0.92 ms)
 
 testcases/all.in:269> INSERT INTO t1 (c) VALUES (0)
-Query OK (1 disk I/O, 75.57 ms)
+Query OK (1 disk I/O, 75.55 ms)
 
 testcases/all.in:270> INSERT INTO t1 (c) VALUES (1)
-Query OK (2 disk I/O, 149.83 ms)
+Query OK (2 disk I/O, 149.81 ms)
 
 testcases/all.in:271> INSERT INTO t1 (c) VALUES (2)
-Query OK (2 disk I/O, 150.09 ms)
+Query OK (2 disk I/O, 150.07 ms)
 
 testcases/all.in:272> INSERT INTO t1 (c) VALUES (3)
-Query OK (2 disk I/O, 149.35 ms)
+Query OK (2 disk I/O, 149.33 ms)
 
 testcases/all.in:273> INSERT INTO t1 (c) VALUES (4)
-Query OK (2 disk I/O, 149.61 ms)
+Query OK (2 disk I/O, 149.59 ms)
 
 testcases/all.in:274> INSERT INTO t2 (c) VALUES (0)
-Query OK (1 disk I/O, 75.24 ms)
+Query OK (1 disk I/O, 75.22 ms)
 
 testcases/all.in:275> INSERT INTO t2 (c) VALUES (1)
-Query OK (2 disk I/O, 149.5 ms)
+Query OK (2 disk I/O, 149.48 ms)
 
 testcases/all.in:276> INSERT INTO t2 (c) VALUES (2)
-Query OK (2 disk I/O, 149.76 ms)
+Query OK (2 disk I/O, 149.74 ms)
 
 testcases/all.in:277> INSERT INTO t2 (c) VALUES (3)
-Query OK (2 disk I/O, 150.02 ms)
+Query OK (2 disk I/O, 150 ms)
 
 testcases/all.in:278> INSERT INTO t3 (c) VALUES (0)
-Query OK (1 disk I/O, 74.65 ms)
+Query OK (1 disk I/O, 74.63 ms)
 
 testcases/all.in:279> INSERT INTO t3 (c) VALUES (1)
-Query OK (2 disk I/O, 149.91 ms)
+Query OK (2 disk I/O, 149.89 ms)
 
 testcases/all.in:280> INSERT INTO t3 (c) VALUES (2)
-Query OK (2 disk I/O, 150.17 ms)
+Query OK (2 disk I/O, 150.15 ms)
 
 testcases/all.in:281> INSERT INTO t3 (c) VALUES (3)
-Query OK (2 disk I/O, 149.43 ms)
+Query OK (2 disk I/O, 149.41 ms)
 
 testcases/all.in:282> INSERT INTO t4 (c) VALUES (0)
-Query OK (1 disk I/O, 75.06 ms)
+Query OK (1 disk I/O, 75.04 ms)
 
 testcases/all.in:283> INSERT INTO t4 (c) VALUES (1)
-Query OK (2 disk I/O, 149.32 ms)
+Query OK (2 disk I/O, 149.3 ms)
 
 testcases/all.in:284> INSERT INTO t5 (c) VALUES (0)
-Query OK (1 disk I/O, 74.95 ms)
+Query OK (1 disk I/O, 74.93 ms)
 
 testcases/all.in:285> INSERT INTO t5 (c) VALUES (0)
-Query OK (2 disk I/O, 150.21 ms)
+Query OK (2 disk I/O, 150.19 ms)
 
 testcases/all.in:286> INSERT INTO t6 (c) VALUES (0)
-Query OK (1 disk I/O, 74.84 ms)
+Query OK (1 disk I/O, 74.82 ms)
 
 testcases/all.in:287> SELECT * FROM t1, t2, t3, t4, t5, t6
 +------+------+------+------+------+------+
@@ -2012,23 +2012,23 @@ testcases/all.in:287> SELECT * FROM t1, t2, t3, t4, t5, t6
 |    4 |    3 |    3 |    1 |    0 |    0 |
 |    4 |    3 |    3 |    1 |    0 |    0 |
 +------+------+------+------+------+------+
-320 rows in set (465 disk I/O), 34703.8 ms)
+320 rows in set (443 disk I/O), 33061.9 ms)
 
 testcases/all.in:288> DROP TABLE t1
-Query OK (0 disk I/O, 0.79 ms)
+Query OK (0 disk I/O, 0.91 ms)
 
 testcases/all.in:289> DROP TABLE t2
-Query OK (0 disk I/O, 0.79 ms)
+Query OK (0 disk I/O, 0.91 ms)
 
 testcases/all.in:290> DROP TABLE t3
-Query OK (0 disk I/O, 0.79 ms)
+Query OK (0 disk I/O, 0.91 ms)
 
 testcases/all.in:291> DROP TABLE t4
-Query OK (0 disk I/O, 0.79 ms)
+Query OK (0 disk I/O, 0.91 ms)
 
 testcases/all.in:292> DROP TABLE t5
-Query OK (0 disk I/O, 0.79 ms)
+Query OK (0 disk I/O, 0.91 ms)
 
 testcases/all.in:293> DROP TABLE t6
-Query OK (0 disk I/O, 0.79 ms)
+Query OK (0 disk I/O, 0.91 ms)
 
