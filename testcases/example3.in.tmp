@@ -12,7 +12,8 @@ INSERT INTO t (a, c) VALUES (1, 0)
 INSERT INTO t (a, c) VALUES (0, 1)
 INSERT INTO t (a, c) VALUES (1, 1)
 #SELECT DISTINCT * FROM r, t WHERE r.a = t.a AND r.b = 1
-SELECT * FROM r, s, t WHERE r.a=t.a AND r.b=s.b AND s.c=t.c
+#SELECT * FROM r, s, t WHERE r.a=t.a AND r.b=s.b AND s.c=t.c
+SELECT * FROM r, s, t WHERE r.a<t.a 
 DROP TABLE r
 DROP TABLE s
 #DROP TABLE t

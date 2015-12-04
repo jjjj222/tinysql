@@ -878,6 +878,11 @@ void QueryMgr::optimize_where_with_cross_product(QueryNode* node)
             insert_where(all_table[0], and_equal);
         }
     }
+
+    QueryNode* cross_node = _select_root->get_node(QueryNode::CROSS_PRODUCT);
+    if (cross_node != NULL) {
+        optimize_cross_product(cross_node);
+    }
 }
 
 void QueryMgr::create_natural_join(const vector<string>& attr_list)
