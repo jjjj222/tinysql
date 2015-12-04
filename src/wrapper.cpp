@@ -956,6 +956,15 @@ size_t RelRange::num_of_block() const
     return res;
 }
 
+bool RelRange::is_equal_to(const RelRange& rhs) const
+{
+    return _begin == rhs._begin && _end == rhs._end;
+}
+
+string RelRange::dump_str() const
+{
+    return tiny_dump_str(_begin, _end);
+}
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
@@ -1102,29 +1111,14 @@ bool RelScanner::sort(const vector<string>& attr_list)
     std::sort(tuple_list.begin(), tuple_list.end(),
         [&](const TinyTuple& a, const TinyTuple& b) -> bool
     { 
-        //return a.is_less_than_by_attr(b, search_name);
         return a.is_less_than_by_attr(b, search_name_list);
-
-        //DataValue a_value = a.get_value(search_name);
-        //DataValue b_value = b.get_value(search_name);
-
-        //if (a_value < b_value) {
-        //    return true;
-        //} else if (a_value > b_value) {
-        //    return false;
-        //}
-
-        //return a < b;
     });
 
     size_t i = 0;
     for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
         it.set_tuple(tuple_list[i]);
         ++i;
-        //tuple_list.push_back(it.get_tuple());
     }
-    //cout << endl;
-    //dump_pretty(tuple_list);
 
     return true;
 }
@@ -1341,17 +1335,21 @@ RelSorter::RelSorter(TinyRelation* r, size_t base_idx, size_t mem_size)
 //    //}
 //}
 
-void RelSorter::sort(const string& attr)
+//void RelSorter::sort(const string& attr)
+vector<pair<DataValue, RelRange>> RelSorter::sort(const string& attr)
 {
     assert(!attr.empty());
 
     _attr_list.clear();
     _attr_list.push_back(attr);    
-    sort();
+    return sort();
 }
 
-void RelSorter::sort()
+//void RelSorter::sort()
+vector<pair<DataValue, RelRange>> RelSorter::sort()
 {
+    vector<pair<DataValue, RelRange>> res;
+
     if (_relation->get_num_of_block() <= _mem_size) {
         RelScanner scanner(_relation, _base_idx, _mem_size);
         scanner.load_to_mem();
@@ -1360,7 +1358,13 @@ void RelSorter::sort()
 
         _relation->clear();
         scanner.add_mem_into(*_relation);
-        return;
+
+        if (_attr_list.size() == 1) {
+            //string search_name = _relation->get_attr_search_name(_attr_list[0]);
+            return _relation->get_sub_list_by_attr(_attr_list[0], 1);
+        } else {
+            return res;
+        }
     }
     //assert(_sub_list.empty());
     //assert(_sorted_relation == NULL);
@@ -1392,20 +1396,52 @@ void RelSorter::sort()
     vector<RelScanner> scanner_list = get_scanner_list(new_relation, sub_list);
 
     _relation->clear();
-    RelWriter writer(_relation);
-    TinyTuple tmp = get_max(scanner_list);
-    while (!tmp.is_null()) {
-        writer.push_back(tmp);
-        //_relation->push_back(tmp);
-        tmp = get_max(scanner_list);
+
+    if (_attr_list.size() == 1) {
+        string search_name = _relation->get_attr_search_name(_attr_list[0]);
+
+        RelIter iter_end = _relation->begin();
+        //RelIter iter_end = iter;
+
+        RelWriter writer(_relation);
+        TinyTuple tuple = get_max(scanner_list);
+        DataValue old_value = tuple.get_data_value(search_name);;
+        while (!tuple.is_null()) {
+
+            DataValue value = tuple.get_data_value(search_name);
+            if (value != old_value) {
+                writer.flush();
+                RelIter iter = _relation->end();
+                //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
+                res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
+                //cout << old_value.dump_str() << " " << iter_end.dump_str() << " "
+                //    << iter.dump_str() << endl;
+                old_value = value;
+                iter_end = iter;
+            }
+
+            writer.push_back(tuple);
+            tuple = get_max(scanner_list);
+        }
+        writer.flush();
+        res.push_back( make_pair( old_value, RelRange(iter_end, _relation->end())) );
+    } else {
+        RelWriter writer(_relation);
+        TinyTuple tmp = get_max(scanner_list);
+        while (!tmp.is_null()) {
+            writer.push_back(tmp);
+            //_relation->push_back(tmp);
+            tmp = get_max(scanner_list);
+        }
+        writer.flush();
     }
-    writer.flush();
 
     //_relation->dump();
     //_relation->clear();
     //_relation->dump();
 
     HwMgr::ins()->drop_table(new_relation->get_name());
+    return res;
 }
 
 TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)

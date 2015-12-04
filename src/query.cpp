@@ -1922,29 +1922,23 @@ bool NaturalJoinNode::calculate_result()
     size_t base_index = 1;
     size_t mem_size = total_size;
     RelSorter sorter_s(relation_0, base_index, mem_size);
-    sorter_s.sort(attr_0);
+    //sorter_s.sort(attr_0);
+    vector<pair<DataValue, RelRange>> sub_list_0 = sorter_s.sort(attr_0);
     RelSorter sorter_l(relation_1, base_index, mem_size);
-    sorter_l.sort(attr_1);
+    //sorter_l.sort(attr_1);
+    vector<pair<DataValue, RelRange>> sub_list_1 = sorter_l.sort(attr_1);
 
-    //vector<pair<DataValue, pair<RelIter, RelIter>>> sub_list_0 =
+    //vector<pair<DataValue, RelRange>> sub_list_0_test =
     //    relation_0->get_sub_list_by_attr(attr_0, 1);
-    vector<pair<DataValue, RelRange>> sub_list_0 =
-        relation_0->get_sub_list_by_attr(attr_0, 1);
-    //vector<pair<DataValue, pair<RelIter, RelIter>>> sub_list_1 =
+    //vector<pair<DataValue, RelRange>> sub_list_1_test =
     //    relation_1->get_sub_list_by_attr(attr_1, 1);
-    vector<pair<DataValue, RelRange>> sub_list_1 =
-        relation_1->get_sub_list_by_attr(attr_1, 1);
+
     //dump_pretty(sub_list_0);
-    //size_t l_index = 1;
-    //size_t l_size = 1;
-    //size_t s_index = l_index + l_size;
-    //size_t s_size = total_size - l_size;;
-    //dump_normal(is_swap);
-    //size_t total_size = HwMgr::ins()->get_mem_size() - 1;
-    //size_t l_index = 1;
-    //size_t l_size = 1;
-    //size_t s_index = l_index + l_size;
-    //size_t s_size = total_size - l_size;;
+    //dump_pretty(sub_list_0_test);
+
+    //assert(sub_list_0 == sub_list_0_test);
+    //assert(sub_list_1 == sub_list_1_test);
+
     MemRange total_range = HwMgr::ins()->get_mem_range().get_not_first_block();
     MemRange l_range = total_range.get_first_block();
     MemRange s_range = total_range.get_not_first_block();

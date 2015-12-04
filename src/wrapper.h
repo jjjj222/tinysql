@@ -242,9 +242,16 @@ class RelRange
     public:
         RelRange(const RelIter&, const RelIter&);
 
+        bool operator==(const RelRange& rhs) const { return is_equal_to(rhs); }
+
         const RelIter& begin() const { return _begin; }
         const RelIter& end() const { return _end; }
         size_t num_of_block() const;
+
+        string dump_str() const;
+
+    private:
+        bool is_equal_to(const RelRange&) const;
 
     private:
         const RelIter   _begin;
@@ -351,8 +358,10 @@ class RelSorter
 
         //TinyTuple get_next();
         //bool sort();
-        void sort();
-        void sort(const string&);
+        //void sort();
+        //void sort(const string&);
+        vector<pair<DataValue, RelRange>> sort();
+        vector<pair<DataValue, RelRange>> sort(const string&);
 
     private:
         TinyTuple get_max(vector<RelScanner>&);
