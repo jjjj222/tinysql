@@ -3,4 +3,7 @@ INSERT INTO example (attr0, attr1) VALUES (0, "A")
 #INSERT INTO example (attr0, attr1) VALUES (0, "A")
 #INSERT INTO example (attr1, attr0) VALUES ("C", 2)
 INSERT INTO example (attr1, attr0) VALUES ("B", 1)
+CREATE TABLE example1 (attr0 INT, attr1 STR20)
+INSERT INTO example1 (attr0, attr1) VALUES (1, "A")
+INSERT INTO example1 (attr1, attr0) VALUES ("B", 0)
 #SELECT attr0 FROM example

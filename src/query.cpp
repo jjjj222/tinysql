@@ -947,7 +947,9 @@ void QueryMgr::insert_where(const string& table_name, tree_node_t* where_tree)
     vector<string> tmp;
     tmp.push_back(table_name);
     QueryNode* node = _select_root->get_node_by_base_table(tmp);
-    assert(node != NULL); 
+    //assert(node != NULL); 
+    if (node == NULL)
+        return;
 
     QueryNode* new_node = build_where(where_tree);
     replace_all(node->_parent->_childs, node, new_node);
