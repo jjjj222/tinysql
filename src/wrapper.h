@@ -418,6 +418,7 @@ class TinyRelation
         vector<pair<string, DataType>> get_attr_type_list_with_name() const;
         const vector<TinyTuple>& get_pipe_queue() const;
         size_t size() const;
+        size_t size_by_block() const;
         bool empty() const;
         size_t get_num_of_attribute() const;
         size_t get_num_of_block() const;

@@ -1,0 +1,6 @@
+CREATE TABLE example (attr0 INT, attr1 STR20)
+INSERT INTO example (attr0, attr1) VALUES (0, "A")
+#INSERT INTO example (attr0, attr1) VALUES (0, "A")
+#INSERT INTO example (attr1, attr0) VALUES ("C", 2)
+INSERT INTO example (attr1, attr0) VALUES ("B", 1)
+#SELECT attr0 FROM example

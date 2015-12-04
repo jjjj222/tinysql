@@ -278,10 +278,10 @@ TinyTuple::~TinyTuple()
 
 bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
 {
-    if (raw_value == "NULL") {
-        error_msg("does not support 'NULL' now");
-        return false;
-    }
+    //if (raw_value == "NULL") {
+    //    error_msg("does not support 'NULL' now");
+    //    return false;
+    //}
 
     DataType data_type = get_data_type(name);
     if (data_type == TINY_UNKNOWN) {
@@ -290,7 +290,12 @@ bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
     }
 
     bool res = false;
-    if (raw_value[0] == '\"') {
+    if (raw_value == "NULL") {
+        warning_msg("does not support 'NULL' now, set to default value");
+        set_value(name, DataValue(data_type));
+        res = true;
+    } else if (raw_value[0] == '\"') {
+    //if (raw_value[0] == '\"') {
         if (data_type == TINY_INT) {
             error_msg("\'" + name + "\' should be INT");
             return false;
@@ -1387,11 +1392,14 @@ void RelSorter::sort()
     vector<RelScanner> scanner_list = get_scanner_list(new_relation, sub_list);
 
     _relation->clear();
+    RelWriter writer(_relation);
     TinyTuple tmp = get_max(scanner_list);
     while (!tmp.is_null()) {
-        _relation->push_back(tmp);
+        writer.push_back(tmp);
+        //_relation->push_back(tmp);
         tmp = get_max(scanner_list);
     }
+    writer.flush();
 
     //_relation->dump();
     //_relation->clear();
@@ -1420,11 +1428,14 @@ TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)
     for (const auto& tmp_sub_list : sub_list_split) {
         vector<RelScanner> scanner_list = get_scanner_list(r, tmp_sub_list);
 
+        RelWriter writer(new_relation);
         TinyTuple tmp = get_max(scanner_list);
         while (!tmp.is_null()) {
-            new_relation->push_back(tmp);
+            //new_relation->push_back(tmp);
+            writer.push_back(tmp);
             tmp = get_max(scanner_list);
         }
+        writer.flush();
 
         RelIter it_end = new_relation->end();
         new_sub_list.push_back(make_pair(it, it_end));
@@ -1710,6 +1721,12 @@ TinySchema TinyRelation::get_tiny_schema() const
 size_t TinyRelation::size() const
 {
     return (size_t)_relation->getNumOfTuples();
+}
+
+size_t TinyRelation::size_by_block() const
+{
+    size_t res = size() / tuple_per_block();
+    return res;
 }
 
 bool TinyRelation::empty() const

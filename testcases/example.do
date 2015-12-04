@@ -1,9 +1,9 @@
-CREATE TABLE example (attr0 INT, attr1 STR20)
-INSERT INTO example (attr0, attr1) VALUES (0, "A")
-INSERT INTO example (attr0, attr1) VALUES (0, "A")
-INSERT INTO example (attr0, attr1) VALUES (2, "C")
-INSERT INTO example (attr1, attr0) VALUES ("B", 1)
-SELECT DISTINCT * FROM example
+#CREATE TABLE example (attr0 INT, attr1 STR20)
+#INSERT INTO example (attr0, attr1) VALUES (0, "A")
+#INSERT INTO example (attr0, attr1) VALUES (0, "A")
+#INSERT INTO example (attr0, attr1) VALUES (2, "C")
+#INSERT INTO example (attr1, attr0) VALUES ("B", 1)
+#SELECT DISTINCT * FROM example
 #CREATE TABLE example2 (attr0 INT, attr1 STR20)
 #INSERT INTO example2 (attr0, attr1) VALUES (1, "A")
 #INSERT INTO example2 (attr0, attr1) VALUES (3, "D")
@@ -11,7 +11,7 @@ SELECT DISTINCT * FROM example
 #SELECT example.attr0, example.attr1, example2.attr0 FROM example, example2 WHERE example.attr0 < example2.attr0 ORDER BY example.attr0
 #source testcases/all_tmp.in
 #source testcases/example.in.tmp
-#source testcases/example3.in.tmp
+source testcases/example3.in.tmp
 #source testcases/debug.in.tmp
 #source testcases/all_4.in
 #source testcases/example2.in.tmp

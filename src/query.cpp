@@ -1775,7 +1775,8 @@ bool CrossProductNode::calculate_result()
     }
 
     bool is_swap = false;
-    if (relation_s->size() > relation_l->size()) {
+    //if (relation_s->size() > relation_l->size()) {
+    if (relation_s->size_by_block() > relation_l->size_by_block()) {
         swap(relation_s, relation_l);
         is_swap = true;
     }
