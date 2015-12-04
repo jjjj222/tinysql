@@ -360,8 +360,10 @@ class RelSorter
         //bool sort();
         //void sort();
         //void sort(const string&);
-        vector<pair<DataValue, RelRange>> sort();
-        vector<pair<DataValue, RelRange>> sort(const string&);
+        vector<pair<DataValue, RelRange>> sort_return();
+        vector<pair<DataValue, RelRange>> sort_return(const string&);
+        void sort();
+        void sort(const string&);
 
     private:
         TinyTuple get_max(vector<RelScanner>&);

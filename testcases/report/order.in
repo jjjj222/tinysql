@@ -1,0 +1,48 @@
+CREATE TABLE example (attr0 INT, attr1 INT, attr2 INT, attr3 INT, attr4 INT)
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (0, 0, 0, 0, 0)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (1, 1, 1, 1, 1)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (2, 2, 2, 2, 2)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (3, 3, 3, 3, 3)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (4, 4, 4, 4, 4)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (5, 5, 5, 5, 5)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (6, 6, 6, 6, 6)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (7, 7, 7, 7, 7)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (8, 8, 8, 8, 8)
+SELECT * FROM example ORDER BY attr0
+INSERT INTO example (attr0, attr1, attr2, attr3, attr4) VALUES (9, 9, 9, 9, 9)
+SELECT * FROM example ORDER BY attr0
+CREATE TABLE example1 (attr0 INT, attr1 INT, attr2 INT, attr3 INT, attr4 INT)
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0
+INSERT INTO example1 (attr0, attr1, attr2, attr3, attr4) SELECT * FROM example 
+SELECT * FROM example1 ORDER BY attr0

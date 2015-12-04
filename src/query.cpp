@@ -1527,6 +1527,7 @@ bool OrderByNode::calculate_result()
     //string new_table_name = "order_by " + relation->get_name();
     //TinyRelation* new_relation = HwMgr::ins()->create_relation(
     //    new_table_name, relation->get_tiny_schema());
+    //HwMgr::ins()->dump_io();
 
     size_t total_size = HwMgr::ins()->get_mem_size() - 1;
     size_t base_index = 1;
@@ -1536,6 +1537,7 @@ bool OrderByNode::calculate_result()
     //sorter.set_attr(_name);
     //sorter.sort();
     sorter.sort(_name);
+    //HwMgr::ins()->dump_io();
 
     //set_real_table(relation->get_name(), relation); // TODO: remove
     set_relation(relation);
@@ -1925,10 +1927,10 @@ bool NaturalJoinNode::calculate_result()
     size_t mem_size = total_size;
     RelSorter sorter_s(relation_0, base_index, mem_size);
     //sorter_s.sort(attr_0);
-    vector<pair<DataValue, RelRange>> sub_list_0 = sorter_s.sort(attr_0);
+    vector<pair<DataValue, RelRange>> sub_list_0 = sorter_s.sort_return(attr_0);
     RelSorter sorter_l(relation_1, base_index, mem_size);
     //sorter_l.sort(attr_1);
-    vector<pair<DataValue, RelRange>> sub_list_1 = sorter_l.sort(attr_1);
+    vector<pair<DataValue, RelRange>> sub_list_1 = sorter_l.sort_return(attr_1);
 
     //vector<pair<DataValue, RelRange>> sub_list_0_test =
     //    relation_0->get_sub_list_by_attr(attr_0, 1);

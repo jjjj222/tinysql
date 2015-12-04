@@ -1336,17 +1336,125 @@ RelSorter::RelSorter(TinyRelation* r, size_t base_idx, size_t mem_size)
 //}
 
 //void RelSorter::sort(const string& attr)
-vector<pair<DataValue, RelRange>> RelSorter::sort(const string& attr)
+void RelSorter::sort(const string& attr)
 {
     assert(!attr.empty());
 
     _attr_list.clear();
     _attr_list.push_back(attr);    
-    return sort();
+    sort();
+}
+
+vector<pair<DataValue, RelRange>> RelSorter::sort_return(const string& attr)
+{
+    assert(!attr.empty());
+
+    _attr_list.clear();
+    _attr_list.push_back(attr);    
+    return sort_return();
+}
+
+void RelSorter::sort()
+{
+    vector<pair<DataValue, RelRange>> res;
+
+    if (_relation->get_num_of_block() <= _mem_size) {
+        RelScanner scanner(_relation, _base_idx, _mem_size);
+        scanner.load_to_mem();
+        scanner.sort(_attr_list);
+
+
+        _relation->clear();
+        scanner.add_mem_into(*_relation);
+
+        //if (_attr_list.size() == 1) {
+        //    //string search_name = _relation->get_attr_search_name(_attr_list[0]);
+        //    return _relation->get_sub_list_by_attr(_attr_list[0], 1);
+        //} else {
+        //    return res;
+        //}
+        return;
+    }
+    //assert(_sub_list.empty());
+    //assert(_sorted_relation == NULL);
+
+    string new_table_name = "tmp " + _relation->get_name();
+    TinyRelation* new_relation = HwMgr::ins()->create_relation(
+        new_table_name, _relation->get_tiny_schema());
+
+
+    RelScanner scanner(_relation, _base_idx, _mem_size);
+    RelIter it = new_relation->end();
+    vector<pair<RelIter, RelIter>> sub_list;
+    while (!scanner.is_iter_end()) {
+        scanner.load_to_mem();
+        scanner.sort(_attr_list);
+        scanner.add_mem_into(*new_relation);
+
+        RelIter it_end = new_relation->end();
+        sub_list.push_back(make_pair(it, it_end));
+        it = it_end;
+    }
+
+    //cout << "io: " << HwMgr::ins()->get_elapse_io() << endl;
+
+    while (_mem_size < sub_list.size()) {
+        new_relation = reduce_sub_list(new_relation, sub_list);
+    }
+
+    vector<RelScanner> scanner_list = get_scanner_list(new_relation, sub_list);
+
+    _relation->clear();
+
+    if (_attr_list.size() == 1) {
+        string search_name = _relation->get_attr_search_name(_attr_list[0]);
+
+        RelIter iter_end = _relation->begin();
+        //RelIter iter_end = iter;
+
+        RelWriter writer(_relation);
+        TinyTuple tuple = get_max(scanner_list);
+        DataValue old_value = tuple.get_data_value(search_name);;
+        while (!tuple.is_null()) {
+
+            DataValue value = tuple.get_data_value(search_name);
+            if (value != old_value) {
+                writer.flush();
+                RelIter iter = _relation->end();
+                //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
+                res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
+                //cout << old_value.dump_str() << " " << iter_end.dump_str() << " "
+                //    << iter.dump_str() << endl;
+                old_value = value;
+                iter_end = iter;
+            }
+
+            writer.push_back(tuple);
+            tuple = get_max(scanner_list);
+        }
+        writer.flush();
+        res.push_back( make_pair( old_value, RelRange(iter_end, _relation->end())) );
+    } else {
+        RelWriter writer(_relation);
+        TinyTuple tmp = get_max(scanner_list);
+        while (!tmp.is_null()) {
+            writer.push_back(tmp);
+            //_relation->push_back(tmp);
+            tmp = get_max(scanner_list);
+        }
+        writer.flush();
+    }
+
+    //_relation->dump();
+    //_relation->clear();
+    //_relation->dump();
+
+    HwMgr::ins()->drop_table(new_relation->get_name());
+    //return res;
 }
 
 //void RelSorter::sort()
-vector<pair<DataValue, RelRange>> RelSorter::sort()
+vector<pair<DataValue, RelRange>> RelSorter::sort_return()
 {
     vector<pair<DataValue, RelRange>> res;
 

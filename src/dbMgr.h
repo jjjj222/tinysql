@@ -81,6 +81,7 @@ class HwMgr
         void dump_memory() const;
         void dump_relations() const;
         void dump_relation(const string&) const;
+        void dump_io();
 
     public:
         static HwMgr* ins();

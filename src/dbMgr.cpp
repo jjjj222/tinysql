@@ -411,3 +411,10 @@ void HwMgr::dump_relation(const string& name) const
 
     relation->dump();
 }
+
+void HwMgr::dump_io()
+{
+    cout << "io: " << get_elapse_io() << endl;
+        //size_t get_elapse_io();
+}
+
