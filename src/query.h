@@ -245,7 +245,6 @@ class QueryNode
 
         //get
         TinyRelation* get_or_create_relation();
-        //TableInfo* get_table_info() const { return _table_info; }
         virtual NodeType get_type() const { return BASE_NODE; };
 
         bool has_node(NodeType) const;
@@ -253,6 +252,7 @@ class QueryNode
         QueryNode* get_node_by_base_table(const vector<string>&);
         vector<string> get_base_table_name() const;
         string get_base_name() const; // TODO
+        virtual size_t get_estimate_size() const;
         //bool has_where() const;
 
         bool check() const;
@@ -338,6 +338,8 @@ class CrossProductNode : public QueryNode
         virtual bool calculate_result();
 
         virtual string dump_str() const;
+
+        virtual size_t get_estimate_size() const;
 
         void split(); // TODO: remove
 

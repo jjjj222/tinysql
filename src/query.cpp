@@ -1352,6 +1352,17 @@ string QueryNode::get_base_name() const
 
     return res;
 }
+
+size_t QueryNode::get_estimate_size() const
+{
+    //assert(_relation != NULL);
+    if (_relation != NULL) {
+        return _relation->size();
+    }
+    
+    assert(_childs.size() == 1);
+    return _childs[0]->get_estimate_size();
+}
 //bool QueryNode::has_cross_product() const
 //{
 //    if (get_type() == CROSS_PRODUCT)
@@ -1830,6 +1841,16 @@ void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelSc
 
 void CrossProductNode::split()
 {
+    if (_childs.size() > 2) {
+        std::sort(_childs.begin(), _childs.end(),
+            [&](const QueryNode* a, const QueryNode* b) -> bool
+        { 
+            //return a.is_less_than_by_attr(b, search_name_list);
+            return a->get_estimate_size() > b->get_estimate_size();
+        });
+        //cout << "QQ" << endl;
+    }
+
     while (_childs.size() > 2) {
         QueryNode* child_r = _childs.back();
         _childs.pop_back();
@@ -1843,6 +1864,16 @@ void CrossProductNode::split()
     }
 }
 
+size_t CrossProductNode::get_estimate_size() const
+{
+    //assert(_relation == )
+
+    size_t sum = 1;
+    for (const auto& child_ptr : _childs) {
+        sum *= child_ptr->get_estimate_size();
+    }
+    return sum;
+}
 //void CrossProductNode::convert_to_natural(const vector<string>& attr_list)
 //{
 //    assert(attr_list.size() == 2);
