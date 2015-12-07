@@ -1820,23 +1820,49 @@ void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelSc
     RelWriter writer(_relation);
     RelScanner scanner_i = scanner_s;
     while(!scanner_i.is_end()) {
-        TinyTuple tuple_s = scanner_i.get_next();
+        scanner_i.load_to_mem();
+        //TinyTuple tuple_s = scanner_i.get_next();
         RelScanner scanner_j = scanner_l;
         while(!scanner_j.is_end()) {
             TinyTuple tuple_l = scanner_j.get_next();
-        
-            TinyTuple new_tuple = _relation->create_tuple();
-            if (is_swap) {
-                new_tuple.set_value(tuple_l, tuple_s);
-            } else {
-                new_tuple.set_value(tuple_s, tuple_l);
+
+            for (MemIter m_iter = scanner_i.m_iter_begin(); m_iter != scanner_i.m_iter_end(); ++m_iter ) {
+                TinyTuple tuple_s = m_iter.get_tuple();
+                TinyTuple new_tuple = _relation->create_tuple();
+                if (is_swap) {
+                    new_tuple.set_value(tuple_l, tuple_s);
+                } else {
+                    new_tuple.set_value(tuple_s, tuple_l);
+                }
+                writer.push_back(new_tuple);
             }
+            scanner_i.skip_mem();
 
             //_relation->push_back(new_tuple); // TODO: it use mem addr 0
-            writer.push_back(new_tuple);
         }
     }
     writer.flush();
+
+    //RelWriter writer(_relation);
+    //RelScanner scanner_i = scanner_s;
+    //while(!scanner_i.is_end()) {
+    //    TinyTuple tuple_s = scanner_i.get_next();
+    //    RelScanner scanner_j = scanner_l;
+    //    while(!scanner_j.is_end()) {
+    //        TinyTuple tuple_l = scanner_j.get_next();
+    //    
+    //        TinyTuple new_tuple = _relation->create_tuple();
+    //        if (is_swap) {
+    //            new_tuple.set_value(tuple_l, tuple_s);
+    //        } else {
+    //            new_tuple.set_value(tuple_s, tuple_l);
+    //        }
+
+    //        //_relation->push_back(new_tuple); // TODO: it use mem addr 0
+    //        writer.push_back(new_tuple);
+    //    }
+    //}
+    //writer.flush();
 }
 
 void CrossProductNode::split()

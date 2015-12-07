@@ -315,6 +315,10 @@ class RelScanner
         bool is_iter_end() const;
         bool is_end() const;
 
+        MemIter m_iter_begin() const { return _m_iter; }
+        MemIter m_iter_end() const { return _m_iter_end; }
+        void skip_mem() { _m_iter = _m_iter_end; }
+
         void dump() const;
         string dump_str() const;
 
@@ -326,7 +330,6 @@ class RelScanner
         //TinyTuple get_from_mem();
         MemIter m_begin();
         MemIter m_load_end();
-        MemIter m_end();
 
         size_t get_last_mem_block() const;
 

@@ -1281,11 +1281,11 @@ MemIter RelScanner::m_load_end()
     return MemIter(_relation, mem_pos);
 }
 
-MemIter RelScanner::m_end()
-{
-    size_t mem_pos = (_base_idx + _mem_size) * _relation->tuple_per_block();
-    return MemIter(_relation, mem_pos);
-}
+//MemIter RelScanner::m_end()
+//{
+//    size_t mem_pos = (_base_idx + _mem_size) * _relation->tuple_per_block();
+//    return MemIter(_relation, mem_pos);
+//}
 
 size_t RelScanner::get_last_mem_block() const
 {
