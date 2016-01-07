@@ -1836,10 +1836,10 @@ void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelSc
                 }
                 writer.push_back(new_tuple);
             }
-            scanner_i.skip_mem();
 
             //_relation->push_back(new_tuple); // TODO: it use mem addr 0
         }
+        scanner_i.skip_mem();
     }
     writer.flush();
 

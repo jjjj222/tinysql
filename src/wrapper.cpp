@@ -2070,7 +2070,7 @@ void TinyRelation::print_table() const
         cout << " in set";
     }
 
-    cout << " (" << HwMgr::ins()->get_elapse_io() << " disk I/O), ";
+    cout << " (" << HwMgr::ins()->get_elapse_io() << " disk I/O, ";
     cout << HwMgr::ins()->get_elapse_time() << " ms)"<< endl;
 }
 
