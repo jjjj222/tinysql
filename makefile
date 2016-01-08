@@ -117,13 +117,13 @@ valgrind:
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ_FOLDER)/*
-	rm -f $(BIN_FOLDER)/*
-	rm -f $(DEP_FOLDER)/*
-	rm -f tags
-	rm -f $(SRC_FOLDER)/$(LEX_C)
-	rm -f $(SRC_FOLDER)/lex.yy.h
-	rm -f $(SRC_FOLDER)/y.tab.c
-	rm -f $(SRC_FOLDER)/y.tab.h
+	rm -rf $(OBJ_FOLDER)/*
+	rm -rf $(BIN_FOLDER)/*
+	rm -rf $(DEP_FOLDER)/*
+	rm -rf tags
+	rm -rf $(SRC_FOLDER)/$(LEX_C)
+	rm -rf $(SRC_FOLDER)/lex.yy.h
+	rm -rf $(SRC_FOLDER)/y.tab.c
+	rm -rf $(SRC_FOLDER)/y.tab.h
 	cd $(DB_API_DIR); make clean
 

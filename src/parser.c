@@ -378,7 +378,6 @@ int node_is_integer(tree_node_t* node)
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-// TODO: uniquify
 const char* lookup_symbol(const char* name)
 {
     assert(name != NULL);

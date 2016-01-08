@@ -1,6 +1,3 @@
-#include<iostream>
-using namespace std;
-
 #include "cmd.h"
 
 int main(int argc, char* argv [])

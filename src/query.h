@@ -123,7 +123,6 @@ class DivNode : public ArithNode
 class VarNode : public ConditionNode
 {
     public:
-        //VarNode(const ConditionMgr*, const string&, const string&);
         VarNode(const ConditionMgr*, const ColumnName&);
 
         DataValue get_value(const TinyTuple&) const;
@@ -185,12 +184,9 @@ class ConditionMgr
         void dump() const;
 
     private:
-        //void init(tree_node_t*);
-
         bool build_condition_node(tree_node_t*);
         bool check_condition_tree() const;
         bool check_condition_rec(ConditionNode*) const;
-        //bool check_var_node(ConditionNode*) const;
         bool check_var_node(VarNode*) const;
         ConditionNode* build_condition_node_rec(tree_node_t*);
         ConditionNode* build_boolean_node(tree_node_t*);
@@ -228,15 +224,10 @@ class QueryNode
         };
 
     public:
-        //QueryNode(NodeType);
         QueryNode();
         virtual ~QueryNode();
 
-        //void set_table_info(const TableInfo&);
-        //void set_tmp_table();
         void set_tmp_table(TinyRelation*);
-        //void set_real_table(const string&);
-        //void set_real_table(const string&, TinyRelation*);
         void set_relation(TinyRelation*);
         void add_child(QueryNode*);
 
@@ -253,7 +244,6 @@ class QueryNode
         vector<string> get_base_table_name() const;
         string get_base_name() const; // TODO
         virtual size_t get_estimate_size() const;
-        //bool has_where() const;
 
         bool check() const;
 
@@ -322,7 +312,6 @@ class WhereNode : public QueryNode
 
         vector<tree_node_t*> split_and_equal() const;
 
-        //virtual void print_result();
         virtual bool calculate_result();
         string dump_str() const;
         void dump_tree(const string& indent, bool is_last) const;
@@ -386,7 +375,6 @@ class QueryMgr
         bool insert_into_from_select(const string&, const vector<string>&, tree_node_t*);
 
         bool build_select_tree(tree_node_t*);
-        //bool build_select_tree(tree_node_t*);
         QueryNode* build_cross_product(const vector<string>&);
         QueryNode* build_base_node(const string&);
         QueryNode* build_where(tree_node_t*);
@@ -399,8 +387,6 @@ class QueryMgr
         void optimize_where_with_cross_product(QueryNode*);
         void create_natural_join(const vector<string>&);
         void insert_where(const string&, tree_node_t*);
-        //void convert_to_natural(QueryNode*);
-        //vector<tree_node_t*> separate_where_node_by_and(tree_node_t*);
         vector<string> get_all_table(tree_node_t*) const;
 
         bool check_select_tree() const;

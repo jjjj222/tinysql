@@ -1,11 +1,9 @@
 #include <iostream>
 #include <fstream>
-#include <cstdio>
-#include <cstdlib>
-#include <vector>
-#include <string>
 
-using namespace std;
+using std::ifstream;
+using std::cout;
+using std::endl;
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -15,8 +13,6 @@ using namespace std;
 #include "debug.h"
 #include "obj_util.h"
 
-using jjjj222::UpdateTo;
-using jjjj222::tokenize;
 using jjjj222::error_msg;
 
 #include "parser.h"
@@ -36,7 +32,7 @@ bool cmd_is_not_comment(const string& line)
 CmdState cmd_process(const char* buf)
 {
     //printf("[%s]\n",buf);
-    vector<string> tokens = tokenize(buf, " \t");
+    vector<string> tokens = jjjj222::tokenize(buf, " \t");
     if (tokens.empty())
         return CMD_OK;
 
@@ -125,8 +121,8 @@ CmdState cmd_readfile(const char* file_name)
         return CMD_ERROR;
     }
 
-    UpdateTo<const char*> update_name(&parser_file_name, file_name);
-    UpdateTo<int> update_lineno(&parser_file_lineno, 0);
+    jjjj222::UpdateTo<const char*> update_name(&parser_file_name, file_name);
+    jjjj222::UpdateTo<int> update_lineno(&parser_file_lineno, 0);
 
     string line;
     while (fin.good()) {

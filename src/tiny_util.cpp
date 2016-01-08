@@ -1,27 +1,23 @@
 #include <cassert>
 
-using namespace std;
-
 #include "debug.h"
 #include "obj_util.h"
 
-using namespace jjjj222;
-
 #include "tiny_util.h"
+#include "Field.h"
 
-#include "field.h"
 
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
 void error_msg_table_not_exist(const string& name)
 {
-    error_msg_not_exist("Table", name);
+    jjjj222::error_msg_not_exist("Table", name);
 }
 
 void error_msg_attribute_not_exist(const string& name)
 {
-    error_msg_not_exist("Attribute", name);
+    jjjj222::error_msg_not_exist("Attribute", name);
 }
 
 string get_literal_value(const string& literal)
@@ -37,7 +33,7 @@ string get_literal_value(const string& literal)
 //------------------------------------------------------------------------------
 ColumnName::ColumnName(const string& column_name)
 {
-    vector<string> toks = tokenize(column_name, ".");
+    vector<string> toks = jjjj222::tokenize(column_name, ".");
 
     if (toks.size() == 1) {
         _column = toks[0];

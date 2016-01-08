@@ -84,7 +84,6 @@ void yyerror(char* s)
              parser_file_name,
              parser_file_lineno, s, yytext);
     } else {
-        //fprintf(stderr, "Error: line %d: %s at '%s'\n", parser_file_lineno, s, yytext);
         fprintf(stderr, "Error: %s at '%s'\n", s, yytext);
     }
     parser_set_error();

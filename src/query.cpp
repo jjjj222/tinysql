@@ -7,7 +7,13 @@ using std::endl;
 #include "obj_util.h"
 #include "debug.h"
 
-using namespace jjjj222;
+using jjjj222::is_contain;
+using jjjj222::add_into;
+using jjjj222::remove_from;
+using jjjj222::delete_all;
+using jjjj222::delete_not_null;
+using jjjj222::replace_all;
+using jjjj222::error_msg;
 
 #include "Block.h"
 #include "Config.h"
@@ -128,7 +134,6 @@ bool LtNode::comp_op(const DataValue& lhs, const DataValue& rhs) const
     return lhs < rhs;
 }
 
-//VarNode::VarNode(const ConditionMgr* c, const string& table, const string& column)
 VarNode::VarNode(const ConditionMgr* c, const ColumnName& column_name)
 : _cond_mgr(c)
 , _table(column_name.get_table())
@@ -142,7 +147,6 @@ DataValue VarNode::get_value(const TinyTuple& tuple) const
     ColumnName column_name(_table, _column);
     string search_name = _cond_mgr->get_tiny_relation()->get_attr_search_name(column_name);
 
-    //return tuple.get_value(column_name.get_column_name());
     return tuple.get_data_value(search_name);
 }
 
@@ -226,8 +230,6 @@ ConditionMgr::ConditionMgr(tree_node_t* node, TinyRelation* relation)
 {
     assert(relation != NULL);
 
-    //_relations.push_back(relation);
-    //init(node);
     if (node != NULL) {
         bool res = build_condition_node(node);
         _error = !res;
@@ -238,7 +240,6 @@ ConditionMgr::~ConditionMgr()
 {
     delete_not_null(_root);
     delete_not_null(_tiny_tuple);
-    //delete_not_null(_tiny_schema);
 }
 
 bool ConditionMgr::is_tuple_match(const Tuple& tuple)
@@ -259,7 +260,6 @@ bool ConditionMgr::is_tuple_match(const Tuple& tuple)
 bool ConditionMgr::build_condition_node(tree_node_t* node)
 {
     assert(node != NULL);
-    //assert(node_is_where(node));
 
     tree_node_t* child = node;
     if(node_is_where(node)) {
@@ -307,7 +307,6 @@ bool ConditionMgr::check_condition_rec(ConditionNode* node) const
     }
 
     VarNode* var_node = dynamic_cast<VarNode*>(node);
-    //if (node->get_type() == ConditionNode::VAR) {
     if (var_node != NULL) {
         if (check_var_node(var_node) == false)
             return false;
@@ -316,78 +315,22 @@ bool ConditionMgr::check_condition_rec(ConditionNode* node) const
     return true;
 }
 
-//bool ConditionMgr::check_var_node(ConditionNode* node) const
 bool ConditionMgr::check_var_node(VarNode* node) const
 {
     assert(node != NULL);
-    //assert(node->get_type() == ConditionNode::VAR);
 
-    //VarNode* var_node = dynamic_cast<VarNode*>(node);
-    //assert(var_node != NULL);
-
-    //string table = var_node->get_table();
-    //string column = var_node->get_column();
     string table = node->get_table();
     string column = node->get_column();
     ColumnName column_name(table, column);
 
     string field_name = _tiny_relation->get_attr_search_name(column_name);;
 
-    //if (table.empty()) {
-    //    if (_tiny_relation->is_with_prefix()) {
-    //        error_msg("ambiguous \'" + column + "\'");
-    //        return false;
-    //        //field_name = table + "." + column;
-    //        //field_name = column_name;
-    //        //field_name = column;
-    //    } else {
-
-    //        field_name = column;
-    //    }
-    //} else { // !table.empty()
-    //    if (_tiny_relation->is_with_prefix()) {
-    //        //field_name = table + "." + column;
-    //        field_name = column_name;
-    //    } else {
-    //        if (table != _tiny_relation->get_base_name()) {
-    //            error_msg_not_exist("attribute", column_name);
-    //            return false;
-    //        }
-
-    //        field_name = column;
-    //    }
-
-    //}
-    //if (!table.empty() && _tiny_relation->get_name() != table) {
-    //dump_normal(field_name);
-
     TinySchema schema = _tiny_relation->get_tiny_schema();
     if (!schema.is_field_name_exist(field_name)) {
-        //error_msg_not_exist("attribute", build_column_name(table, column));
-        //error_msg_not_exist("attribute", column_name.get_column_name());
         error_msg_attribute_not_exist(column_name.get_column_name());
         return false;
     }
-    //schema
 
-    //if (table.empty()) {
-        //size_t count = _tiny_schema->count_field_name(var_node->get_table(), var_node->get_column());
-
-    //} else {
-    
-        //for (const auto& relation_ptr : _relations) {
-        //    if (relation_ptr->get_name == )
-        //}
-    //}
-    //dump_normal(table);
-    //dump_normal(column);
-        //if (count == 0) {
-        //    error_msg("Con't find \'" + var_node->dump_str() + "\'" );
-        //    return false;
-        //} else if (count >= 2) {
-        //    error_msg("Ambiguous \'" + var_node->dump_str() + "\'" );
-        //    return false;
-        //}
     return true;
 }
 
@@ -516,7 +459,6 @@ ConditionNode* ConditionMgr::build_var_node(tree_node_t* node)
     assert(node_is_name(node) || node_is_column_name(node));
 
     ColumnName column_name(node->value);
-    //ConditionNode* new_node = new VarNode(this, column_name.get_table(), column_name.get_column());
     ConditionNode* new_node = new VarNode(this, column_name);
 
     return new_node;
@@ -538,7 +480,7 @@ ConditionNode* ConditionMgr::build_integer_node(tree_node_t* node)
     assert(node != NULL);
     assert(node_is_integer(node));
 
-    int value = str_to<int>(node->value);
+    int value = jjjj222::str_to<int>(node->value);
 
     ConditionNode* new_node = new IntegerNode(value);
     return new_node;
@@ -546,7 +488,8 @@ ConditionNode* ConditionMgr::build_integer_node(tree_node_t* node)
 
 void ConditionMgr::dump() const
 {
-    //dump_normal(_tiny_schema);
+    using jjjj222::dump_impl;
+    using jjjj222::dump_pretty_impl;
     dump_normal(_error);
     dump_normal(_tiny_relation->get_tiny_schema());
     dump_pretty(_root);
@@ -564,7 +507,6 @@ QueryMgr::QueryMgr()
 QueryMgr::~QueryMgr()
 {
     delete_not_null(_select_root);
-    //HwMgr::ins()->delete_tmp_table();
 }
 
 bool QueryMgr::exec_query(const string& query)
@@ -627,14 +569,7 @@ bool QueryMgr::create_table(tree_node_t* node)
     string name = child->value; 
     vector<pair<string, DataType>> attr_list = get_attribute_type_list(child->next);
 
-    //dump_normal(name);
-    //dump_pretty(attr_list);
-
-    //return true;
     bool res = HwMgr::ins()->create_table(name, attr_list);
-    //if (res) {
-    //    print_elapse_io();
-    //}
     return res;
 }
 
@@ -650,9 +585,6 @@ bool QueryMgr::drop_table(tree_node_t* node)
 
     
     bool res = HwMgr::ins()->drop_table(name_node->value);
-    //if (res) {
-    //    print_elapse_io();
-    //}
     return res;
 }
 
@@ -683,23 +615,12 @@ bool QueryMgr::insert_into(tree_node_t* node)
 
     vector<string> value_list = get_string_list(tuples_node);
     if (name_list.size() != value_list.size()) {
-        //error_msg("size of attributes and data");
         error_msg("size of attributes and data should be the same");
-        //if (name_list.size() > value_list.size()) {
-        //    error_msg("missing data");
-        //} else {
-        //    error_msg("missing a");
-        //}
         return false;
     }
 
-    //dump_pretty(value_list);
-    vector<pair<string, string>> data = vector_make_pair(name_list, value_list);
-    //dump_pretty(data);
+    vector<pair<string, string>> data = jjjj222::vector_make_pair(name_list, value_list);
     bool res = HwMgr::ins()->insert_into(table_name, data);
-    //if (res) {
-    //    print_elapse_io();
-    //}
     return res;
 }
 
@@ -732,7 +653,6 @@ bool QueryMgr::insert_into_from_select(const string& table_name, const vector<st
     if (from_relation->is_pipe_queue()) {
         const vector<TinyTuple>& pipe_tuples = from_relation->get_pipe_queue();
         for (const auto& tuple : pipe_tuples) {
-            //to_relation->push_back(tuple);
             writer.push_back(tuple);
         }
     } else {
@@ -741,7 +661,6 @@ bool QueryMgr::insert_into_from_select(const string& table_name, const vector<st
             TinyTuple tuple = scanner.get_next();
             assert(!tuple.is_null());
 
-            //to_relation->push_back(tuple);
             writer.push_back(tuple);
         }
     }
@@ -762,9 +681,6 @@ bool QueryMgr::delete_from(tree_node_t* node)
     tree_node_t* where_node = name_node->next;
 
     bool res = HwMgr::ins()->delete_from(name, where_node);
-    //if (res) {
-    //    print_elapse_io();
-    //}
     return res;
 }
 
@@ -791,14 +707,8 @@ bool QueryMgr::select_from(tree_node_t* node)
     dump_pretty(_select_root);
 #endif
     assert(check_select_tree());
-    //QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
-    //QueryNode* optimized_tree =  QueryMgr::optimize_select_tree(_select_root);
-    //dump_pretty(optimized_tree);
 
-
-    //return true;
     bool res = _select_root->print_result();
-
     return res;
 }
 
@@ -808,16 +718,12 @@ void QueryMgr::optimize_select_tree()
     assert(node != NULL);
 
     QueryNode* cross_node = node->get_node(QueryNode::CROSS_PRODUCT);
-    //if (node->has_node(QueryNode::CROSS_PRODUCT)) {
     if (cross_node != NULL) {
         if (!node->has_node(QueryNode::WHERE)) {
             optimize_cross_product(cross_node);
         } else {
             QueryNode* where_node = node->get_node(QueryNode::WHERE);
             optimize_where_with_cross_product(where_node);
-            // TODO: natural join
-            //optimize_cross_product(cross_node);
-            //vector 
         }
     }
 }
@@ -827,8 +733,6 @@ void QueryMgr::optimize_cross_product(QueryNode* node)
     assert(node != NULL);
     assert(node->get_type() == QueryNode::CROSS_PRODUCT);
 
-    //cout << "yo" << endl;
-    //if 
     CrossProductNode* cross_node = dynamic_cast<CrossProductNode*>(node);
     assert(cross_node != NULL);
 
@@ -843,12 +747,7 @@ void QueryMgr::optimize_where_with_cross_product(QueryNode* node)
     WhereNode* where_node = dynamic_cast<WhereNode*>(node);
     assert(where_node != NULL);
 
-    //cout << "tata" << endl;
     vector<tree_node_t*> and_equal_list = where_node->split_and_equal();
-    //if (and_node_list.empty()) {
-    //    return;
-    //}
-    //vector<tree_node_t*> single_table;
     for (const auto& and_equal : and_equal_list) {
         if (node_is_comp_op(and_equal)) {
             string comp_type = and_equal->value;
@@ -873,7 +772,6 @@ void QueryMgr::optimize_where_with_cross_product(QueryNode* node)
 
 
         vector<string> all_table = get_all_table(and_equal);
-        //dump_pretty(all_table);
         if (all_table.size() == 1) {
             insert_where(all_table[0], and_equal);
         }
@@ -903,8 +801,6 @@ void QueryMgr::create_natural_join(const vector<string>& attr_list)
     const vector<QueryNode*>& childs = cross_node->get_childs();
     for (size_t i = 0; i < childs.size(); ++i) {
         vector<string> base_table_name = childs[i]->get_base_table_name();
-        //string base_name = childs[i]->get_base_name();
-        //if (is_contain(table_list, base_name)) {
         if (is_contain(table_list, base_table_name)) {
             natural.push_back(childs[i]);
         }
@@ -929,8 +825,6 @@ void QueryMgr::create_natural_join(const vector<string>& attr_list)
             }
 
             delete cross_node;
-            //cout << "TODO delete cross" << endl;
-            //delete
         } else {
             cross_node->add_child(new_node);
         }
@@ -1022,13 +916,6 @@ bool QueryMgr::build_select_tree(tree_node_t* node)
         assert(child->child != NULL);
         order_by = child->child->value;
     }
-    //dump_normal(name_list);
-    //while (child != NULL) {
-    //    //attr_list.push_back(get_name_type(child));
-    //    child = child->next;
-    //}    
-
-    //delete_not_null(_select_root);
 
     QueryNode* cross_product_node = build_cross_product(name_list);
     if (cross_product_node == NULL)
@@ -1209,7 +1096,6 @@ QueryNode::~QueryNode()
 
         HwMgr::ins()->drop_table(_relation->get_name());
     }
-    //delete_not_null(_pipe_queue);
     delete_all(_childs);
 }
 
@@ -1223,43 +1109,29 @@ void QueryNode::add_child(QueryNode* child)
 
 void QueryNode::set_tmp_table(TinyRelation* r)
 {
-    //assert(_table_info != NULL);
-    //_table_info->set_is_tmp();
-
     assert(_relation != NULL);
-    //assert(_relation->get_name() == _table_info->get_name());
-    //r->set_is_tmp();
     _delete_relation = true;
 }
 
-//void QueryNode::set_real_table(const string& name, TinyRelation* r)
 void QueryNode::set_relation(TinyRelation* r)
 {
-    //delete_not_null(_table_info);
-    //_table_info = new TableInfo(name);
-    //_table_info->set_is_in_disk();
     _relation = r;
 }
 
 bool QueryNode::print_result()
 {
-    //assert(_table_info != NULL);
-    //if (_table_info == NULL) {
     if (_relation == NULL) {
         if(!calculate_result())
             return false;
     }
     
-    //assert(_table_info != NULL);
     assert(_relation != NULL);
-    //_table_info->print_table(); 
     _relation->print_table(); 
     return true;
 }
 
 bool QueryNode::calculate_result()
 {
-    //assert(_table_info != NULL);
     assert(_relation != NULL);
     // do nothing
     return true;
@@ -1355,7 +1227,6 @@ string QueryNode::get_base_name() const
 
 size_t QueryNode::get_estimate_size() const
 {
-    //assert(_relation != NULL);
     if (_relation != NULL) {
         return _relation->size();
     }
@@ -1363,18 +1234,7 @@ size_t QueryNode::get_estimate_size() const
     assert(_childs.size() == 1);
     return _childs[0]->get_estimate_size();
 }
-//bool QueryNode::has_cross_product() const
-//{
-//    if (get_type() == CROSS_PRODUCT)
-//        return true;
-//
-//
-//    return false;
-//}
-//
-//bool QueryNode::has_where() const
-//{
-//}
+
 bool QueryNode::check() const
 {
     for (const auto& child_ptr : _childs) {
@@ -1410,13 +1270,10 @@ void QueryNode::dump() const
 
 string QueryNode::dump_str() const
 {
-    //string tmp = "{";
     string tmp;
     tmp += get_type_str(get_type());
     tmp += ": ";
-    //tmp += jjjj222::dump_str(_table_info);
     tmp += ((_relation == NULL) ? ("<NULL>") : (_relation->get_name()));
-    //tmp += "}";
     return tmp;
 }
 
@@ -1437,7 +1294,6 @@ void QueryNode::dump_tree(const string& indent, bool is_last) const
 //------------------------------------------------------------------------------
 bool DistinctNode::calculate_result()
 {
-    //if (_table_info != NULL)
     if (_relation != NULL)
         return true;
 
@@ -1458,8 +1314,6 @@ bool DistinctNode::calculate_result()
         RelSorter sorter(relation, base_index, mem_size); // TODO
         sorter.sort();
     }
-
-    //cout << "io: " << HwMgr::ins()->get_elapse_io() << endl;
 
     string new_table_name = "distinct " + relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
@@ -1485,18 +1339,15 @@ bool DistinctNode::calculate_result()
             continue;
         }
 
-        //new_relation->push_back(previous_tuple);
         writer.push_back(previous_tuple);
         previous_tuple = tuple;
     }
-    //new_relation->push_back(previous_tuple);
     writer.push_back(previous_tuple);
     writer.flush();
 
     if (relation->is_with_prefix()) {
         new_relation->set_with_prefix();
     }
-    //set_real_table(new_table_name, new_relation);
     return true;
 }
 
@@ -1516,7 +1367,6 @@ OrderByNode::OrderByNode(const string& name)
 
 bool OrderByNode::calculate_result()
 {
-    //if (_table_info != NULL)
     if (_relation != NULL)
         return true;
 
@@ -1532,25 +1382,15 @@ bool OrderByNode::calculate_result()
 
     if (!relation->is_attr_exist(_name)) {
         error_msg_attribute_not_exist(_name);
-        //error_msg_not_exist("attribute", _name);
         return false;
     }
-    //string new_table_name = "order_by " + relation->get_name();
-    //TinyRelation* new_relation = HwMgr::ins()->create_relation(
-    //    new_table_name, relation->get_tiny_schema());
-    //HwMgr::ins()->dump_io();
 
     size_t total_size = HwMgr::ins()->get_mem_size() - 1;
     size_t base_index = 1;
     size_t mem_size = total_size;
-    //RelSorter sorter(relation, 1, 3); // TODO
     RelSorter sorter(relation, base_index, mem_size); // TODO
-    //sorter.set_attr(_name);
-    //sorter.sort();
     sorter.sort(_name);
-    //HwMgr::ins()->dump_io();
 
-    //set_real_table(relation->get_name(), relation); // TODO: remove
     set_relation(relation);
 
     return true;
@@ -1574,7 +1414,6 @@ ProjectNode::ProjectNode(const vector<string>& attr_list)
 
 bool ProjectNode::calculate_result()
 {
-    //if (_table_info != NULL)
     if (_relation != NULL)
         return true;
 
@@ -1587,7 +1426,6 @@ bool ProjectNode::calculate_result()
     TinyRelation* relation = child->get_or_create_relation();
     if (relation == NULL)
         return false;
-    //assert(relation != NULL);
 
     vector<pair<string, DataType>> new_attr_type_list;
 
@@ -1620,7 +1458,6 @@ bool ProjectNode::calculate_result()
         new_relation->set_pipe_queue();
     }
     
-    //new_relation->dump();
     RelWriter writer(new_relation);
     RelScanner scanner(relation, 1, 1);
     while(!scanner.is_end()) {
@@ -1629,10 +1466,8 @@ bool ProjectNode::calculate_result()
         for (const auto& attr_type : new_attr_type_list) {
             const string& name = attr_type.first;
             const string search_name = relation->get_attr_search_name(name);
-            //new_tuple.set_value(name, tuple.get_value(search_name));
             new_tuple.set_value(name, tuple.get_data_value(search_name));
         }
-        //new_relation->push_back(new_tuple);
         writer.push_back(new_tuple);
     }
     writer.flush();
@@ -1640,7 +1475,6 @@ bool ProjectNode::calculate_result()
     if (relation->is_with_prefix()) {
         new_relation->set_with_prefix();
     }
-    //set_real_table(tmp_table_name, new_relation);
     return true;
 }
 
@@ -1694,7 +1528,6 @@ bool WhereNode::calculate_result()
         const vector<TinyTuple>& pipe_tuples = relation->get_pipe_queue();
         for (const auto& tuple : pipe_tuples) {
             if (cond_mgr.is_tuple_match(tuple)) {
-                //new_relation->push_back(tuple);
                 writer.push_back(tuple);
             }
         }
@@ -1703,7 +1536,6 @@ bool WhereNode::calculate_result()
         while(!scanner.is_end()) {
             TinyTuple tuple = scanner.get_next();
             if (cond_mgr.is_tuple_match(tuple)) {
-                //new_relation->push_back(tuple);
                 writer.push_back(tuple);
             }
         }
@@ -1714,8 +1546,6 @@ bool WhereNode::calculate_result()
         new_relation->set_with_prefix();
     }
 
-    //new_relation->print_table();
-    //new_relation->dump();
     return true;
 }
 
@@ -1738,15 +1568,7 @@ vector<tree_node_t*> WhereNode::split_and_equal() const
     }
 
     while (child != NULL) {
-        //if (node_is_comp_op(child)) {
-        //    string comp_type = child->value;
-        //    if (comp_type == "=") {
-        //        res.push_back(child);
-        //    } 
-        //}
         res.push_back(child);
-        //ConditionNode* tmp = build_condition_node_rec(child);
-        //new_node->add_child(tmp);
         child = child->next;
     }
 
@@ -1795,7 +1617,6 @@ bool CrossProductNode::calculate_result()
     }
 
     bool is_swap = false;
-    //if (relation_s->size() > relation_l->size()) {
     if (relation_s->size_by_block() > relation_l->size_by_block()) {
         swap(relation_s, relation_l);
         is_swap = true;
@@ -1821,7 +1642,6 @@ void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelSc
     RelScanner scanner_i = scanner_s;
     while(!scanner_i.is_end()) {
         scanner_i.load_to_mem();
-        //TinyTuple tuple_s = scanner_i.get_next();
         RelScanner scanner_j = scanner_l;
         while(!scanner_j.is_end()) {
             TinyTuple tuple_l = scanner_j.get_next();
@@ -1836,33 +1656,10 @@ void CrossProductNode::do_cross_product(const RelScanner& scanner_s, const RelSc
                 }
                 writer.push_back(new_tuple);
             }
-
-            //_relation->push_back(new_tuple); // TODO: it use mem addr 0
         }
         scanner_i.skip_mem();
     }
     writer.flush();
-
-    //RelWriter writer(_relation);
-    //RelScanner scanner_i = scanner_s;
-    //while(!scanner_i.is_end()) {
-    //    TinyTuple tuple_s = scanner_i.get_next();
-    //    RelScanner scanner_j = scanner_l;
-    //    while(!scanner_j.is_end()) {
-    //        TinyTuple tuple_l = scanner_j.get_next();
-    //    
-    //        TinyTuple new_tuple = _relation->create_tuple();
-    //        if (is_swap) {
-    //            new_tuple.set_value(tuple_l, tuple_s);
-    //        } else {
-    //            new_tuple.set_value(tuple_s, tuple_l);
-    //        }
-
-    //        //_relation->push_back(new_tuple); // TODO: it use mem addr 0
-    //        writer.push_back(new_tuple);
-    //    }
-    //}
-    //writer.flush();
 }
 
 void CrossProductNode::split()
@@ -1871,10 +1668,8 @@ void CrossProductNode::split()
         std::sort(_childs.begin(), _childs.end(),
             [&](const QueryNode* a, const QueryNode* b) -> bool
         { 
-            //return a.is_less_than_by_attr(b, search_name_list);
             return a->get_estimate_size() > b->get_estimate_size();
         });
-        //cout << "QQ" << endl;
     }
 
     while (_childs.size() > 2) {
@@ -1885,57 +1680,18 @@ void CrossProductNode::split()
         QueryNode* new_child= new CrossProductNode();
         new_child->add_child(child_l); 
         new_child->add_child(child_r); 
-        //_childs.push_back(new_child); // TODO
         add_child(new_child);
     }
 }
 
 size_t CrossProductNode::get_estimate_size() const
 {
-    //assert(_relation == )
-
     size_t sum = 1;
     for (const auto& child_ptr : _childs) {
         sum *= child_ptr->get_estimate_size();
     }
     return sum;
 }
-//void CrossProductNode::convert_to_natural(const vector<string>& attr_list)
-//{
-//    assert(attr_list.size() == 2);
-//
-//    //dump_pretty(attr_list);
-//    vector<string> table_list;
-//    for (const string& attr : attr_list) {
-//        table_list.push_back( ColumnName(attr).get_table() );
-//    }
-//
-//    vector<QueryNode*> natural;
-//    for (size_t i = 0; i < _childs.size(); ++i) {
-//        string base_name = _childs[i]->get_base_name();
-//        //dump_normal(base_name);
-//        if (is_contain(table_list, base_name)) {
-//            natural.push_back(_childs[i]);
-//            //cout << "yes" << endl;
-//        }
-//    }
-//
-//    if (natural.size() == 2) {
-//        QueryNode* new_node = new NaturalJoinNode(attr_list);
-//        new_node->add_child(natural[0]); 
-//        new_node->add_child(natural[1]); 
-//
-//        remove_from(_childs, natural[0]);
-//        remove_from(_childs, natural[1]);
-//
-//        if (_childs.empty()) {
-//            //cout << "TODO delete cross" << endl;
-//            //delete
-//        } else {
-//            add_child(new_node);
-//        }
-//    }
-//}
 
 string CrossProductNode::dump_str() const
 {
@@ -1983,22 +1739,9 @@ bool NaturalJoinNode::calculate_result()
     size_t base_index = 1;
     size_t mem_size = total_size;
     RelSorter sorter_s(relation_0, base_index, mem_size);
-    //sorter_s.sort(attr_0);
     vector<pair<DataValue, RelRange>> sub_list_0 = sorter_s.sort_return(attr_0);
     RelSorter sorter_l(relation_1, base_index, mem_size);
-    //sorter_l.sort(attr_1);
     vector<pair<DataValue, RelRange>> sub_list_1 = sorter_l.sort_return(attr_1);
-
-    //vector<pair<DataValue, RelRange>> sub_list_0_test =
-    //    relation_0->get_sub_list_by_attr(attr_0, 1);
-    //vector<pair<DataValue, RelRange>> sub_list_1_test =
-    //    relation_1->get_sub_list_by_attr(attr_1, 1);
-
-    //dump_pretty(sub_list_0);
-    //dump_pretty(sub_list_0_test);
-
-    //assert(sub_list_0 == sub_list_0_test);
-    //assert(sub_list_1 == sub_list_1_test);
 
     MemRange total_range = HwMgr::ins()->get_mem_range().get_not_first_block();
     MemRange l_range = total_range.get_first_block();
@@ -2016,33 +1759,21 @@ bool NaturalJoinNode::calculate_result()
         if (value_0 == value_1) {
             const auto& range_0 = value_iter_0.second;
             const auto& range_1 = value_iter_1.second;
-            //size_t index_diff_0 = iter_0.second.get_block_idx() - iter_0.first.get_block_idx();
             size_t size_0 = range_0.num_of_block();
             size_t size_1 = range_1.num_of_block();
 
-            //size_t index_0, size_0, index_1, size_1;
             MemRange mem_range_0, mem_range_1;
             bool is_swap = false;
             if (size_0 < size_1) {
                 mem_range_0 = s_range;
                 mem_range_1 = l_range;
-            //    index_0 = s_index; 
-            //    size_0 = s_size;
-            //    index_1 = l_index;
-            //    size_1 = l_size;
             } else {
                 mem_range_0 = l_range;
                 mem_range_1 = s_range;
                 is_swap = true;
-            //    index_0 = s_index; 
-            //    size_0 = s_size;
-            //    index_1 = l_index;
-            //    size_1 = l_size;
             }
             RelScanner scanner_0(relation_0, mem_range_0);
             scanner_0.set_range(range_0);
-            //scanner_0.set_begin(iter_0.first);
-            //scanner_0.set_end(iter_0.second);
             RelScanner scanner_1(relation_1, mem_range_1);
             scanner_1.set_range(range_1);
 
@@ -2051,16 +1782,7 @@ bool NaturalJoinNode::calculate_result()
             } else {
                 do_cross_product(scanner_0, scanner_1, is_swap);
             }
-            //RelScanner scanner_1(relation_1, index_1, size_1);
-            //scanner_1.set_begin(iter_1.first);
-            //scanner_1.set_end(iter_1.second);
-            //    //RelScanner scanner_1(relation_1, l_index, l_size);
-            //    //do_cross_product(scanner_0, scanner_1, false);        
-            //if (index_diff_0 < index_diff_1) {
-            //} else {
-            //}
-            //dump_normal(value_0);
-            //RelScanner
+
             ++i_0;
             ++i_1;
         } else if (value_0 < value_1) {
@@ -2069,39 +1791,6 @@ bool NaturalJoinNode::calculate_result()
             ++i_1;
         }
     }
-
-    
-
-    //RelScanner scanner_s(relation_s, s_index, s_size);
-    //RelScanner scanner_l(relation_l, l_index, l_size);
-    //TinyTuple tuple_s = relation_s->create_null_tuple();
-    //TinyTuple tuple_l = relation_l->create_null_tuple();
-    //while(!scanner_s.is_end() && !scanner_l.is_end()) {
-    //    if (tuple_s.is_null()) {
-    //        tuple_s = scanner_s.get_next();
-    //    }
-
-    //    if (tuple_l.is_null()) {
-    //        tuple_l = scanner_l.get_next();
-    //    }
-
-    //}
-
-    //    TinyTuple tuple_s = scanner_s.get_next();
-    //    RelScanner scanner_l(relation_l, l_index, l_size);
-    //    while(!scanner_l.is_end()) {
-    //        TinyTuple tuple_l = scanner_l.get_next();
-    //    
-    //        TinyTuple new_tuple = cross_relation->create_tuple();
-    //        if (is_swap) {
-    //            new_tuple.set_value(tuple_l, tuple_s);
-    //        } else {
-    //            new_tuple.set_value(tuple_s, tuple_l);
-    //        }
-
-    //        cross_relation->push_back(new_tuple); // TODO: it use mem addr 0
-    //    }
-    //}
 
     return true;
 }

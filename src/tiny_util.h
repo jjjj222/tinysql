@@ -2,14 +2,10 @@
 #define TINY_UTIL_H
 
 #include <string>
-#include <utility>
 
-using namespace std;
+using std::string;
 
 #include "debug.h"
-
-using namespace jjjj222;
-
 #include "enum.h"
 
 //------------------------------------------------------------------------------

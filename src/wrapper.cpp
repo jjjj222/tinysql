@@ -3,13 +3,16 @@
 #include <iterator>
 #include <cassert>
 
-using namespace std;
-
 #include "debug.h"
 #include "util.h"
 #include "obj_util.h"
 
-using namespace jjjj222;
+using jjjj222::DrawTable;
+using jjjj222::is_contain;
+using jjjj222::add_into;
+using jjjj222::delete_not_null;
+using jjjj222::error_msg;
+using jjjj222::warning_msg;
 
 #include "Block.h"
 #include "Config.h"
@@ -28,24 +31,12 @@ using namespace jjjj222;
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-//string dump_field_type_str(const FIELD_TYPE&);
-//string dump_tiny_type_str(const DataType&);
 DataType field_to_data_type(const FIELD_TYPE&);
 FIELD_TYPE tiny_to_field_type(const DataType&);
 
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-//string dump_field_type_str(const FIELD_TYPE& type)
-//{
-//    if (type == INT) {
-//        return "INT";
-//    }
-//
-//    assert(type == STR20);
-//    return "STR20";
-//}
-
 string tiny_dump_str(const DataType& type)
 {
     switch (type) {
@@ -59,19 +50,6 @@ string tiny_dump_str(const DataType& type)
 
     return "ERROR";
 }
-//string dump_tiny_type_str(const DataType& type)
-//{
-//    switch (type) {
-//        case TINY_INT:
-//            return "INT";
-//        case TINY_STR20:
-//            return "STR20";
-//        case TINY_UNKNOWN:
-//            return "UNKNOWN";
-//    }
-//
-//    return "UNKNOWN";
-//}
 
 DataType field_to_data_type(const FIELD_TYPE& type)
 {
@@ -162,19 +140,11 @@ vector<DataType> TinySchema::get_type_list() const
 
 vector<pair<string, DataType>> TinySchema::get_attr_type_list() const
 {
-    //vector<string> names = _schema->getFieldNames();
     vector<string> names = get_attr_list();
-    //vector<FIELD_TYPE> types = _schema->getFieldTypes();
     vector<DataType> types = get_type_list();
     assert(names.size() == types.size());
 
-    //vector<pair<string, DataType>> res;
-    //for (size_t i = 0; i < names.size(); ++i) {
-    //    //res.push_back(make_pair(names[i], field_to_data_type(types[i])));
-    //    res.push_back(make_pair(names[i], types[i]));
-    //}
-
-    vector<pair<string, DataType>> res = vector_make_pair(names, types);
+    vector<pair<string, DataType>> res = jjjj222::vector_make_pair(names, types);
     return res;
 }
 
@@ -188,16 +158,6 @@ size_t TinySchema::tuple_per_block() const
     return (size_t)_schema->getTuplesPerBlock();
 }
 
-//bool TinySchema::is_field_name_exist(const string& column) const
-//{
-//    vector<string> attr_list = get_attr_list();
-//    size_t count = 0;
-//    for (const auto& attr : attr_list) {
-//        pair<string, string> table_name = get_column_name_value(attr);
-//        
-//    }
-//    return false;
-//}
 bool TinySchema::is_field_name_exist(const string& name) const
 {
     vector<string> attr_list = get_attr_list();
@@ -223,9 +183,6 @@ void TinySchema::dump() const
 
 string TinySchema::dump_str() const
 {
-    //vector<string> names = _schema->getFieldNames();
-    //vector<FIELD_TYPE> types = _schema->getFieldTypes();
-    //assert(names.size() == types.size());
     vector<pair<string, DataType>> attr_type_list = get_attr_type_list();
 
     string tmp;
@@ -238,12 +195,6 @@ string TinySchema::dump_str() const
         tmp += " ";
         DataType type = attr_type_list[i].second;
         tmp += tiny_dump_str(type);
-//    if (type == INT) {
-//        return "INT";
-//    }
-//
-//    assert(type == STR20);
-//    return "STR20";
     }
     tmp += ")";
 
@@ -278,11 +229,6 @@ TinyTuple::~TinyTuple()
 
 bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
 {
-    //if (raw_value == "NULL") {
-    //    error_msg("does not support 'NULL' now");
-    //    return false;
-    //}
-
     DataType data_type = get_data_type(name);
     if (data_type == TINY_UNKNOWN) {
         error_msg_attribute_not_exist(name);
@@ -295,7 +241,6 @@ bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
         set_value(name, DataValue(data_type));
         res = true;
     } else if (raw_value[0] == '\"') {
-    //if (raw_value[0] == '\"') {
         if (data_type == TINY_INT) {
             error_msg("\'" + name + "\' should be INT");
             return false;
@@ -307,7 +252,7 @@ bool TinyTuple::set_raw_value(const string& name, const string& raw_value)
             error_msg("\'" + name + "\' should be STR20");
             return false;
         }
-        res = set_int_value(name, str_to<int>(raw_value));
+        res = set_int_value(name, jjjj222::str_to<int>(raw_value));
     }
 
     return res;
@@ -368,25 +313,6 @@ void TinyTuple::init()
     for (size_t i = 0; i < type_list.size(); ++i) {
         set_value(i, DataValue(type_list[i]));
     }
-
-    ////vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
-    ////vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
-    //vector<pair<string, DataType>> name_type_list = get_attr_type_list();
-    //for (const auto& name_type : name_type_list) {
-    //    const string& name = name_type.first;
-    //    //const FIELD_TYPE& type = name_type.second;
-    //    const DataType& type = name_type.second;
-    //    bool res = false;
-    //    //if (type == INT) {
-    //    if (type == TINY_INT) {
-    //        res = _tuple->setField(name, 0);
-    //    } else {
-    //        //assert(type == STR20);
-    //        assert(type == TINY_STR20);
-    //        res = _tuple->setField(name, "");
-    //    }
-    //    assert(res);
-    //}
 }
 
 void TinyTuple::set_null()
@@ -428,32 +354,6 @@ DataValue TinyTuple::get_data_value(const string& name) const
     return res;
 }
 
-//DataValue TinyTuple::get_value(const string& column_name) const
-//{
-//    ColumnName cn(column_name);
-//
-//    vector<pair<string, DataType>> name_type_list = get_attr_type_list();
-//    for (const auto& name_type : name_type_list) {
-//        const auto& name = name_type.first;
-//        const auto& type = name_type.second;
-//
-//        if (name == cn.get_column() || name == cn.get_column_name()) {
-//            Field value = _tuple->getField(name);
-//            //if (type == INT) {
-//            if (type == TINY_INT) {
-//                return DataValue(value.integer);
-//            } else {
-//                //assert(type == STR20);
-//                assert(type == TINY_STR20);
-//
-//                return DataValue(*(value.str));
-//            }
-//        }
-//    }
-//
-//    return DataValue();
-//}
-
 vector<pair<string, DataType>> TinyTuple::get_attr_type_list() const
 {
     return get_tiny_schema().get_attr_type_list();
@@ -471,7 +371,6 @@ vector<DataType> TinyTuple::get_type_list() const
 
 vector<DataValue> TinyTuple::get_value_list() const
 {
-    //vector<DataType> type_list = get_tiny_schema().get_type_list();
     vector<DataType> type_list = get_type_list();
 
     vector<DataValue> res;
@@ -498,24 +397,6 @@ vector<string> TinyTuple::get_str_list() const
         res.push_back(value.dump_str());
     }
     return res;
-    ////vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
-    //vector<pair<string, DataType>> name_type_list = get_attr_type_list();
-    //vector<string> str_list;
-    //for (size_t i = 0; i < name_type_list.size(); ++i) {
-    //    const auto& name = name_type_list[i].first;
-    //    const auto& type = name_type_list[i].second;
-    //    Field value = _tuple->getField(name);
-    //    //if (type == INT) {
-    //    if (type == TINY_INT) {
-    //        str_list.push_back(jjjj222::dump_str(value.integer));
-    //    } else {
-    //        //assert(type == STR20);
-    //        assert(type == TINY_STR20);
-    //        str_list.push_back( *(value.str) );
-    //    }
-    //}
-
-    //return str_list;
 }
 
 bool TinyTuple::is_null() const
@@ -554,9 +435,7 @@ bool TinyTuple::is_equal_to(const TinyTuple& rhs) const
 bool TinyTuple::is_less_than_by_attr(const TinyTuple& rhs, const vector<string>& attr_list) const
 {
     for (const string& attr : attr_list) {
-        //DataValue value = get_value(attr);
         DataValue value = get_data_value(attr);
-        //DataValue rhs_value = rhs.get_value(attr);
         DataValue rhs_value = rhs.get_data_value(attr);
 
         if (value < rhs_value) {
@@ -574,7 +453,6 @@ string TinyTuple::dump_str() const
     if (is_null())
         return "<DELETE>";
 
-    //vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
     vector<pair<string, DataType>> name_type_list = get_tiny_schema().get_attr_type_list();
 
     string tmp = "(";
@@ -582,24 +460,19 @@ string TinyTuple::dump_str() const
         if (i != 0) {
             tmp += ", ";
         }
-    //for (const auto& name_type : name_type_list) {
         const auto& name = name_type_list[i].first;
         const auto& type = name_type_list[i].second;
         Field value = _tuple->getField(name);
-        //if (type == INT) {
         if (type == TINY_INT) {
-            //cout << name << ": " << value.integer << endl;
             tmp += name;    
             tmp += " ";
             tmp += jjjj222::dump_str(value.integer);
         } else {
-            //assert(type == STR20);
             assert(type == TINY_STR20);
 
             tmp += name;    
             tmp += " ";
             tmp += *(value.str);
-            //cout << name << ": \"" << *(value.str) << "\"" << endl;
         }
     }
 
@@ -610,29 +483,7 @@ string TinyTuple::dump_str() const
 void TinyTuple::dump() const
 {
     cout << dump_str() << endl;
-    //vector<pair<string, FIELD_TYPE>> name_type_list = get_tiny_schema().get_name_type_list();
-    ////cout << *_tuple << endl;
-    ////dump_pretty(tmp);
-    ////get_tiny_schema().dump();
-
-    //for (const auto& name_type : name_type_list) {
-    //    const auto& name = name_type.first;
-    //    const auto& type = name_type.second;
-    //    Field value = _tuple->getField(name);
-    //    if (type == INT) {
-    //        cout << name << ": " << value.integer << endl;
-    //    } else {
-    //        assert(type == STR20);
-    //        cout << name << ": \"" << *(value.str) << "\"" << endl;
-    //    }
-    //}
-  //union Field getField(int offset) const; // returns INT_MIN if out of bound
 }
-
-//vector<string> TinyTuple::dump_str_list() const
-//{
-//    return get_str_list();
-//}
 
 //------------------------------------------------------------------------------
 //   
@@ -662,7 +513,6 @@ vector<TinyTuple> TinyBlock::get_tiny_tuples() const
 
 TinyTuple TinyBlock::get_tiny_tuple(size_t i) const
 {
-//    //assert(
     return _block->getTuple(i);
 }
 
@@ -695,7 +545,6 @@ void TinyBlock::remove_null_tuple()
     for (const auto& tuple : tuples) {
         if (!tuple.isNull()) {
             push_back(tuple);
-            //dump_normal(TinyTuple(tuple));
         }
     }
 }
@@ -747,12 +596,10 @@ vector<string> TinyBlock::dump_str_list() const
                 res.push_back(""); 
             }
         } else {
-            //const vector<string> str_list = tuple.dump_str_list();
             const vector<string> str_list = tuple.get_str_list();
             count += str_list.size();
             add_into(res, str_list); 
         }
-        //tuple.dump();
     }
 
     for (size_t i = count; i < HwMgr::ins()->get_block_size(); ++i) {
@@ -764,7 +611,6 @@ vector<string> TinyBlock::dump_str_list() const
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-//MemIter::MemIter(TinyRelation* r, size_t pos)
 MemIter::MemIter(const TinyRelation* r, size_t pos)
 : _relation(r)
 , _pos(pos)
@@ -772,19 +618,6 @@ MemIter::MemIter(const TinyRelation* r, size_t pos)
     ;
 }
 
-//void MemIter::clear_block()
-//{
-//    size_t block_idx = get_block_idx();
-//    TinyBlock block = HwMgr::ins()->get_mem_block(block_idx);
-//    block.clear();
-//}
-
-//void MemIter::push_back(const TinyTuple& tuple)
-//{
-//    size_t block_idx = get_block_idx();
-//    TinyBlock block = HwMgr::ins()->get_mem_block(block_idx);
-//    block.push_back(tuple);
-//}
 void MemIter::set_tuple(const TinyTuple& tuple)
 {
     size_t block_idx = get_block_idx();
@@ -821,34 +654,25 @@ bool MemIter::is_equal_to(const MemIter& rhs) const
 
 string MemIter::dump_str() const
 {
-    //return tiny_dump_str(_pos);
     return tiny_dump_str(get_block_idx(), get_tuple_idx());
 }
 //------------------------------------------------------------------------------
 //   RelIter
 //------------------------------------------------------------------------------
-//RelIter::RelIter(TinyRelation* r)
 RelIter::RelIter(const TinyRelation* r)
 : _relation(r)
-//, _block(0)
 , _pos(0)
-//, _mem_idx(0)
 {
     ;
 }
 
-//RelIter::RelIter(TinyRelation* r, size_t pos)
 RelIter::RelIter(const TinyRelation* r, size_t pos)
 : _relation(r)
 , _pos(pos)
 {
     ;
 }
-//void RelIter::inc()
-//{
-//    // TODO
-//}
-//
+
 bool RelIter::is_equal_to(const RelIter& rhs) const
 {
     assert(_relation == rhs._relation);
@@ -905,40 +729,10 @@ bool RelIter::is_null() const
     return _relation->is_null(_pos);
 }
 
-//bool RelIter::is_end() const
-//{
-//    return _relation->end() == *this;
-//}
-
 string RelIter::dump_str() const
 {
-    //return tiny_dump_str(_pos);
     return tiny_dump_str(get_block_idx(), get_tuple_idx());
 }
-//TinyTuple RelIter::get_tuple() const
-//{
-//    _relation->load_block_to_mem(_block, _mem_idx);
-//    //TinyBlock block = HwMgr::ins()->get_tiny_block(_mem_idx);
-//    TinyBlock block = HwMgr::ins()->get_mem_block(_mem_idx);
-//    vector<TinyTuple> tuples = block.get_tiny_tuples();
-//
-//    if (_pos >= tuples.size()) {
-//        return _relation->create_null_tuple();
-//    }
-//
-//    return tuples[_pos];
-//    //return block.get_tiny_tuple(_pos);
-//
-//            //_relation->getBlock(i, mem_index);
-//            //Block* block = HwMgr::ins()->get_mem_block(mem_index);
-//            //vector<Tuple> tuples = block->getTuples();
-//            //for (const auto& tuple : tuples) {
-//            //    //dump_normal(TinyTuple(tuple));
-//            //    if (!tuple.isNull())
-//            //        table.add_row(TinyTuple(tuple).str_list());
-//            //}
-//        //}
-//}
 
 //------------------------------------------------------------------------------
 //   
@@ -965,19 +759,6 @@ string RelRange::dump_str() const
 {
     return tiny_dump_str(_begin, _end);
 }
-//------------------------------------------------------------------------------
-//   
-//------------------------------------------------------------------------------
-//RelPartialScanner::RelPartialScanner(TinyRelation* r,
-//    size_t mem_idx, const RelIter& it, const RelIter& it_end)
-//: _relation(r)
-//, _mem_idx(mem_idx)
-//, _it(it)
-//, _it_end(it_end)
-//{
-//    ;
-//}
-
 
 //------------------------------------------------------------------------------
 //   
@@ -1014,7 +795,6 @@ void RelWriter::flush()
 //------------------------------------------------------------------------------
 //   
 //------------------------------------------------------------------------------
-//RelScanner::RelScanner(TinyRelation* r, size_t base_idx, size_t mem_size)
 RelScanner::RelScanner(const TinyRelation* r, size_t base_idx, size_t mem_size)
 : _relation(r)
 , _base_idx(base_idx)
@@ -1050,14 +830,11 @@ void RelScanner::set_range(const RelRange& range)
     _iter = range.begin();
     _iter_end = range.end();
 }
-        //void set_begin(const RelIter& it) { _iter = it; }
-        //void set_end(const RelIter& it) { _iter_end = it; }
 
 TinyTuple RelScanner::get_next()
 {
     if (_m_iter == _m_iter_end) {
         _iter.skip_null();
-        //if (_iter.is_end()) {
         if (is_iter_end()) {
             return _relation->create_null_tuple();
         } else {
@@ -1076,7 +853,6 @@ TinyTuple RelScanner::peep_next() // TODO
 {
     if (_m_iter == _m_iter_end) {
         _iter.skip_null();
-        //if (_iter.is_end()) {
         if (is_iter_end()) {
             return _relation->create_null_tuple();
         } else {
@@ -1092,20 +868,11 @@ TinyTuple RelScanner::peep_next() // TODO
 
 bool RelScanner::sort(const vector<string>& attr_list)
 {
-    //assert(!name.empty());
-
     vector<TinyTuple> tuple_list;
     for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
         tuple_list.push_back(it.get_tuple());
     }
 
-    //dump_pretty(tuple_list);
-
-    //vector<string> search_name_list;
-    //for (const string& attr : attr_list) {
-    //    string search_name = _relation->get_attr_search_name(attr);
-    //    search_name_list.push_back(search_name);
-    //}
     vector<string> search_name_list = _relation->get_attr_search_name_list(attr_list);
 
     std::sort(tuple_list.begin(), tuple_list.end(),
@@ -1139,13 +906,6 @@ void RelScanner::clear_mem_block(size_t i)
     HwMgr::ins()->get_mem_block(i).clear();
 }
 
-//void RelScanner::move_to_non_null()
-//{
-//    while (!_iter.is_end() && _iter.is_null()) {
-//        ++_iter;
-//    }
-//}
-
 void RelScanner::load_to_mem()
 {
     clear_mem();
@@ -1161,7 +921,6 @@ void RelScanner::load_to_mem()
         }
 
         size_t block_idx = _iter.get_block_idx();
-        //TinyTuple tuple(_relation);
         TinyTuple tuple = _relation->create_null_tuple();
         if (reuse_block && block_idx == old_block_idx) {
             tuple = _iter.get_from_mem(load_idx); 
@@ -1174,20 +933,16 @@ void RelScanner::load_to_mem()
 
         _m_iter.set_tuple(tuple);
     }
-    //dump_normal(_iter);
 
-    //_m_iter_end = _m_iter;
     if (_m_iter == m_load_end()) {
-        //move_to_non_null();
         _iter.skip_null();
-        //if (!_iter.is_end()) {
         if (!is_iter_end()) {
             const size_t last_block_idx = _iter.get_block_idx();
             const size_t first_tuple_idx = _iter.get_tuple_idx();
-            //while (!_iter.is_end() && _iter.get_block_idx() == last_block_idx) {
-            //dump_normal(last_block_idx);
+
             _relation->load_block_to_mem(last_block_idx, load_idx);
             TinyBlock block = HwMgr::ins()->get_mem_block(load_idx);
+
             // remove front
             for (size_t i = 0; i < first_tuple_idx; ++i) {
                 block.null_tuple(i);
@@ -1223,39 +978,11 @@ void RelScanner::add_mem_into(TinyRelation& new_relation) const
 {
     RelWriter writer(&new_relation);
     for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
-        //tmp.push_back(it.get_tuple());
-        ////new_relation.push_back(it.get_tuple());
-        ////if (tmp.size() == new_relation->get_last_block_capacity()) {
-        //if (tmp.size() == new_relation.get_last_block_capacity()) {
-        //    new_relation.push_back_block(tmp);
-        //    tmp.clear();
-        //}
         writer.push_back(it.get_tuple());
     }
     writer.flush();
-
-    //if (!tmp.empty()) {
-    //    new_relation.push_back_block(tmp);
-    //}
-
-    //vector<TinyTuple> tmp;
-    //for (MemIter it = _m_iter; it != _m_iter_end; ++it) {
-    //    tmp.push_back(it.get_tuple());
-    //    //new_relation.push_back(it.get_tuple());
-    //    //if (tmp.size() == new_relation->get_last_block_capacity()) {
-    //    if (tmp.size() == new_relation.get_last_block_capacity()) {
-    //        new_relation.push_back_block(tmp);
-    //        tmp.clear();
-    //    }
-    //}
-
-    //if (!tmp.empty()) {
-    //    new_relation.push_back_block(tmp);
-    //}
 }
-//TinyTuple RelScanner::get_from_mem()
-//{
-//}
+
 bool RelScanner::is_iter_end() const
 {
     bool res = _iter == _iter_end;
@@ -1264,7 +991,6 @@ bool RelScanner::is_iter_end() const
 
 bool RelScanner::is_end() const
 {
-    //bool res = _iter.is_end() && _m_iter == _m_iter_end;
     bool res = is_iter_end() && _m_iter == _m_iter_end;
     return res;
 }
@@ -1280,12 +1006,6 @@ MemIter RelScanner::m_load_end()
     size_t mem_pos = (_base_idx + _mem_size - 1) * _relation->tuple_per_block();
     return MemIter(_relation, mem_pos);
 }
-
-//MemIter RelScanner::m_end()
-//{
-//    size_t mem_pos = (_base_idx + _mem_size) * _relation->tuple_per_block();
-//    return MemIter(_relation, mem_pos);
-//}
 
 size_t RelScanner::get_last_mem_block() const
 {
@@ -1304,6 +1024,7 @@ string RelScanner::dump_str() const
 
 void RelScanner::dump() const
 {
+    using jjjj222::dump_impl;
     dump_normal(_base_idx);
     dump_normal(_mem_size);
     dump_normal(_m_iter);
@@ -1327,15 +1048,6 @@ RelSorter::RelSorter(TinyRelation* r, size_t base_idx, size_t mem_size)
     assert(_base_idx + _mem_size - 1 < HwMgr::ins()->get_mem_size());
 }
 
-//RelSorter::~RelSorter()
-//{
-//    //delete_not_null(_scanner_list);
-//    //if (_sorted_relation != NULL) {
-//    //    HwMgr::ins()->drop_table(_sorted_relation->get_name());
-//    //}
-//}
-
-//void RelSorter::sort(const string& attr)
 void RelSorter::sort(const string& attr)
 {
     assert(!attr.empty());
@@ -1367,16 +1079,8 @@ void RelSorter::sort()
         _relation->clear();
         scanner.add_mem_into(*_relation);
 
-        //if (_attr_list.size() == 1) {
-        //    //string search_name = _relation->get_attr_search_name(_attr_list[0]);
-        //    return _relation->get_sub_list_by_attr(_attr_list[0], 1);
-        //} else {
-        //    return res;
-        //}
         return;
     }
-    //assert(_sub_list.empty());
-    //assert(_sorted_relation == NULL);
 
     string new_table_name = "tmp " + _relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
@@ -1396,8 +1100,6 @@ void RelSorter::sort()
         it = it_end;
     }
 
-    //cout << "io: " << HwMgr::ins()->get_elapse_io() << endl;
-
     while (_mem_size < sub_list.size()) {
         new_relation = reduce_sub_list(new_relation, sub_list);
     }
@@ -1410,7 +1112,6 @@ void RelSorter::sort()
         string search_name = _relation->get_attr_search_name(_attr_list[0]);
 
         RelIter iter_end = _relation->begin();
-        //RelIter iter_end = iter;
 
         RelWriter writer(_relation);
         TinyTuple tuple = get_max(scanner_list);
@@ -1421,10 +1122,7 @@ void RelSorter::sort()
             if (value != old_value) {
                 writer.flush();
                 RelIter iter = _relation->end();
-                //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
                 res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
-                //cout << old_value.dump_str() << " " << iter_end.dump_str() << " "
-                //    << iter.dump_str() << endl;
                 old_value = value;
                 iter_end = iter;
             }
@@ -1439,21 +1137,14 @@ void RelSorter::sort()
         TinyTuple tmp = get_max(scanner_list);
         while (!tmp.is_null()) {
             writer.push_back(tmp);
-            //_relation->push_back(tmp);
             tmp = get_max(scanner_list);
         }
         writer.flush();
     }
 
-    //_relation->dump();
-    //_relation->clear();
-    //_relation->dump();
-
     HwMgr::ins()->drop_table(new_relation->get_name());
-    //return res;
 }
 
-//void RelSorter::sort()
 vector<pair<DataValue, RelRange>> RelSorter::sort_return()
 {
     vector<pair<DataValue, RelRange>> res;
@@ -1468,14 +1159,11 @@ vector<pair<DataValue, RelRange>> RelSorter::sort_return()
         scanner.add_mem_into(*_relation);
 
         if (_attr_list.size() == 1) {
-            //string search_name = _relation->get_attr_search_name(_attr_list[0]);
             return _relation->get_sub_list_by_attr(_attr_list[0], 1);
         } else {
             return res;
         }
     }
-    //assert(_sub_list.empty());
-    //assert(_sorted_relation == NULL);
 
     string new_table_name = "tmp " + _relation->get_name();
     TinyRelation* new_relation = HwMgr::ins()->create_relation(
@@ -1495,8 +1183,6 @@ vector<pair<DataValue, RelRange>> RelSorter::sort_return()
         it = it_end;
     }
 
-    //cout << "io: " << HwMgr::ins()->get_elapse_io() << endl;
-
     while (_mem_size < sub_list.size()) {
         new_relation = reduce_sub_list(new_relation, sub_list);
     }
@@ -1509,7 +1195,6 @@ vector<pair<DataValue, RelRange>> RelSorter::sort_return()
         string search_name = _relation->get_attr_search_name(_attr_list[0]);
 
         RelIter iter_end = _relation->begin();
-        //RelIter iter_end = iter;
 
         RelWriter writer(_relation);
         TinyTuple tuple = get_max(scanner_list);
@@ -1520,10 +1205,7 @@ vector<pair<DataValue, RelRange>> RelSorter::sort_return()
             if (value != old_value) {
                 writer.flush();
                 RelIter iter = _relation->end();
-                //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
                 res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
-                //cout << old_value.dump_str() << " " << iter_end.dump_str() << " "
-                //    << iter.dump_str() << endl;
                 old_value = value;
                 iter_end = iter;
             }
@@ -1538,15 +1220,10 @@ vector<pair<DataValue, RelRange>> RelSorter::sort_return()
         TinyTuple tmp = get_max(scanner_list);
         while (!tmp.is_null()) {
             writer.push_back(tmp);
-            //_relation->push_back(tmp);
             tmp = get_max(scanner_list);
         }
         writer.flush();
     }
-
-    //_relation->dump();
-    //_relation->clear();
-    //_relation->dump();
 
     HwMgr::ins()->drop_table(new_relation->get_name());
     return res;
@@ -1560,14 +1237,8 @@ TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)
 
     vector<pair<RelIter, RelIter>> new_sub_list;
 
-    //SubListType tmp_sub_list;
-    //for (size_t i = 0; i < _mem_size(); ++i) {
-    //    tmp_sub_list.push_back
-    //}
-    vector<SubListType> sub_list_split = vector_split(sub_list, _mem_size);
-    //dump_pretty(sub_list_split);
+    vector<SubListType> sub_list_split = jjjj222::vector_split(sub_list, _mem_size);
 
-    //for (size_t i = 0; i < sub_list_split.size(); ++i) {
     RelIter it = new_relation->end();
     for (const auto& tmp_sub_list : sub_list_split) {
         vector<RelScanner> scanner_list = get_scanner_list(r, tmp_sub_list);
@@ -1575,7 +1246,6 @@ TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)
         RelWriter writer(new_relation);
         TinyTuple tmp = get_max(scanner_list);
         while (!tmp.is_null()) {
-            //new_relation->push_back(tmp);
             writer.push_back(tmp);
             tmp = get_max(scanner_list);
         }
@@ -1585,22 +1255,6 @@ TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)
         new_sub_list.push_back(make_pair(it, it_end));
         it = it_end;
     }
-    //vector<RelScanner> scanner_list;
-    //for (size_t i = 0; i < tmp_sub_list.size(); ++i) {
-    //    size_t mem_idx = _base_idx + i;
-    //    const RelIter& it = tmp_sub_list[i].first;
-    //    const RelIter& it_end = tmp_sub_list[i].second;
-
-    //    scanner_list.push_back( RelScanner(new_relation, mem_idx, 1) );
-    //    scanner_list.back().set_begin(it);
-    //    scanner_list.back().set_end(it_end);
-    //}
-
-    //TinyTuple tmp = get_max(scanner_list);
-    //while (!tmp.is_null()) {
-    //    relation->push_back(tmp);
-    //    tmp = get_max(scanner_list);
-    //}
 
     HwMgr::ins()->drop_table(r->get_name());
     sub_list = new_sub_list;
@@ -1610,22 +1264,10 @@ TinyRelation* RelSorter::reduce_sub_list(TinyRelation* r, SubListType& sub_list)
 TinyTuple RelSorter::get_max(vector<RelScanner>& scanner_list)
 {
     assert(scanner_list.size() <= _mem_size);
-    //assert(_sorted_relation != NULL);
-    //assert (_mem_size >= _sub_list.size());
 
-    //vector<RelScanner> scanner_list;
-    //vector<size_t> scanner
-    //_sorted_relation->dump();
-    //size_t max_pos = 0;
-    //string search_name = _sorted_relation->get_attr_search_name(_attr);
-    //TinyTuple res = _sorted_relation->create_null_tuple();
-    //string search_name = r.get_attr_search_name(_attr);
-    //TinyTuple res = r.create_null_tuple();
     vector<string> search_name_list = _relation->get_attr_search_name_list(_attr_list);
-    //string search_name = _relation->get_attr_search_name(_attr);
     TinyTuple res = _relation->create_null_tuple();
     RelScanner* min_scanner = NULL;
-    //for (auto& scanner : *_scanner_list) {
     for (auto& scanner : scanner_list) {
         TinyTuple tmp = scanner.peep_next();
         if (tmp.is_null())
@@ -1634,21 +1276,17 @@ TinyTuple RelSorter::get_max(vector<RelScanner>& scanner_list)
         if (res.is_null()) {
             res = tmp;
             min_scanner = &scanner;
-        //} else if (tmp.is_less_than_by_attr(res, search_name)) {
         } else if (tmp.is_less_than_by_attr(res, search_name_list)) {
             res = tmp;
             min_scanner = &scanner;
         }
     }
 
-    //dump_normal(res);
-
     if (min_scanner != NULL) {
         min_scanner->get_next();
     }
 
     return res;
-    //return min_scanner->get_next();;
 }
 
 vector<RelScanner> RelSorter::get_scanner_list(TinyRelation* r, const SubListType& sub_list) const
@@ -1661,13 +1299,10 @@ vector<RelScanner> RelSorter::get_scanner_list(TinyRelation* r, const SubListTyp
         const RelIter& it = sub_list[i].first;
         const RelIter& it_end = sub_list[i].second;
 
-        //scanner_list.push_back( RelScanner(_sorted_relation, mem_idx, 1) );
         res.push_back( RelScanner(r, mem_idx, 1) );
         res.back().set_begin(it);
         res.back().set_end(it_end);
 
-        //_scanner_list->back().dump();
-        //cout << endl;
     }
 
     return res;
@@ -1692,7 +1327,6 @@ TinyRelation::~TinyRelation()
 
 void TinyRelation::set_pipe_queue()
 {
-    //cout << get_name() << "set pipe" << endl;
     _pipe_queue = new vector<TinyTuple>();
 }
 
@@ -1721,7 +1355,6 @@ void TinyRelation::push_back_block(const vector<TinyTuple>& tuples)
     assert(tuples.size() <= get_last_block_capacity());
 
     if (_pipe_queue != NULL) {
-        //_pipe_queue->push_back(tuple);
         add_into(*_pipe_queue, tuples);
         return;
     }
@@ -1761,20 +1394,6 @@ void TinyRelation::clear()
     _space.clear();
     reduce_blocks_to(0);
 }
-
-//void TinyRelation::set_with_prefix()
-//{
-//    _with_prefix = true;
-//    dump_normal(get_name());
-//    dump_normal(_with_prefix);
-//}
-//
-//bool TinyRelation::is_with_prefix() const
-//{
-//    dump_normal(get_name());
-//    dump_normal(_with_prefix);
-//    return _with_prefix;
-//}
 
 void TinyRelation::refresh_block_num()
 {
@@ -1830,7 +1449,7 @@ string TinyRelation::get_name() const
 
 string TinyRelation::get_base_name() const
 {
-    vector<string> toks = tokenize(get_name(), " ");
+    vector<string> toks = jjjj222::tokenize(get_name(), " ");
     
     return toks.back();
 }
@@ -1904,7 +1523,6 @@ vector<pair<string, DataType>> TinyRelation::get_attr_type_list_with_name() cons
         return get_attr_type_list();
     }
 
-    //vector<pair<string, DataType>> attr_list = get_tiny_schema().get_attr_type_list();
     vector<pair<string, DataType>> attr_list = get_attr_type_list();
     vector<pair<string, DataType>> res;
     string relation_base_name = get_base_name(); // TODO
@@ -1988,7 +1606,6 @@ size_t TinyRelation::get_last_block_capacity() const
     return tuple_per_block() - ((size() + _space.size()) % tuple_per_block()); 
 }
 
-//vector<pair<DataValue, pair<RelIter, RelIter>>> TinyRelation::get_sub_list_by_attr(
 vector<pair<DataValue, RelRange>> TinyRelation::get_sub_list_by_attr(
     const string& attr, size_t mem_idx) const
 {
@@ -1997,7 +1614,6 @@ vector<pair<DataValue, RelRange>> TinyRelation::get_sub_list_by_attr(
 
     string search_name = get_attr_search_name(attr);
 
-    //vector<pair<DataValue, pair<RelIter, RelIter>>> res; 
     vector<pair<DataValue, RelRange>> res; 
 
     RelIter iter = begin();
@@ -2019,10 +1635,7 @@ vector<pair<DataValue, RelRange>> TinyRelation::get_sub_list_by_attr(
         DataValue value = tuple.get_data_value(search_name);
 
         if (value != old_value) {
-            //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
             res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
-            //cout << old_value.dump_str() << " " << iter_end.dump_str() << " "
-            //    << iter.dump_str() << endl;
             old_value = value;
             iter_end = iter;
         }
@@ -2030,7 +1643,6 @@ vector<pair<DataValue, RelRange>> TinyRelation::get_sub_list_by_attr(
     }
 
     res.push_back( make_pair( old_value, RelRange(iter_end, iter)) );
-    //res.push_back( make_pair( old_value, make_pair(iter_end, iter)) );
 
     return res;
 }
@@ -2082,19 +1694,10 @@ void TinyRelation::dump() const
     table.add_row("# of blocks", tiny_dump_str(get_num_of_block()));
     table.add_row("tuple per block", tiny_dump_str(tuple_per_block()));
     table.add_row("_with_prefix", tiny_dump_str(_with_prefix));
-    //table.add_row("schema", get_tiny_schema().dump_str());
-    //cout << "name: " << get_name() << endl;
     cout << "schema: " << get_tiny_schema().dump_str() << endl;
-    //cout << "size: " << size() << endl; 
-    //cout << "num of block: " << get_num_of_block() << endl; 
-    //cout << "tuple per block: " << tuple_per_block() << endl; 
     cout << "_space" << jjjj222::dump_str(_space) << endl;
     table.draw();
 
-    //DrawTable t(2);
-    //t.add_row("name", get_name());
-    //t.add_row("schema", get_tiny_schema().dump_str());
-    //t.draw();
     if (is_pipe_queue()) { 
         cout << "_pipe_queue" << endl;
         print_table();
@@ -2123,26 +1726,16 @@ void TinyRelation::dump_tuples() const
     size_t num_of_block = get_num_of_block();
     for (size_t i = 0; i < num_of_block; ++i) {
         _relation->getBlock(i, mem_index);
-        //Block* block = HwMgr::ins()->get_mem_block(mem_index);
         TinyBlock tiny_block = HwMgr::ins()->get_mem_block(mem_index);
-        //vector<Tuple> tuples = block->getTuples();
-        //vector<Tuple> tuples = tiny_block.get_tuples();
         vector<TinyTuple> tuples = tiny_block.get_tiny_tuples();
-        //for (const auto& tuple : tuples) {
         for (size_t j = 0; j < tuples.size(); ++j) {
-            //const Tuple& tuple = tuples[j];
             const TinyTuple& tuple = tuples[j];
 
             vector<string> row = {jjjj222::dump_str(i), jjjj222::dump_str(j)};
-            //cout << i << "-" << j;
-            //if (tuple.isNull()) {
             if (tuple.is_null()) {
-                //cout << "<delete>" << endl;
                 row.push_back("D");
             } else {
                 row.push_back("");
-                //dump_normal(TinyTuple(tuple));
-                //dump_normal(tuple);
                 add_into(row, tuple.get_str_list());
             }
             table.add_row(row);
@@ -2156,14 +1749,6 @@ string TinyRelation::dump_str() const
 {
     string tmp = get_name();
     tmp += " ";
-    //tmp += dump_str(get_tiny_schema());
     tmp += get_tiny_schema().dump_str();
-    //cout << "The table has name " << relation.getRelationName() << endl;
-    //dump_normal(relation.getRelationName());
-    //cout << "The table has schema:" << endl;
-    //cout << relation.getSchema() << endl;
-    //cout << "The table currently have " << relation.getNumOfBlocks() << " blocks" << endl;
-    //cout << "The table currently have " << relation.getNumOfTuples() << " tuples" << endl << endl;
-    //cout << relation << endl;
     return tmp;
 }

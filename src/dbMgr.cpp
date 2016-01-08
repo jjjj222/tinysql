@@ -1,14 +1,19 @@
-#include <iostream>
-#include <iterator>
-#include <cassert>
+//#include <iostream>
+//#include <iterator>
+//#include <cassert>
 
-using namespace std;
+//using namespace std;
 
 #include "debug.h"
 #include "util.h"
 #include "obj_util.h"
 
-using namespace jjjj222;
+using jjjj222::DrawTable;
+using jjjj222::add_into;
+using jjjj222::delete_pos;
+using jjjj222::delete_all;
+using jjjj222::delete_not_null;
+using jjjj222::error_msg;
 
 #include "Block.h"
 #include "Config.h"
@@ -156,17 +161,6 @@ TinyRelation* HwMgr::create_tmp_relation(TinyRelation* r1, TinyRelation* r2) // 
     vector<pair<string, DataType>> attr_type_list;
     add_into(attr_type_list, r1->get_attr_type_list_with_name());
     add_into(attr_type_list, r2->get_attr_type_list_with_name());
-    //if (r1->is_with_prefix()) {
-    //    add_into(attr_type_list, r1->get_attr_type_list());
-    //} else {
-    //    add_into(attr_type_list, r1->get_attr_type_list_with_name());
-    //}
-
-    //if (r2->is_with_prefix()) {
-    //    add_into(attr_type_list, r2->get_attr_type_list());
-    //} else {
-    //    add_into(attr_type_list, r2->get_attr_type_list_with_name());
-    //}
 
     string name;
     name += r1->get_name();
@@ -179,7 +173,6 @@ TinyRelation* HwMgr::create_tmp_relation(TinyRelation* r1, TinyRelation* r2) // 
 
 bool HwMgr::create_table(const string& name, const vector<pair<string, DataType>>& attribute_type_list)
 {
-    //if (is_table_exist(name)) {
     if (get_tiny_relation(name) != NULL) {
         error_msg("Table '" + name + "' already exists");
         return false;
@@ -255,25 +248,19 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
 
     size_t mem_index = 0;
     size_t num_of_block = relation->get_num_of_block();
-    //size_t tuple_count = 0;
     for (size_t i = 0; i < num_of_block; ++i) {
         size_t disk_index = i;
         relation->load_block_to_mem(disk_index, mem_index);
         TinyBlock tiny_block = HwMgr::ins()->get_mem_block(mem_index);
-        //Block* block = HwMgr::ins()->get_mem_block(mem_index);
-        //TinyBlock tiny_block(block);
 
-        //vector<Tuple> tuples = block->getTuples();
         vector<Tuple> tuples = tiny_block.get_tuples();
         bool is_delete = false;
         for (size_t j = 0; j < tuples.size(); ++j) {
             const Tuple& tuple = tuples[j];
 
             if (!tuple.isNull()) {
-                //tuple_count++;
                 if (cond_mgr.is_tuple_match(tuple)) {
                     is_delete = true;
-                    //block->nullTuple(j);
                     tiny_block.null_tuple(j);
                     relation->add_space(i, j);
                 }
@@ -289,16 +276,6 @@ bool HwMgr::delete_from(const string& name, tree_node_t* where_node)
 
     return true;
 }
-
-//bool HwMgr::is_table_exist(const string& name) const
-//{
-//    for (const auto& r : _relations) {
-//        if (r->get_name() == name) {
-//            return true;
-//        }
-//    }
-//    return false;
-//}
 
 Relation* HwMgr::get_relation(const string& name) const
 {
@@ -327,13 +304,6 @@ double HwMgr::get_elapse_time()
 void HwMgr::print_tables()
 {
     DrawTable table(1, DrawTable::MYSQL_TABLE);
-    //table.set_align_right(i);
-    //vector<DataType> type_list = get_type_list();
-    //for (size_t i = 0; i < type_list.size(); ++i) {
-    //    if (type_list[i] == TINY_INT) {
-    //        table.set_align_right(i);
-    //    }
-    //}
 
     vector<string> header;
     header.push_back("Tables_in_tinysql");
@@ -354,7 +324,6 @@ void HwMgr::print_tables()
         cout << " in set";
     }
 
-    //cout << " (" << get_elapse_io() << " disk I/O)"<< endl;
     cout << " (" << get_elapse_io() << " disk I/O), ";
     cout << get_elapse_time() << " ms)"<< endl;
 }
@@ -398,7 +367,7 @@ void HwMgr::dump_memory() const
 
 void HwMgr::dump_relations() const
 {
-    dump_print(_relations);
+    jjjj222::dump_print(_relations);
 }
 
 void HwMgr::dump_relation(const string& name) const
@@ -415,6 +384,5 @@ void HwMgr::dump_relation(const string& name) const
 void HwMgr::dump_io()
 {
     cout << "io: " << get_elapse_io() << endl;
-        //size_t get_elapse_io();
 }
 
