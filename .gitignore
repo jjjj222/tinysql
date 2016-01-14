@@ -7,7 +7,9 @@ src/lex.yy.c
 src/lex.yy.h
 src/y.tab.c
 src/y.tab.h
-db_sim_api/
+db_sim_api/TestStorageManager
+db_sim_api/TestStorageManager.dSYM/
+db_sim_api/StorageManager.o
 src/obj_util.cpp
 src/obj_util.h
 tmp/
