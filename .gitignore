@@ -8,7 +8,6 @@ src/lex.yy.h
 src/y.tab.c
 src/y.tab.h
 db_sim_api/
-include/
 src/obj_util.cpp
 src/obj_util.h
 tmp/
