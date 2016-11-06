@@ -258,7 +258,7 @@ class RelWriter
 
     private:
         TinyRelation*       _relation;
-        size_t              _mem_idx;
+        //size_t              _mem_idx;
         vector<TinyTuple>   _tuples;
 };
 

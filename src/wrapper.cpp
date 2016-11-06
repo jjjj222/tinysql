@@ -765,7 +765,7 @@ string RelRange::dump_str() const
 //------------------------------------------------------------------------------
 RelWriter::RelWriter(TinyRelation* r)
 : _relation(r)
-, _mem_idx(0)
+//, _mem_idx(0)
 {
     assert(_relation != NULL);
 }
