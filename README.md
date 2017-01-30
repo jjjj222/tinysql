@@ -1,4 +1,4 @@
-It's a course project to implement a Database Management System (DBMS) to process Tiny-SQL (a subset of SQL) quries.
+It's a course project to implement a Relational Database Management System (RDBMS) to process Tiny-SQL (a subset of SQL) queries.
 It runs on a simulated hardware with very limited memory resources and long disk access time, in order to
 differentiate optimized and un-optimized quries.
 
